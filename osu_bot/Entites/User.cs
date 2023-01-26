@@ -16,6 +16,6 @@ namespace osu_bot.Entites
         public string PlayTime { get; set; }
         public int PlayCount { get; set; }
 
-        public string Avatar { get; set; }
+        public string AvatarUrl { get; set; }
     }
 }
