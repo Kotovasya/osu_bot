@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace osu_bot
 {
@@ -59,6 +60,24 @@ namespace osu_bot
 
             path.CloseFigure();
             return path.GetBounds();
+        }
+
+        public static string Separate(this int number, string separator)
+        {
+            NumberFormatInfo format = new()
+            {
+                NumberGroupSeparator = separator
+            };
+            return number.ToString("N", format)[..^3];
+        }
+
+        public static Image Darkening(this Image image, int alpha) 
+        {
+            Rectangle r = new Rectangle(0, 0, image.Width, image.Height);
+            using Graphics g = Graphics.FromImage(image);
+            using Brush cloud_brush = new SolidBrush(Color.FromArgb(alpha, Color.Black));
+            g.FillRectangle(cloud_brush, r);
+            return image;
         }
     }
 }

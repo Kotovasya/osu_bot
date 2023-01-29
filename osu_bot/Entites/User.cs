@@ -15,7 +15,7 @@ namespace osu_bot.Entites
         public int CountryRating { get; set; }
         public string PlayTime { get; set; }
         public int PlayCount { get; set; }
-
+        public string CountryCode { get; set; }
         public string AvatarUrl { get; set; }
     }
 }
