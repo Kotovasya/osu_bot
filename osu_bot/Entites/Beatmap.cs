@@ -13,12 +13,8 @@ namespace osu_bot.Entites
         public string DifficultyName { get; set; }
         public string CoverUrl { get; set; }
         public string Status { get; set; }
-        public int BPM { get; set; }
-        public string Author { get; set; }
-        public double CS { get; set; }
-        public double AR { get; set; }
-        public double OD { get; set; }
-        public double HP { get; set; }
+        public string SongAuthor { get; set; }
+        public User Mapper { get; set; }
         public BeatmapAttribute Attributes { get; set; }
     }
 
@@ -26,5 +22,10 @@ namespace osu_bot.Entites
     {
         public double Stars { get; set; }
         public int MaxCombo { get; set; }
+        public int BPM { get; set; }
+        public double CS { get; set; }
+        public double AR { get; set; }
+        public double OD { get; set; }
+        public double HP { get; set; }
     }
 }

@@ -64,7 +64,7 @@ namespace osu_bot.API.Queries
                         CoverUrl = (string)jsonScore["beatmapset"]["covers"]["cover@2x"],
                         BPM = (int)jsonScore["beatmap"]["bpm"],
                         Status = (string)jsonScore["beatmap"]["status"],
-                        Author = (string)jsonScore["beatmapset"]["creator"],
+                        SongAuthor = (string)jsonScore["beatmapset"]["creator"],
                         CS = (double)jsonScore["beatmap"]["cs"],
                         AR = (double)jsonScore["beatmap"]["ar"],
                         OD = (double)jsonScore["beatmap"]["accuracy"],

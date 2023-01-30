@@ -36,7 +36,16 @@ namespace osu_bot
                     SongName = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
                     DifficultyName = "Insane",
                     CoverUrl = "https://assets.ppy.sh/beatmaps/968171/covers/cover@2x.jpg?1645788271",
-                    Attributes = new() { MaxCombo = 540, Stars = 6.54 }
+                    Attributes = new() 
+                    { 
+                        MaxCombo = 540, 
+                        Stars = 6.54,
+                        CS = 3.6,
+                        AR = 10.33,
+                        OD = 10,
+                        HP = 4.8,
+                        BPM = 279,
+                    }
                 },
                 User = new()
                 {
