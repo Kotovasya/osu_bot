@@ -14,16 +14,19 @@ namespace osu_bot.Images
     public class ImageGenerator
     {
         private readonly Font Montserrat20 = new("Montserrat", 20);
+        private readonly Font Montserrat15 = new("Montserrat", 15);
+        private readonly Font MontserratBold15 = new("Montserrat", 15, FontStyle.Bold);
         private readonly Font Montserrat14 = new("Montserrat", 14);
         private readonly Font MontserratBold14 = new("Montserrat", 14, FontStyle.Bold);
         private readonly Font Montserrat11 = new("Montserrat", 11);
+        private readonly Font MontserratBold11 = new("Montserrat", 11, FontStyle.Bold);
 
         private readonly Font MontserratLightBold15 = new("Montserrat Light", 15, FontStyle.Bold);
         private readonly Font MontserratLightBold14 = new("Montserrat Light", 14, FontStyle.Bold);
         private readonly Font MontserratLight11 = new("Montserrat Light", 11);
         private readonly Font MontserratLightBold11 = new("Montserrat Light", 11, FontStyle.Bold);
 
-        private readonly SolidBrush BackgroundBrush = new(Color.FromArgb(63, 64, 69));
+        private readonly SolidBrush BackgroundBrush = new(Color.FromArgb(33, 34, 39));
         private readonly SolidBrush WhiteBrush = new(Color.White);
         private readonly SolidBrush Brush300 = new(Color.FromArgb(119, 197, 237));
         private readonly SolidBrush Brush100 = new(Color.FromArgb(119, 237, 138));
@@ -111,21 +114,57 @@ namespace osu_bot.Images
             using var avatarImgStream = new MemoryStream(WebClient.DownloadData(score.User.AvatarUrl));
             using var backgroundImgStream = new MemoryStream(WebClient.DownloadData(score.Beatmap.CoverUrl));
 
-            g.DrawImage(Image.FromStream(avatarImgStream).Darkening(64), 0, 0, 204, 204);
-            g.DrawImage(Image.FromStream(backgroundImgStream).Darkening(64), 204, 0, 876, 204);
+            g.DrawImage(Image.FromStream(avatarImgStream).Darkening(128), 0, 0, 204, 204);
+            g.DrawImage(Image.FromStream(backgroundImgStream).Darkening(128), 204, 0, 876, 204);
 
+            #region avatar
             g.DrawString($"#{score.User.WorldRating}", MontserratBold14, WhiteBrush, 5, 5);
-            g.DrawString($"({score.User.CountryCode} #{score.User.CountryRating})", MontserratLightBold14, WhiteBrush, 5, 30);
+            g.DrawString($"({score.User.CountryCode} #{score.User.CountryRating})", MontserratLightBold11, WhiteBrush, 5, 30);
 
             g.DrawString(score.User.Name, MontserratBold14, WhiteBrush, 5, 155);
-            g.DrawString($"{score.User.PP.Separate(".")}pp", MontserratLightBold14, WhiteBrush, 5, 180);
+            g.DrawString($"{score.User.PP.Separate(".")}pp", MontserratLightBold11, WhiteBrush, 5, 180);
+            #endregion
 
-            g.DrawString($"{score.Beatmap.SongName} - {score.Beatmap.SongAuthor} [{score.Beatmap.DifficultyName}]", MontserratLightBold15, WhiteBrush, 220, 5);
-            g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", MontserratLightBold14, WhiteBrush, 220, 30);
+            #region map
+            g.DrawString($"{score.Beatmap.SongName} - {score.Beatmap.SongAuthor} [{score.Beatmap.DifficultyName}]", Montserrat15, WhiteBrush, 220, 5);
+            g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", MontserratLightBold11, WhiteBrush, 220, 30);
 
-            g.DrawString("CS:", MontserratLight11, WhiteBrush, 220, 180);
-            var x = 220 + g.MeasureString($"{score.Accuracy}%", MontserratLight11).Width;
-            g.DrawString();
+            g.DrawString("CS:", Montserrat11, WhiteBrush, 220, 180);
+            var x = 220 + g.MeasureString($"CS:", Montserrat11).Width;
+            g.DrawString(score.Beatmap.Attributes.CS.ToString(), MontserratBold11, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.CS.ToString(), MontserratBold11).Width;
+
+            g.DrawString("AR:", Montserrat11, WhiteBrush, x, 180);
+            x += g.MeasureString("AR:", Montserrat11).Width;
+            g.DrawString(score.Beatmap.Attributes.AR.ToString(), MontserratBold11, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.AR.ToString(), MontserratBold11).Width;
+
+            g.DrawString("OD:", Montserrat11, WhiteBrush, x, 180);
+            x += g.MeasureString("OD:", Montserrat11).Width;
+            g.DrawString(score.Beatmap.Attributes.OD.ToString(), MontserratBold11, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.OD.ToString(), MontserratBold11).Width;
+
+            g.DrawString("HP:", Montserrat11, WhiteBrush, x, 180);
+            x += g.MeasureString("HP:", Montserrat11).Width;
+            g.DrawString(score.Beatmap.Attributes.HP.ToString(), MontserratBold11, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.HP.ToString(), MontserratBold11).Width;
+
+            g.DrawString("BPM:", Montserrat11, WhiteBrush, x, 180);
+            x += g.MeasureString("BPM:", Montserrat11).Width;
+            g.DrawString(score.Beatmap.Attributes.BPM.ToString(), MontserratBold11, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.BPM.ToString(), MontserratBold11).Width;
+
+            g.DrawString("Stars:", Montserrat11, WhiteBrush, x, 180);
+            x += g.MeasureString("Stars:", Montserrat11).Width;
+            g.DrawString($"{score.Beatmap.Attributes.Stars} ★", MontserratBold11, WhiteBrush, x, 180);
+            #endregion
+
+            #region score
+            g.DrawString("Rank", MontserratBold15, LightGrayBrush, 30, 224);
+            x = (30 + g.MeasureString("Rank", MontserratBold15).Width / 2) - 24;
+            var rankImage = (Image)Resources.ResourceManager.GetObject($"{score.Rank}");
+            g.DrawImage(rankImage, x, 250, 48, 24);
+            #endregion
             return result;
         }
     }

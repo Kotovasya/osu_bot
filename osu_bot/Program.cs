@@ -31,6 +31,7 @@ namespace osu_bot
                 Count300 = 411,
                 Count100 = 4,
                 Count50 = 0,
+                Rank = "S",
                 Beatmap = new()
                 {
                     SongName = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
@@ -45,6 +46,10 @@ namespace osu_bot
                         OD = 10,
                         HP = 4.8,
                         BPM = 279,
+                    },
+                    Mapper = new()
+                    {
+                        Name = "Log Off Now"
                     }
                 },
                 User = new()

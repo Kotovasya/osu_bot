@@ -62,13 +62,13 @@ namespace osu_bot.API.Queries
                         SongName = $"{jsonScore["beatmapset"]["artist"]} - {jsonScore["beatmapset"]["title"]}",
                         DifficultyName = (string)jsonScore["beatmap"]["version"],
                         CoverUrl = (string)jsonScore["beatmapset"]["covers"]["cover@2x"],
-                        BPM = (int)jsonScore["beatmap"]["bpm"],
+                        //BPM = (int)jsonScore["beatmap"]["bpm"],
                         Status = (string)jsonScore["beatmap"]["status"],
                         SongAuthor = (string)jsonScore["beatmapset"]["creator"],
-                        CS = (double)jsonScore["beatmap"]["cs"],
-                        AR = (double)jsonScore["beatmap"]["ar"],
-                        OD = (double)jsonScore["beatmap"]["accuracy"],
-                        HP = (double)jsonScore["beatmap"]["drain"],
+                        //CS = (double)jsonScore["beatmap"]["cs"],
+                        //AR = (double)jsonScore["beatmap"]["ar"],
+                        //OD = (double)jsonScore["beatmap"]["accuracy"],
+                        //HP = (double)jsonScore["beatmap"]["drain"],
                     },
                 };
                 scores.Add(score);
