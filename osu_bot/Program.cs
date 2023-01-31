@@ -48,6 +48,7 @@ namespace osu_bot
                         OD = 10,
                         HP = 4.8,
                         BPM = 279,
+                        Length = 54,
                     },
                     Mapper = new()
                     {

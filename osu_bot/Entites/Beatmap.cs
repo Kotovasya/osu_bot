@@ -27,5 +27,6 @@ namespace osu_bot.Entites
         public double AR { get; set; }
         public double OD { get; set; }
         public double HP { get; set; }
+        public int Length { get; set; }
     }
 }
