@@ -22,15 +22,17 @@ namespace osu_bot
 
             BeatmapScore bs = new BeatmapScore()
             {
-                MaxCombo = 540,
-                Accuracy = 99.45,
+                MaxCombo = 251,
+                Accuracy = 98.35,
+                Score = 1188308,
                 Date = DateTime.Parse("2022-12-18T12:36:27Z"),
                 Mods = Mods.DT | Mods.HD,
-                PP = 340,
+                PP = 270,
                 CountMisses = 0,
-                Count300 = 411,
+                Count300 = 158,
                 Count100 = 4,
                 Count50 = 0,
+                Complition = 100.00,
                 Rank = "S",
                 Beatmap = new()
                 {
@@ -39,7 +41,7 @@ namespace osu_bot
                     CoverUrl = "https://assets.ppy.sh/beatmaps/968171/covers/cover@2x.jpg?1645788271",
                     Attributes = new() 
                     { 
-                        MaxCombo = 540, 
+                        MaxCombo = 251, 
                         Stars = 6.54,
                         CS = 3.6,
                         AR = 10.33,

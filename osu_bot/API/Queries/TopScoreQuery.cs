@@ -45,7 +45,7 @@ namespace osu_bot.API.Queries
                 BeatmapScore score = new()
                 {
                     Id = (long)jsonScore["best_id"],
-                    Score = (ulong)jsonScore["score"],
+                    Score = (int)jsonScore["score"],
                     Accuracy = Math.Round((double)jsonScore["accuracy"] * 100, 2),
                     Date = DateTime.Parse((string)jsonScore["created_at"]),
                     MaxCombo = (int)jsonScore["max_combo"],

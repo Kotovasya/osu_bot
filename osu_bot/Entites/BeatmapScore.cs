@@ -9,7 +9,7 @@ namespace osu_bot.Entites
     public class BeatmapScore
     {
         public long Id { get; set; }
-        public ulong Score { get; set; }
+        public int Score { get; set; }
         public double Accuracy { get; set; }
         public DateTime Date { get; set; }
         public int MaxCombo { get; set; }
@@ -18,6 +18,7 @@ namespace osu_bot.Entites
         public int Count100 { get; set; }
         public int Count300 { get; set; }
         public int CountMisses { get; set; }
+        public double Complition { get; set; }
         public string Rank { get; set; }
         public Mods Mods { get; set; }
         public Beatmap Beatmap { get; set; }

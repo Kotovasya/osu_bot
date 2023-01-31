@@ -13,6 +13,21 @@ namespace osu_bot.Images
 {
     public class ImageGenerator
     {
+        private readonly Font Arista = new("Arista 2.0", 36);
+        private readonly Dictionary<string, SolidBrush> RankBrushes = new()
+        {
+            {"SSH", new SolidBrush(Color.FromArgb(213, 213, 213)) },
+            {"SS", new SolidBrush(Color.FromArgb(255, 217, 37)) },
+            {"SH", new SolidBrush(Color.FromArgb(213, 213, 213)) },
+            {"S", new SolidBrush(Color.FromArgb(255, 217, 37)) },
+            {"A", new SolidBrush(Color.FromArgb(73, 255, 37)) },
+            {"B", new SolidBrush(Color.FromArgb(44, 39, 255)) },
+            {"C", new SolidBrush(Color.FromArgb(211, 37, 255)) },
+            {"D", new SolidBrush(Color.FromArgb(255, 37, 37)) },
+            {"F", new SolidBrush(Color.FromArgb(122, 122, 122)) }
+        };
+
+        private readonly Font Montserrat22 = new("Montserrat", 22);
         private readonly Font Montserrat20 = new("Montserrat", 20);
         private readonly Font Montserrat15 = new("Montserrat", 15);
         private readonly Font MontserratBold15 = new("Montserrat", 15, FontStyle.Bold);
@@ -87,28 +102,21 @@ namespace osu_bot.Images
             x = width - 5 - g.MeasureString($"{score.PP} PP", Montserrat20).Width;
             g.DrawString($"{score.PP} PP", Montserrat20, WhiteBrush, x, 10);
 
-            if (score.Mods != Mods.NM)
-            {
-                var mods = score.Mods.ToString().Split(", ");
-                for (int i = 0; i < mods.Length; i++)
-                {
-                    x = width - 50 * (i + 1);
-                    var modFile = (Image)Resources.ResourceManager.GetObject($"{mods[i]}");
-                    g.DrawImage(modFile, x, 59);
-                }
-            }
+            var modsImage = ModsParser.ConvertToImage(score.Mods);
+            g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
+
             return result;
         }
 
         public Image CreateFullCard(BeatmapScore score)
         {
             int width = 1080;
-            int height = 406;
+            int height = 376;
 
             Image result = new Bitmap(width, height);
             var g = Graphics.FromImage(result);
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             g.FillRectangle(BackgroundBrush, 0, 0, width, height);
 
             using var avatarImgStream = new MemoryStream(WebClient.DownloadData(score.User.AvatarUrl));
@@ -159,11 +167,135 @@ namespace osu_bot.Images
             g.DrawString($"{score.Beatmap.Attributes.Stars} ★", MontserratBold11, WhiteBrush, x, 180);
             #endregion
 
-            #region score
-            g.DrawString("Rank", MontserratBold15, LightGrayBrush, 30, 224);
-            x = (30 + g.MeasureString("Rank", MontserratBold15).Width / 2) - 24;
-            var rankImage = (Image)Resources.ResourceManager.GetObject($"{score.Rank}");
-            g.DrawImage(rankImage, x, 250, 48, 24);
+            #region score line 1
+            x = 30;
+            g.DrawString("Rank", MontserratBold15, LightGrayBrush, x, 224);
+            var stringLength = g.MeasureString("Rank", MontserratBold15).Width;
+            string drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
+            var centerX = x + stringLength / 2 - g.MeasureString(drawableString, Arista).Width / 2;
+            g.DrawString(drawableString, Arista, RankBrushes[score.Rank], centerX, 240);
+            x = x + 130 + stringLength;
+            
+            g.DrawString("Performance", MontserratBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Performance", MontserratBold15).Width;
+            drawableString = $"{score.PP}PP";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
+            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            x = x + 130 + stringLength;         
+
+            g.DrawString("Combo", MontserratBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Combo", MontserratBold15).Width;
+            drawableString = $"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
+            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            x = x + 130 + stringLength;
+            
+            g.DrawString("Accuracy", MontserratBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Accuracy", MontserratBold15).Width;
+            drawableString = $"{score.Accuracy:F2}%";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
+            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            x = x + 130 + stringLength;
+            
+            g.DrawString("Mods", MontserratBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Mods", MontserratBold15).Width;
+            var modsImage = ModsParser.ConvertToImage(score.Mods);
+            centerX = x + stringLength / 2 - modsImage.Width / 2;
+            g.DrawImage(modsImage, centerX, 250);
+            #endregion
+
+            #region score line 2
+            x = 30;
+            g.DrawString("Score", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Score", MontserratBold11).Width;
+            drawableString = score.Score.Separate(".");
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 70 + stringLength;
+
+            g.DrawString("Completion", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Completion", MontserratBold11).Width;
+            drawableString = $"{score.Complition:F2}%";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 70 + stringLength;
+
+            g.DrawString("For FC", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("For FC", MontserratBold11).Width;
+            drawableString = "270pp";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 20 + stringLength;
+
+            g.DrawString("95%", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("95%", MontserratBold11).Width;
+            drawableString = "225";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 10 + stringLength;
+
+            g.DrawString("97%", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("97%", MontserratBold11).Width;
+            drawableString = "249";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 10 + stringLength;
+
+            g.DrawString("98%", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("98%", MontserratBold11).Width;
+            drawableString = "262";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 10 + stringLength;
+
+            g.DrawString("99%", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("99%", MontserratBold11).Width;
+            drawableString = "288";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 10 + stringLength;
+
+            g.DrawString("100%", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("100%", MontserratBold11).Width;
+            drawableString = "329";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+            x = x + 70 + stringLength;
+
+            g.DrawString("300", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("300", MontserratBold11).Width;
+            drawableString = score.Count300.ToString();
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, Brush300, centerX, 350);
+            x = x + 5 + stringLength;
+
+            g.DrawString("100", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("100", MontserratBold11).Width;
+            drawableString = score.Count100.ToString();
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, Brush100, centerX, 350);
+            x = x + 5 + stringLength;
+
+            g.DrawString("50", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("50", MontserratBold11).Width;
+            drawableString = score.Count50.ToString();
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, Brush50, centerX, 350);
+            x = x + 5 + stringLength;
+
+            g.DrawString("X", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("X", MontserratBold11).Width;
+            drawableString = score.CountMisses.ToString();
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, BrushMisses, centerX, 350);
+
+            x = width - 140;
+            g.DrawString("Played on", MontserratBold11, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Played on", MontserratBold11).Width;
+            drawableString = score.Date.ToShortDateString();
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat11).Width / 2;
+            g.DrawString(drawableString, Montserrat11, WhiteBrush, centerX, 350);
+
             #endregion
             return result;
         }
