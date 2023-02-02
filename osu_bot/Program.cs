@@ -10,6 +10,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using static System.Formats.Asn1.AsnWriter;
+using User = osu_bot.Entites.User;
 
 namespace osu_bot
 {
@@ -19,7 +20,19 @@ namespace osu_bot
         {
             //BotHandle bot = new BotHandle();
             //await bot.Run();
-
+            User u = new Entites.User()
+            {
+                Name = "Kotovasya",
+                AvatarUrl = "https://a.ppy.sh/15833700?1673169745.jpeg",
+                CountryCode = "BY",
+                WorldRating = 29345,
+                CountryRating = 101,
+                PP = 6212,
+                PlayCount = 88432,
+                PlayTime = "50d 12h 39m 8s",
+                DateRegistration = "28.12.2020",
+                LastOnline = "3 hour ago",
+            };
             BeatmapScore bs = new BeatmapScore()
             {
                 MaxCombo = 251,
@@ -33,7 +46,7 @@ namespace osu_bot
                 Count100 = 4,
                 Count50 = 0,
                 Complition = 100.00,
-                Rank = "S",
+                Rank = "F",
                 Beatmap = new()
                 {
                     SongName = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
@@ -65,8 +78,10 @@ namespace osu_bot
                     PP = 6212,
                 }
             };
-            Image image = new ImageGenerator().CreateFullCard(bs);
-            image.Save("TestFullCard.png");
+            ImageGenerator ig = new ImageGenerator();
+            //ig.CreateSmallCard(bs).Save("TestSmallCard.png");
+            //ig.CreateFullCard(bs).Save("TestFullCard.png");
+            ig.CreateProfileCard(u).Save("TestProfileCard.png");
         }
     }
 }

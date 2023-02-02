@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -13,6 +14,7 @@ namespace osu_bot.Images
 {
     public class ImageGenerator
     {
+        private readonly Font Arista48 = new Font("Arista 2.0", 48);
         private readonly Font Arista36 = new("Arista 2.0", 36);
         private readonly Dictionary<string, SolidBrush> RankBrushes = new()
         {
@@ -24,23 +26,26 @@ namespace osu_bot.Images
             {"B", new SolidBrush(Color.FromArgb(44, 39, 255)) },
             {"C", new SolidBrush(Color.FromArgb(211, 37, 255)) },
             {"D", new SolidBrush(Color.FromArgb(255, 37, 37)) },
-            {"F", new SolidBrush(Color.FromArgb(122, 122, 122)) }
+            {"F", new SolidBrush(Color.FromArgb(180, 180, 180)) }
         };
 
-        private readonly Font Montserrat22 = new("Montserrat", 22);
-        private readonly Font Montserrat20 = new("Montserrat", 20);
-        private readonly Font Montserrat15 = new("Montserrat", 15);
-        private readonly Font MontserratBold15 = new("Montserrat", 15, FontStyle.Bold);
-        private readonly Font Montserrat14 = new("Montserrat", 14);
-        private readonly Font MontserratBold14 = new("Montserrat", 14, FontStyle.Bold);
-        private readonly Font Montserrat13 = new("Montserrat", 13);
-        private readonly Font MontserratBold13 = new("Montserrat", 13);
+        private readonly Font Rubik22 = new("Rubik", 22);
+        private readonly Font Rubik20 = new("Rubik", 20);
+        private readonly Font Rubik17 = new("Rubik", 17);
+        private readonly Font Rubik15 = new("Rubik", 15);
+        private readonly Font Rubik14 = new("Rubik", 14);
+        private readonly Font Rubik13 = new("Rubik", 13);
+        private readonly Font Rubik11 = new("Rubik", 11);
+        
 
-        private readonly Font MontserratLightBold15 = new("Montserrat Light", 15, FontStyle.Bold);
-        private readonly Font MontserratLightBold14 = new("Montserrat Light", 14, FontStyle.Bold);
-        private readonly Font MontserratLight11 = new("Montserrat Light", 11);
-        private readonly Font MontserratLightBold11 = new("Montserrat Light", 11, FontStyle.Bold);
+        private readonly Font RubikBold15 = new("Rubik Medium", 15);
+        private readonly Font RubikBold14 = new("Rubik Medium", 14);
+        private readonly Font RubikBold13 = new("Rubik Medium", 13);
+        private readonly Font RubikBold11 = new("Rubik", 11, FontStyle.Bold);
 
+        private readonly Font RubikLightBold11 = new("Rubik Light", 11, FontStyle.Bold);
+
+        private readonly SolidBrush BackgroundLightBrush = new(Color.FromArgb(66, 68, 78));
         private readonly SolidBrush BackgroundBrush = new(Color.FromArgb(33, 34, 39));
         private readonly SolidBrush WhiteBrush = new(Color.White);
         private readonly SolidBrush Brush300 = new(Color.FromArgb(119, 197, 237));
@@ -50,6 +55,29 @@ namespace osu_bot.Images
         private readonly SolidBrush LightGrayBrush = new(Color.FromArgb(154, 160, 174));
 
         private readonly WebClient WebClient = new();
+
+        private string GetPlayedTimeString(DateTime date)
+        {
+            var diff = DateTime.Now - date;
+            if (diff.Days > 0)
+            {
+                if (diff.Days <= 7)
+                    return diff.Days == 1 ? "1 day ago" : $"{diff.Days} days ago";
+                else
+                    return date.ToString("dd MMMM yyyy г.");
+            }
+
+            if (diff.Hours > 0)
+                return diff.Hours == 1 ? "1 hour ago" : $"{diff.Hours} hours ago";
+
+            if (diff.Minutes > 0)
+                return diff.Minutes == 1 ? "1 minute ago" : $"{diff.Minutes} minutes ago";
+
+            if (diff.Seconds < 30)
+                return "few seconds ago";
+
+            return $"{diff.Seconds} seconds ago";
+        }
 
         public Image CreateSmallCard(BeatmapScore score)
         {
@@ -66,41 +94,51 @@ namespace osu_bot.Images
             image = Image.FromStream(imgStream);
 
             g.FillRectangle(BackgroundBrush, 0, 0, width, height);
-            RectangleF frame = new Rectangle(10, 10, 146, 90);
+
+            var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
+            g.DrawString(drawableString, Arista48, RankBrushes[score.Rank], 10, 20);
+            var leftIndent = 20 + g.MeasureString(drawableString, Arista48).Width;
+
+            RectangleF frame = new Rectangle((int)leftIndent, 14, 146, 90);
             RectangleF imageFrame = new Rectangle(image.Width / 2 - 406, image.Height / 2 - 250, 812, 500);
             g.DrawImage(image, frame, imageFrame, GraphicsUnit.Pixel);
-            g.DrawString(score.Beatmap.SongName, MontserratLightBold15, WhiteBrush, 165, 10);
-            g.DrawString($"Played by {score.User.Name} on {score.Date.ToShortDateString()}", MontserratLightBold11, LightGrayBrush, 165, 35);
-            g.DrawString($"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars} ★", MontserratLightBold11, LightGrayBrush, 165, 55);
+            var x = leftIndent + 155;
+            g.DrawString(score.Beatmap.SongName, Rubik15, WhiteBrush, x, 10);
+            g.DrawString($"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}", Rubik11, LightGrayBrush, x, 35);
+            g.DrawString($"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars}", Rubik11, LightGrayBrush, x, 55);
+            x += g.MeasureString($"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars}", Rubik11).Width;
+            g.DrawString("★", RubikBold11, LightGrayBrush, x, 55);
 
-            g.DrawString($"{score.Accuracy}%", Montserrat13, WhiteBrush, 165, 85);
-            var x = 165 + 10 + g.MeasureString($"{score.Accuracy}%", Montserrat13).Width;
+            x = leftIndent + 155;
 
-            g.DrawString($"{score.MaxCombo}/{score.Beatmap.Attributes.MaxCombo}", Montserrat13, WhiteBrush, x, 85);
-            x = x + 10 + g.MeasureString($"{score.MaxCombo}/{score.Beatmap.Attributes.MaxCombo}", Montserrat13).Width;
+            g.DrawString($"{score.Accuracy}%", Rubik13, WhiteBrush, x, 85);
+            x = x + 10 + g.MeasureString($"{score.Accuracy}%", Rubik13).Width;
 
-            g.DrawString(score.Count300.ToString(), Montserrat13, Brush300, x, 85);
-            x += g.MeasureString(score.Count300.ToString(), Montserrat13).Width;
+            g.DrawString($"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x", Rubik13, WhiteBrush, x, 85);
+            x = x + 10 + g.MeasureString($"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x", Rubik13).Width;
 
-            g.DrawString("/", Montserrat13, LightGrayBrush, x, 85);
-            x += g.MeasureString("/", Montserrat13).Width;
+            g.DrawString(score.Count300.ToString(), Rubik13, Brush300, x, 85);
+            x += g.MeasureString(score.Count300.ToString(), Rubik13).Width;
 
-            g.DrawString(score.Count100.ToString(), Montserrat13, Brush100, x, 85);
-            x += g.MeasureString(score.Count100.ToString(), Montserrat13).Width;
+            g.DrawString("/", Rubik13, LightGrayBrush, x, 85);
+            x += g.MeasureString("/", Rubik13).Width;
 
-            g.DrawString("/", Montserrat13, LightGrayBrush, x, 85);
-            x += g.MeasureString("/", Montserrat13).Width;
+            g.DrawString(score.Count100.ToString(), Rubik13, Brush100, x, 85);
+            x += g.MeasureString(score.Count100.ToString(), Rubik13).Width;
 
-            g.DrawString(score.Count50.ToString(), Montserrat13, Brush50, x, 85);
-            x += g.MeasureString(score.Count50.ToString(), Montserrat13).Width;
+            g.DrawString("/", Rubik13, LightGrayBrush, x, 85);
+            x += g.MeasureString("/", Rubik13).Width;
 
-            g.DrawString("/", Montserrat13, LightGrayBrush, x, 85);
-            x += g.MeasureString("/", Montserrat13).Width;
+            g.DrawString(score.Count50.ToString(), Rubik13, Brush50, x, 85);
+            x += g.MeasureString(score.Count50.ToString(), Rubik13).Width;
 
-            g.DrawString(score.CountMisses.ToString(), Montserrat13, BrushMisses, x, 85);
+            g.DrawString("/", Rubik13, LightGrayBrush, x, 85);
+            x += g.MeasureString("/", Rubik13).Width;
 
-            x = width - 5 - g.MeasureString($"{score.PP} PP", Montserrat20).Width;
-            g.DrawString($"{score.PP} PP", Montserrat20, WhiteBrush, x, 10);
+            g.DrawString(score.CountMisses.ToString(), Rubik13, BrushMisses, x, 85);
+
+            x = width - 15 - g.MeasureString($"{score.PP} PP", Rubik20).Width;
+            g.DrawString($"{score.PP} PP", Rubik20, WhiteBrush, x, 10);
 
             var modsImage = ModsParser.ConvertToImage(score.Mods);
             g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
@@ -127,164 +165,219 @@ namespace osu_bot.Images
 
             #region avatar
             string drawableString = $"#{score.User.WorldRating}";
-            var x = 102 - g.MeasureString(drawableString, MontserratBold14).Width / 2;
-            g.DrawString($"#{score.User.WorldRating}", MontserratBold14, WhiteBrush, x, 5);
+            var x = 102 - g.MeasureString(drawableString, RubikBold14).Width / 2;
+            g.DrawString($"#{score.User.WorldRating}", RubikBold14, WhiteBrush, x, 5);
 
             drawableString = $"({score.User.CountryCode} #{score.User.CountryRating})";
-            x = 102 - g.MeasureString(drawableString, Montserrat14).Width / 2;
-            g.DrawString(drawableString, Montserrat14, WhiteBrush, x, 30);
+            x = 102 - g.MeasureString(drawableString, Rubik14).Width / 2;
+            g.DrawString(drawableString, Rubik14, WhiteBrush, x, 30);
 
             drawableString = score.User.Name;
-            x = 102 - g.MeasureString(drawableString, MontserratBold14).Width / 2;
-            g.DrawString(drawableString, MontserratBold14, WhiteBrush, x, 155);
+            x = 102 - g.MeasureString(drawableString, RubikBold14).Width / 2;
+            g.DrawString(drawableString, RubikBold14, WhiteBrush, x, 155);
 
             drawableString = $"{score.User.PP.Separate(".")}pp";
-            x = 102 - g.MeasureString(drawableString, Montserrat14).Width / 2;
-            g.DrawString(drawableString, Montserrat14, WhiteBrush, x, 180);
+            x = 102 - g.MeasureString(drawableString, Rubik14).Width / 2;
+            g.DrawString(drawableString, Rubik14, WhiteBrush, x, 180);
             #endregion
 
             #region map
-            g.DrawString($"{score.Beatmap.SongName} - {score.Beatmap.SongAuthor} [{score.Beatmap.DifficultyName}]", Montserrat15, WhiteBrush, 220, 5);
-            g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", MontserratLightBold11, WhiteBrush, 220, 30);
+            g.DrawString($"{score.Beatmap.SongName} - {score.Beatmap.SongAuthor} [{score.Beatmap.DifficultyName}]", Rubik15, WhiteBrush, 220, 5);
+            g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", RubikLightBold11, WhiteBrush, 220, 30);
 
-            g.DrawString("CS:", Montserrat14, WhiteBrush, 220, 180);
-            x = 220 + g.MeasureString($"CS:", Montserrat14).Width;
-            g.DrawString(score.Beatmap.Attributes.CS.ToString(), MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.CS.ToString(), MontserratBold14).Width;
+            g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
+            x = 220 + g.MeasureString($"CS:", Rubik13).Width;
+            g.DrawString(score.Beatmap.Attributes.CS.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.CS.ToString(), Rubik13).Width;
 
-            g.DrawString("AR:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("AR:", Montserrat14).Width;
-            g.DrawString(score.Beatmap.Attributes.AR.ToString(), MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.AR.ToString(), MontserratBold14).Width;
+            g.DrawString("AR:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("AR:", Rubik13).Width;
+            g.DrawString(score.Beatmap.Attributes.AR.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.AR.ToString(), RubikBold13).Width;
 
-            g.DrawString("OD:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("OD:", Montserrat14).Width;
-            g.DrawString(score.Beatmap.Attributes.OD.ToString(), MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.OD.ToString(), MontserratBold14).Width;
+            g.DrawString("OD:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("OD:", Rubik13).Width;
+            g.DrawString(score.Beatmap.Attributes.OD.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.OD.ToString(), RubikBold13).Width;
 
-            g.DrawString("HP:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("HP:", Montserrat14).Width;
-            g.DrawString(score.Beatmap.Attributes.HP.ToString(), MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.HP.ToString(), MontserratBold14).Width;
+            g.DrawString("HP:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("HP:", Rubik13).Width;
+            g.DrawString(score.Beatmap.Attributes.HP.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.HP.ToString(), RubikBold13).Width;
 
-            g.DrawString("Length:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("Length:", Montserrat14).Width;
+            g.DrawString("Length:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("Length:", Rubik13).Width;
             drawableString = TimeSpan.FromSeconds(score.Beatmap.Attributes.Length).ToString(@"mm\:ss");
-            g.DrawString(drawableString, MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(drawableString, MontserratBold14).Width;
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
-            g.DrawString("BPM:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("BPM:", Montserrat14).Width;
-            g.DrawString(score.Beatmap.Attributes.BPM.ToString(), MontserratBold14, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.BPM.ToString(), MontserratBold14).Width;
+            g.DrawString("BPM:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("BPM:", Rubik13).Width;
+            g.DrawString(score.Beatmap.Attributes.BPM.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.BPM.ToString(), RubikBold13).Width;
 
-            g.DrawString("Stars:", Montserrat14, WhiteBrush, x, 180);
-            x += g.MeasureString("Stars:", Montserrat14).Width;
-            g.DrawString($"{score.Beatmap.Attributes.Stars} ★", MontserratBold14, WhiteBrush, x, 180);
+            g.DrawString("Stars:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("Stars:", Rubik13).Width;
+            g.DrawString($"{score.Beatmap.Attributes.Stars} ★", RubikBold13, WhiteBrush, x, 180);
             #endregion
 
             #region score line 1
-            x = 30;
-            g.DrawString("Rank", MontserratBold15, LightGrayBrush, x, 224);
-            var stringLength = g.MeasureString("Rank", MontserratBold15).Width;
+            x = 70;
+            g.DrawString("Rank", RubikBold15, LightGrayBrush, x, 224);
+            var stringLength = g.MeasureString("Rank", RubikBold15).Width;
             drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
             var centerX = x + stringLength / 2 - g.MeasureString(drawableString, Arista36).Width / 2;
             g.DrawString(drawableString, Arista36, RankBrushes[score.Rank], centerX, 240);
             x = x + 130 + stringLength;
             
-            g.DrawString("Performance", MontserratBold15, LightGrayBrush, x, 224);
-            stringLength = g.MeasureString("Performance", MontserratBold15).Width;
+            g.DrawString("Performance", RubikBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Performance", RubikBold15).Width;
             drawableString = $"{score.PP}PP";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
-            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik22).Width / 2;
+            g.DrawString(drawableString, Rubik22, WhiteBrush, centerX, 250);
             x = x + 130 + stringLength;         
 
-            g.DrawString("Combo", MontserratBold15, LightGrayBrush, x, 224);
-            stringLength = g.MeasureString("Combo", MontserratBold15).Width;
+            g.DrawString("Combo", RubikBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Combo", RubikBold15).Width;
             drawableString = $"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
-            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik22).Width / 2;
+            g.DrawString(drawableString, Rubik22, WhiteBrush, centerX, 250);
             x = x + 130 + stringLength;
             
-            g.DrawString("Accuracy", MontserratBold15, LightGrayBrush, x, 224);
-            stringLength = g.MeasureString("Accuracy", MontserratBold15).Width;
+            g.DrawString("Accuracy", RubikBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Accuracy", RubikBold15).Width;
             drawableString = $"{score.Accuracy:F2}%";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat22).Width / 2;
-            g.DrawString(drawableString, Montserrat22, WhiteBrush, centerX, 250);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik22).Width / 2;
+            g.DrawString(drawableString, Rubik22, WhiteBrush, centerX, 250);
             x = x + 130 + stringLength;
             
-            g.DrawString("Mods", MontserratBold15, LightGrayBrush, x, 224);
-            stringLength = g.MeasureString("Mods", MontserratBold15).Width;
+            g.DrawString("Mods", RubikBold15, LightGrayBrush, x, 224);
+            stringLength = g.MeasureString("Mods", RubikBold15).Width;
             var modsImage = ModsParser.ConvertToImage(score.Mods);
             centerX = x + stringLength / 2 - modsImage.Width / 2;
             g.DrawImage(modsImage, centerX, 250);
             #endregion
 
             #region score line 2
-            x = 30;
-            g.DrawString("Score", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("Score", MontserratBold13).Width;
+            x = 70;
+            g.DrawString("Score", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Score", RubikBold13).Width;
             drawableString = score.Score.Separate(".");
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, WhiteBrush, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
-            g.DrawString("Completion", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("Completion", MontserratBold13).Width;
+            g.DrawString("Completion", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Completion", RubikBold13).Width;
             drawableString = $"{score.Complition:F2}%";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, WhiteBrush, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
-            g.DrawString("For FC", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("For FC", MontserratBold13).Width;
+            g.DrawString("For FC", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("For FC", RubikBold13).Width;
             drawableString = "270pp";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, WhiteBrush, centerX, 350);
-            x = x + 30 + stringLength;
-
-            g.DrawString("SS", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("SS", MontserratBold13).Width;
-            drawableString = "329pp";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, WhiteBrush, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
-            g.DrawString("300", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("300", MontserratBold13).Width;
+            g.DrawString("SS", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("SS", RubikBold13).Width;
+            drawableString = "329pp";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
+            x = x + 70 + stringLength;
+
+            g.DrawString("300", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("300", RubikBold13).Width;
             drawableString = score.Count300.ToString();
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, Brush300, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, Brush300, centerX, 350);
             x = x + 5 + stringLength;
 
-            g.DrawString("100", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("100", MontserratBold13).Width;
+            g.DrawString("100", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("100", RubikBold13).Width;
             drawableString = score.Count100.ToString();
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, Brush100, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, Brush100, centerX, 350);
             x = x + 5 + stringLength;
 
-            g.DrawString("50", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("50", MontserratBold13).Width;
+            g.DrawString("50", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("50", RubikBold13).Width;
             drawableString = score.Count50.ToString();
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, Brush50, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, Brush50, centerX, 350);
             x = x + 5 + stringLength;
 
-            g.DrawString("X", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("X", MontserratBold13).Width;
+            g.DrawString("X", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("X", RubikBold13).Width;
             drawableString = score.CountMisses.ToString();
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, BrushMisses, centerX, 350);
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, BrushMisses, centerX, 350);
 
-            x = width - 140;
-            g.DrawString("Played on", MontserratBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("Played on", MontserratBold13).Width;
-            drawableString = score.Date.ToString("dd.MM.yyyy HH:mm");
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Montserrat13).Width / 2;
-            g.DrawString(drawableString, Montserrat13, WhiteBrush, centerX, 350);
+            x = width - 215;
+            g.DrawString("Played", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Played", RubikBold13).Width;
+            drawableString = GetPlayedTimeString(score.Date);
+            centerX = centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
 
             #endregion
+            return result;
+        }
+
+        public Image CreateProfileCard(User user)
+        {
+            int width = 715;
+            int height = 550;
+            Image result = new Bitmap(width, height);
+            var g = Graphics.FromImage(result);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.FillRectangle(BackgroundLightBrush, 0, 0, width, height);
+
+            string drawableString = user.Name;
+            var stringLength = g.MeasureString(drawableString, Rubik17).Width;
+            var x = 276 / 2 - stringLength / 2;
+            g.DrawString(user.Name, Rubik17, WhiteBrush, x, 5);
+
+            using var avatarImgStream = new MemoryStream(WebClient.DownloadData(user.AvatarUrl));
+            g.DrawImage(Image.FromStream(avatarImgStream).Darkening(32), 15, 35, 256, 256);
+
+            var startX = 276 + 5;
+            g.DrawString($"#{user.WorldRating.Separate(".")}", Rubik17, WhiteBrush, startX, 5);
+            g.DrawString($"{user.CountryCode} #{user.CountryRating}", Rubik17, WhiteBrush, startX, 35);
+
+            drawableString = "Perfomance:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 115);
+            g.DrawString(user.PP.Separate("."), Rubik15, WhiteBrush, x, 115);
+
+            drawableString = "Accuracy:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 145);
+            g.DrawString($"{user.Accuracy}%", Rubik15, WhiteBrush, x, 145);
+
+            drawableString = "Playcount:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 175);
+            g.DrawString(user.PlayCount.Separate("."), Rubik15, WhiteBrush, x, 175);
+
+            drawableString = "Playtime:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 205);
+            g.DrawString(user.PlayTime, Rubik15, WhiteBrush, x, 205);
+
+            drawableString = "Date registration:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 245);
+            g.DrawString(user.DateRegistration, Rubik15, WhiteBrush, x, 245);
+
+            drawableString = "Online:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 275);
+            g.DrawString(user.LastOnline, Rubik15, WhiteBrush, x, 275);
+
             return result;
         }
     }
