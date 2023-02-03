@@ -43,16 +43,22 @@ namespace osu_bot.Images
         private readonly Font RubikBold13 = new("Rubik Medium", 13);
         private readonly Font RubikBold11 = new("Rubik", 11, FontStyle.Bold);
 
+        private readonly Font RubikLightBold10 = new("Rubik Light", 10, FontStyle.Bold);
+
         private readonly Font RubikLightBold11 = new("Rubik Light", 11, FontStyle.Bold);
 
         private readonly SolidBrush BackgroundLightBrush = new(Color.FromArgb(66, 68, 78));
+        private readonly SolidBrush BackgroundSemilightBrush = new(Color.FromArgb(39, 41, 49));
         private readonly SolidBrush BackgroundBrush = new(Color.FromArgb(33, 34, 39));
-        private readonly SolidBrush WhiteBrush = new(Color.White);
+        private readonly SolidBrush WhiteBrush = new(Color.White);     
         private readonly SolidBrush Brush300 = new(Color.FromArgb(119, 197, 237));
         private readonly SolidBrush Brush100 = new(Color.FromArgb(119, 237, 138));
         private readonly SolidBrush Brush50 = new(Color.FromArgb(218, 217, 113));
         private readonly SolidBrush BrushMisses = new(Color.FromArgb(237, 119, 119));
         private readonly SolidBrush LightGrayBrush = new(Color.FromArgb(154, 160, 174));
+
+        private readonly Pen GraphicPen = new(Color.FromArgb(218, 217, 113), 2);
+        private readonly Pen LightLinePen = new(Color.FromArgb(30, 200, 200, 200), 0.3f);
 
         private readonly WebClient WebClient = new();
 
@@ -328,13 +334,18 @@ namespace osu_bot.Images
 
         public Image CreateProfileCard(User user)
         {
-            int width = 715;
-            int height = 550;
+            int width = 600;
+            int height = 575;
             Image result = new Bitmap(width, height);
             var g = Graphics.FromImage(result);
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-            g.FillRectangle(BackgroundLightBrush, 0, 0, width, height);
+            g.FillRectangle(BackgroundLightBrush, 0, 0, 286, 304);
+            g.FillRectangle(BackgroundBrush, 286, 0, width, 304);
+            g.FillRectangle(BackgroundSemilightBrush, 0, 304, width, height);
+
+            //g.DrawLine(LightGrayPen, 286, 0, 286, 304);
+            //g.DrawLine(LightGrayPen, 0, 304, width, 304);
 
             string drawableString = user.Name;
             var stringLength = g.MeasureString(drawableString, Rubik17).Width;
@@ -344,14 +355,14 @@ namespace osu_bot.Images
             using var avatarImgStream = new MemoryStream(WebClient.DownloadData(user.AvatarUrl));
             g.DrawImage(Image.FromStream(avatarImgStream).Darkening(32), 15, 35, 256, 256);
 
-            var startX = 276 + 5;
-            g.DrawString($"#{user.WorldRating.Separate(".")}", Rubik17, WhiteBrush, startX, 5);
-            g.DrawString($"{user.CountryCode} #{user.CountryRating}", Rubik17, WhiteBrush, startX, 35);
+            var startX = 296;
+            g.DrawString($"#{user.WorldRating.Separate(".")}", Rubik17, WhiteBrush, startX, 35);
+            g.DrawString($"#{user.CountryRating} {user.CountryCode}", Rubik17, WhiteBrush, startX, 65);
 
             drawableString = "Perfomance:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 115);
-            g.DrawString(user.PP.Separate("."), Rubik15, WhiteBrush, x, 115);
+            g.DrawString($"{user.PP.Separate(".")}pp", Rubik15, WhiteBrush, x, 115);
 
             drawableString = "Accuracy:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
@@ -368,15 +379,73 @@ namespace osu_bot.Images
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 205);
             g.DrawString(user.PlayTime, Rubik15, WhiteBrush, x, 205);
 
-            drawableString = "Date registration:";
-            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
-            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 245);
-            g.DrawString(user.DateRegistration, Rubik15, WhiteBrush, x, 245);
-
             drawableString = "Online:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
-            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 275);
-            g.DrawString(user.LastOnline, Rubik15, WhiteBrush, x, 275);
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 235);
+            g.DrawString(user.LastOnline, Rubik15, WhiteBrush, x, 235);
+
+            drawableString = "Registration:";
+            x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
+            g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 265);
+            g.DrawString(user.DateRegistration, Rubik15, WhiteBrush, x, 265);
+
+            g.DrawString("GLOBAL RANK HISTORY", Rubik17, WhiteBrush, 180, 310);
+
+            int common = (int)Math.Round(user.RankHistroy.Length / 5f, MidpointRounding.ToPositiveInfinity);
+            int maxRank = user.RankHistroy.Max();
+            int minRank = user.RankHistroy.Min();
+            float scaleX = 550f / user.RankHistroy.Length;
+            float scaleY = 160f / (maxRank - minRank);
+
+            for (int i = 0; i < user.RankHistroy.Length - 1; i++)
+            {
+                float y = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistroy[i] - minRank);
+                float y1 = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistroy[i + 1] - minRank);
+                if (i % common == 0 || i + 1 == user.RankHistroy.Length - 1)
+                {
+                    int index = i + 1 == user.RankHistroy.Length - 1 ? i + 1 : i;
+                    g.DrawLine(LightLinePen, 40 + scaleX * index, index != i + 1 ? y : y1, 40 + scaleX * index, 530);
+                    drawableString = $"#{user.RankHistroy[index].Separate(".")}\n{user.RankHistroy.Length - index - 1}d ago";
+                    x = 40 + scaleX * index - g.MeasureString(drawableString, RubikLightBold10).Width / 2;
+                    g.DrawString(drawableString, RubikLightBold10, LightGrayBrush, x, 532);
+                }
+
+                PointF start = new(40 + scaleX * i, y);
+                PointF end = new(40 + scaleX * (i + 1), y1);
+                g.DrawLine(GraphicPen, start, end);
+            }
+
+            return result;
+        }
+
+        public Image CreateScoresCard(IEnumerable<BeatmapScore> scores)
+        {
+            int width = 1120;
+            int height = 136 + scores.Count() * 114;
+            Image result = new Bitmap(width, height);
+            var g = Graphics.FromImage(result);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            var user = scores.First().User;
+            using var avatarImgStream = new MemoryStream(WebClient.DownloadData(user.AvatarUrl));
+
+            g.FillRectangle(BackgroundSemilightBrush, 0, 0, width, 136);
+            g.DrawImage(Image.FromStream(avatarImgStream), 4, 4, 128, 128);
+            g.DrawString($"#{user.Name}", Rubik17, WhiteBrush, 136, 30);
+            g.DrawString($"#{user.WorldRating}", Rubik17, WhiteBrush, 136, 60);
+            g.DrawString($"({user.CountryCode} #{user.CountryRating})", Rubik17, WhiteBrush, 136, 90);
+
+            int i = 0;
+            foreach (var score in scores)
+            {
+                var y = 136 + i * 114;
+                var scoreImage = CreateSmallCard(score);                
+                g.DrawImage(scoreImage, 0, y);
+                if (i != 0)
+                    g.DrawLine(LightLinePen, 0, y, width, y);
+                i++;
+            }
 
             return result;
         }

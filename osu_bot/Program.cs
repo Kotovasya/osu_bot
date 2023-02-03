@@ -25,6 +25,7 @@ namespace osu_bot
                 Name = "Kotovasya",
                 AvatarUrl = "https://a.ppy.sh/15833700?1673169745.jpeg",
                 CountryCode = "BY",
+                Accuracy = 98.34,
                 WorldRating = 29345,
                 CountryRating = 101,
                 PP = 6212,
@@ -32,6 +33,29 @@ namespace osu_bot
                 PlayTime = "50d 12h 39m 8s",
                 DateRegistration = "28.12.2020",
                 LastOnline = "3 hour ago",
+                RankHistroy = new int[]
+                    {
+                        17321,
+                        17323,
+                        19245,
+                        15000,
+                        14000,
+                        13400,
+                        12400,
+                        13400,
+                        13234,
+                        12900,
+                        12560,
+                        12530,
+                        12129,
+                        11727,
+                        11890,
+                        11545,
+                        11211,
+                        9727,
+                        8000,
+                        8123
+                    }
             };
             BeatmapScore bs = new BeatmapScore()
             {
@@ -46,7 +70,7 @@ namespace osu_bot
                 Count100 = 4,
                 Count50 = 0,
                 Complition = 100.00,
-                Rank = "F",
+                Rank = "SH",
                 Beatmap = new()
                 {
                     SongName = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
@@ -68,20 +92,14 @@ namespace osu_bot
                         Name = "Log Off Now"
                     }
                 },
-                User = new()
-                {
-                    Name = "Kotovasya",
-                    AvatarUrl = "https://a.ppy.sh/15833700?1673169745.jpeg",
-                    CountryCode = "BY",
-                    WorldRating = 29345,
-                    CountryRating = 101,
-                    PP = 6212,
-                }
+                User = u,
             };
             ImageGenerator ig = new ImageGenerator();
+            List<BeatmapScore> beatmapScores = new() { bs, bs, bs, bs, bs };
             //ig.CreateSmallCard(bs).Save("TestSmallCard.png");
             //ig.CreateFullCard(bs).Save("TestFullCard.png");
-            ig.CreateProfileCard(u).Save("TestProfileCard.png");
+            //ig.CreateProfileCard(u).Save("TestProfileCard.png");
+            ig.CreateScoresCard(beatmapScores).Save("TestScoresCard.png");
         }
     }
 }

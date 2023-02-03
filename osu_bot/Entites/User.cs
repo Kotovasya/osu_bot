@@ -20,5 +20,7 @@ namespace osu_bot.Entites
         public string AvatarUrl { get; set; }
         public string DateRegistration { get; set; }
         public string LastOnline { get; set; }
+
+        public int[] RankHistroy { get; set; }
     }
 }
