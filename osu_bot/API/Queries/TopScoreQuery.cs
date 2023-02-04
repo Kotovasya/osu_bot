@@ -10,7 +10,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class TopScoreQuery : Query<List<BeatmapScore>>
+    public class TopScoreQuery : Query<List<ScoreInfo>>
     {
         private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
 
@@ -34,15 +34,15 @@ namespace osu_bot.API.Queries
 
         public int Limit { get; set; }
 
-        public override async Task<List<BeatmapScore>> ExecuteAsync(OsuAPI api)
+        public override async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
         {
             var url = UrlParameter.Replace("%userId", UserId.ToString());
             url += $"?include_fails={Convert.ToInt32(IncludeFails)}&limit=100&offset={Offset}";
             var jsonScores = await api.GetJsonArrayAsync(url);
-            List<BeatmapScore> scores = new();
+            List<ScoreInfo> scores = new();
             foreach(var jsonScore in jsonScores)
             {
-                BeatmapScore score = new()
+                ScoreInfo score = new()
                 {
                     Id = (long)jsonScore["best_id"],
                     Score = (int)jsonScore["score"],
@@ -59,12 +59,12 @@ namespace osu_bot.API.Queries
                     Beatmap = new Beatmap()
                     {
                         Id = (long)jsonScore["beatmap"]["id"],
-                        SongName = $"{jsonScore["beatmapset"]["artist"]} - {jsonScore["beatmapset"]["title"]}",
+                        Title = $"{jsonScore["beatmapset"]["artist"]} - {jsonScore["beatmapset"]["title"]}",
                         DifficultyName = (string)jsonScore["beatmap"]["version"],
                         CoverUrl = (string)jsonScore["beatmapset"]["covers"]["cover@2x"],
                         //BPM = (int)jsonScore["beatmap"]["bpm"],
                         Status = (string)jsonScore["beatmap"]["status"],
-                        SongAuthor = (string)jsonScore["beatmapset"]["creator"],
+                        Artist = (string)jsonScore["beatmapset"]["creator"],
                         //CS = (double)jsonScore["beatmap"]["cs"],
                         //AR = (double)jsonScore["beatmap"]["ar"],
                         //OD = (double)jsonScore["beatmap"]["accuracy"],

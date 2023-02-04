@@ -85,7 +85,7 @@ namespace osu_bot.Images
             return $"{diff.Seconds} seconds ago";
         }
 
-        public Image CreateSmallCard(BeatmapScore score)
+        public Image CreateSmallCard(ScoreInfo score, bool showNick)
         {
             int width = 1120;
             int height = 114;
@@ -109,8 +109,9 @@ namespace osu_bot.Images
             RectangleF imageFrame = new Rectangle(image.Width / 2 - 406, image.Height / 2 - 250, 812, 500);
             g.DrawImage(image, frame, imageFrame, GraphicsUnit.Pixel);
             var x = leftIndent + 155;
-            g.DrawString(score.Beatmap.SongName, Rubik15, WhiteBrush, x, 10);
-            g.DrawString($"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}", Rubik11, LightGrayBrush, x, 35);
+            g.DrawString(score.Beatmap.Title, Rubik15, WhiteBrush, x, 10);
+            drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
+            g.DrawString(drawableString, Rubik11, LightGrayBrush, x, 35);
             g.DrawString($"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars}", Rubik11, LightGrayBrush, x, 55);
             x += g.MeasureString($"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars}", Rubik11).Width;
             g.DrawString("★", RubikBold11, LightGrayBrush, x, 55);
@@ -152,7 +153,7 @@ namespace osu_bot.Images
             return result;
         }
 
-        public Image CreateFullCard(BeatmapScore score)
+        public Image CreateFullCard(ScoreInfo score)
         {
             int width = 1080;
             int height = 376;
@@ -188,7 +189,7 @@ namespace osu_bot.Images
             #endregion
 
             #region map
-            g.DrawString($"{score.Beatmap.SongName} - {score.Beatmap.SongAuthor} [{score.Beatmap.DifficultyName}]", Rubik15, WhiteBrush, 220, 5);
+            g.DrawString($"{score.Beatmap.Title} - {score.Beatmap.Artist} [{score.Beatmap.DifficultyName}]", Rubik15, WhiteBrush, 220, 5);
             g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", RubikLightBold11, WhiteBrush, 220, 30);
 
             g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
@@ -273,12 +274,12 @@ namespace osu_bot.Images
             g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
-            g.DrawString("Completion", RubikBold13, LightGrayBrush, x, 330);
-            stringLength = g.MeasureString("Completion", RubikBold13).Width;
-            drawableString = $"{score.Complition:F2}%";
-            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
-            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
-            x = x + 70 + stringLength;
+            //g.DrawString("Completion", RubikBold13, LightGrayBrush, x, 330);
+            //stringLength = g.MeasureString("Completion", RubikBold13).Width;
+            //drawableString = $"{score.Complition:F2}%";
+            //centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            //g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
+            //x = x + 70 + stringLength;
 
             g.DrawString("For FC", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("For FC", RubikBold13).Width;
@@ -418,7 +419,7 @@ namespace osu_bot.Images
             return result;
         }
 
-        public Image CreateScoresCard(IEnumerable<BeatmapScore> scores)
+        public Image CreateScoresCard(IEnumerable<ScoreInfo> scores)
         {
             int width = 1120;
             int height = 136 + scores.Count() * 114;
@@ -440,7 +441,7 @@ namespace osu_bot.Images
             foreach (var score in scores)
             {
                 var y = 136 + i * 114;
-                var scoreImage = CreateSmallCard(score);                
+                var scoreImage = CreateSmallCard(score, false);                
                 g.DrawImage(scoreImage, 0, y);
                 if (i != 0)
                     g.DrawLine(LightLinePen, 0, y, width, y);

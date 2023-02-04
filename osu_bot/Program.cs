@@ -57,7 +57,7 @@ namespace osu_bot
                         8123
                     }
             };
-            BeatmapScore bs = new BeatmapScore()
+            ScoreInfo bs = new ScoreInfo()
             {
                 MaxCombo = 251,
                 Accuracy = 98.35,
@@ -73,7 +73,7 @@ namespace osu_bot
                 Rank = "SH",
                 Beatmap = new()
                 {
-                    SongName = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
+                    Title = "MIMI feat. Hatsune Miku - Mizuoto to Curtain",
                     DifficultyName = "Insane",
                     CoverUrl = "https://assets.ppy.sh/beatmaps/968171/covers/cover@2x.jpg?1645788271",
                     Attributes = new() 
@@ -95,7 +95,7 @@ namespace osu_bot
                 User = u,
             };
             ImageGenerator ig = new ImageGenerator();
-            List<BeatmapScore> beatmapScores = new() { bs, bs, bs, bs, bs };
+            List<ScoreInfo> beatmapScores = new() { bs, bs, bs, bs, bs };
             //ig.CreateSmallCard(bs).Save("TestSmallCard.png");
             //ig.CreateFullCard(bs).Save("TestFullCard.png");
             //ig.CreateProfileCard(u).Save("TestProfileCard.png");

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapAttributesQuery : Query<BeatmapAttribute>
+    public class BeatmapAttributesQuery : Query<BeatmapAttributes>
     {
         public BeatmapAttributesQuery() 
         {
@@ -18,14 +18,14 @@ namespace osu_bot.API.Queries
         public long BeatmapId { get; set; }
         public int Mods { get; set; }
 
-        public override async Task<BeatmapAttribute> ExecuteAsync(OsuAPI api)
+        public override async Task<BeatmapAttributes> ExecuteAsync(OsuAPI api)
         {
             var jObject = JObject.FromObject(new
             {
                 mods = Mods,
                 ruleset = "osu"
             });
-            BeatmapAttribute beatmapAttributes = new();
+            BeatmapAttributes beatmapAttributes = new();
             var response = await api.PostJsonAsync(UrlParameter.Replace("%beatmapId", BeatmapId.ToString()), jObject);
             beatmapAttributes.MaxCombo = (int)response["attributes"]["max_combo"];
             beatmapAttributes.Stars = (double)response["attributes"]["star_rating"];

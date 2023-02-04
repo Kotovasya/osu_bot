@@ -70,7 +70,7 @@ namespace osu_bot.Bot.Commands.Main
                     }
                 }
 
-                List<BeatmapScore> scores = await query.ExecuteAsync(API);
+                List<ScoreInfo> scores = await query.ExecuteAsync(API);
             }
         }
     }

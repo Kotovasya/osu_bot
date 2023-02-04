@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace osu_bot.Entites
 {
-    public class BeatmapScore
+    public class ScoreInfo
     {
         public long Id { get; set; }
         public int Score { get; set; }

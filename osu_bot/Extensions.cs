@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Text.Json.Nodes;
+using osu_bot.Entites;
 
 namespace osu_bot
 {
@@ -78,6 +80,64 @@ namespace osu_bot
             using Brush cloud_brush = new SolidBrush(Color.FromArgb(alpha, Color.Black));
             g.FillRectangle(cloud_brush, r);
             return image;
+        }
+
+        public static void CalculateAttributesWithMods(this BeatmapAttributes attributes, Mods mods)
+        {
+            double ratio;
+            if (mods.HasFlag(Mods.HR))
+            {
+                ratio = 1.4;
+                attributes.CS = Math.Min(attributes.CS * 1.3, 10.0);
+                attributes.AR = Math.Min(attributes.AR * ratio, 10.0);
+                attributes.OD = Math.Min(attributes.OD * ratio, 10.0);
+                attributes.HP = Math.Min(attributes.HP * ratio, 10.0);
+            }
+            if (mods.HasFlag(Mods.EZ))
+            {
+                ratio = 0.5;
+                attributes.CS *= ratio;
+                attributes.AR *= ratio;
+                attributes.OD *= ratio;
+                attributes.HP *= ratio;
+            }
+            if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
+            {
+                attributes.AR = CalculateAdjustAttribute(attributes.AR, 1.5);
+                attributes.OD = CalculateAdjustAttribute(attributes.OD, 1.5);
+                attributes.Length = (int)Math.Round(attributes.Length * 1.5);
+                attributes.BPM = (int)Math.Round(attributes.BPM * 1.5);
+            }
+            else if (mods.HasFlag(Mods.HT)) 
+            {
+                attributes.AR = CalculateAdjustAttribute(attributes.AR, 0.75);
+                attributes.OD = CalculateAdjustAttribute(attributes.OD, 0.75);
+                attributes.Length = (int)Math.Round(attributes.Length * 0.75);
+                attributes.BPM = (int)Math.Round(attributes.BPM * 0.75);
+            }
+        }
+
+        /// <summary>
+        /// Method for calculate AR and OD attributes
+        /// </summary>
+        /// <param name="attribute">Ar or OD attribute</param>
+        /// <param name="coefficient">For HalfTime = 0.75, DoubleTime = 1.5</param>
+        /// <param name="mods"></param>
+        /// <returns></returns>
+        private static double CalculateAdjustAttribute(double attribute, double coefficient)
+        {
+            double ms;             
+            if (attribute > 5)
+                ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
+            else if (attribute < 5)
+                ms = 1200 - (1200 - 1800) * (5 - attribute) / coefficient;
+            else
+                ms = 1200;
+            
+            if (ms > 1200)
+                return (1800 - ms) / 120;
+            else
+                return (1200 - ms) / 150 + 5;
         }
     }
 }
