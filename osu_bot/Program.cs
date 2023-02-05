@@ -33,7 +33,7 @@ namespace osu_bot
                 PlayTime = "50d 12h 39m 8s",
                 DateRegistration = "28.12.2020",
                 LastOnline = "3 hour ago",
-                RankHistroy = new int[]
+                RankHistory = new int[]
                     {
                         17321,
                         17323,

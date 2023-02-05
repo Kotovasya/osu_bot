@@ -392,21 +392,21 @@ namespace osu_bot.Images
 
             g.DrawString("GLOBAL RANK HISTORY", Rubik17, WhiteBrush, 180, 310);
 
-            int common = (int)Math.Round(user.RankHistroy.Length / 5f, MidpointRounding.ToPositiveInfinity);
-            int maxRank = user.RankHistroy.Max();
-            int minRank = user.RankHistroy.Min();
-            float scaleX = 550f / user.RankHistroy.Length;
+            int common = (int)Math.Round(user.RankHistory.Length / 5f, MidpointRounding.ToPositiveInfinity);
+            int maxRank = user.RankHistory.Max();
+            int minRank = user.RankHistory.Min();
+            float scaleX = 550f / user.RankHistory.Length;
             float scaleY = 160f / (maxRank - minRank);
 
-            for (int i = 0; i < user.RankHistroy.Length - 1; i++)
+            for (int i = 0; i < user.RankHistory.Length - 1; i++)
             {
-                float y = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistroy[i] - minRank);
-                float y1 = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistroy[i + 1] - minRank);
-                if (i % common == 0 || i + 1 == user.RankHistroy.Length - 1)
+                float y = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistory[i] - minRank);
+                float y1 = scaleY == float.PositiveInfinity ? 440 : 350 + scaleY * (user.RankHistory[i + 1] - minRank);
+                if (i % common == 0 || i + 1 == user.RankHistory.Length - 1)
                 {
-                    int index = i + 1 == user.RankHistroy.Length - 1 ? i + 1 : i;
+                    int index = i + 1 == user.RankHistory.Length - 1 ? i + 1 : i;
                     g.DrawLine(LightLinePen, 40 + scaleX * index, index != i + 1 ? y : y1, 40 + scaleX * index, 530);
-                    drawableString = $"#{user.RankHistroy[index].Separate(".")}\n{user.RankHistroy.Length - index - 1}d ago";
+                    drawableString = $"#{user.RankHistory[index].Separate(".")}\n{user.RankHistory.Length - index - 1}d ago";
                     x = 40 + scaleX * index - g.MeasureString(drawableString, RubikLightBold10).Width / 2;
                     g.DrawString(drawableString, RubikLightBold10, LightGrayBrush, x, 532);
                 }

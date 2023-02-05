@@ -30,22 +30,22 @@ namespace osu_bot.Entites
                 Attributes ??= new();
 
                 if (json.TryGetPropertyValue("difficulty_rating", out node))
-                    Attributes.Stars = node.GetValue<double>();
+                    Attributes.Stars = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("cs", out node))
-                    Attributes.CS = node.GetValue<double>();
+                    Attributes.CS = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("ar", out node))
-                    Attributes.AR = node.GetValue<double>();
+                    Attributes.AR = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("accuracy", out node))
-                    Attributes.OD = node.GetValue<double>();
+                    Attributes.OD = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("drain", out node))
-                    Attributes.HP = node.GetValue<double>();
+                    Attributes.HP = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("bpm", out node))
-                    Attributes.BPM = node.GetValue<int>();
+                    Attributes.BPM = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("total_length", out node))
                     Attributes.Length = node.GetValue<int>();
@@ -113,19 +113,19 @@ namespace osu_bot.Entites
                     MaxCombo = node.GetValue<int>();
 
                 if (json.TryGetPropertyValue("aim_difficulty", out node))
-                    AimDifficulty = node.GetValue<double>();
+                    AimDifficulty = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("speed_difficulty", out node))
-                    SpeedDifficulty = node.GetValue<double>();
+                    SpeedDifficulty = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("speed_note_count", out node))
-                    SpeedNoteCount = node.GetValue<double>();
+                    SpeedNoteCount = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("flashlight_difficulty", out node))
-                    FlashlightDifficulty = node.GetValue<double>();
+                    FlashlightDifficulty = node.GetValue<float>();
 
                 if (json.TryGetPropertyValue("slider_factor", out node))
-                    SliderFactor = node.GetValue<double>();
+                    SliderFactor = node.GetValue<float>();
             }
         }
 
@@ -145,20 +145,20 @@ namespace osu_bot.Entites
 }
  */
 
-        public double Stars { get; set; }
+        public float Stars { get; set; }
         public int MaxCombo { get; set; }
-        public int BPM { get; set; }
-        public double CS { get; set; }
-        public double AR { get; set; }
-        public double OD { get; set; }
-        public double HP { get; set; }
+        public float BPM { get; set; }
+        public float CS { get; set; }
+        public float AR { get; set; }
+        public float OD { get; set; }
+        public float HP { get; set; }
         public int Length { get; set; }
 
-        public double AimDifficulty { get; set; }
-        public double SpeedDifficulty { get; set; }
-        public double SpeedNoteCount { get; set; }
-        public double FlashlightDifficulty { get; set; }
-        public double SliderFactor { get; set; }
+        public float AimDifficulty { get; set; }
+        public float SpeedDifficulty { get; set; }
+        public float SpeedNoteCount { get; set; }
+        public float FlashlightDifficulty { get; set; }
+        public float SliderFactor { get; set; }
         public int CircleCount { get; set; }
         public int SliderCount { get; set; }
         public int SpinnerCount { get; set; }

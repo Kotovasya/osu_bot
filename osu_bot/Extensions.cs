@@ -84,18 +84,18 @@ namespace osu_bot
 
         public static void CalculateAttributesWithMods(this BeatmapAttributes attributes, Mods mods)
         {
-            double ratio;
+            float ratio;
             if (mods.HasFlag(Mods.HR))
             {
-                ratio = 1.4;
-                attributes.CS = Math.Min(attributes.CS * 1.3, 10.0);
-                attributes.AR = Math.Min(attributes.AR * ratio, 10.0);
-                attributes.OD = Math.Min(attributes.OD * ratio, 10.0);
-                attributes.HP = Math.Min(attributes.HP * ratio, 10.0);
+                ratio = 1.4f;
+                attributes.CS = Math.Min(attributes.CS * 1.3f, 10.0f);
+                attributes.AR = Math.Min(attributes.AR * ratio, 10.0f);
+                attributes.OD = Math.Min(attributes.OD * ratio, 10.0f);
+                attributes.HP = Math.Min(attributes.HP * ratio, 10.0f);
             }
             if (mods.HasFlag(Mods.EZ))
             {
-                ratio = 0.5;
+                ratio = 0.5f;
                 attributes.CS *= ratio;
                 attributes.AR *= ratio;
                 attributes.OD *= ratio;
@@ -103,17 +103,17 @@ namespace osu_bot
             }
             if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
             {
-                attributes.AR = CalculateAdjustAttribute(attributes.AR, 1.5);
-                attributes.OD = CalculateAdjustAttribute(attributes.OD, 1.5);
-                attributes.Length = (int)Math.Round(attributes.Length * 1.5);
-                attributes.BPM = (int)Math.Round(attributes.BPM * 1.5);
+                attributes.AR = CalculateAdjustAttribute(attributes.AR, 1.5f);
+                attributes.OD = CalculateAdjustAttribute(attributes.OD, 1.5f);
+                attributes.Length = (int)Math.Round(attributes.Length * 0.75f);
+                attributes.BPM = (int)Math.Round(attributes.BPM * 1.5f);
             }
             else if (mods.HasFlag(Mods.HT)) 
             {
-                attributes.AR = CalculateAdjustAttribute(attributes.AR, 0.75);
-                attributes.OD = CalculateAdjustAttribute(attributes.OD, 0.75);
-                attributes.Length = (int)Math.Round(attributes.Length * 0.75);
-                attributes.BPM = (int)Math.Round(attributes.BPM * 0.75);
+                attributes.AR = CalculateAdjustAttribute(attributes.AR, 0.75f);
+                attributes.OD = CalculateAdjustAttribute(attributes.OD, 0.75f);
+                attributes.Length = (int)Math.Round(attributes.Length * 1.5f);
+                attributes.BPM = (int)Math.Round(attributes.BPM * 0.75f);
             }
         }
 
@@ -124,9 +124,9 @@ namespace osu_bot
         /// <param name="coefficient">For HalfTime = 0.75, DoubleTime = 1.5</param>
         /// <param name="mods"></param>
         /// <returns></returns>
-        private static double CalculateAdjustAttribute(double attribute, double coefficient)
+        private static float CalculateAdjustAttribute(float attribute, float coefficient)
         {
-            double ms;             
+            float ms;             
             if (attribute > 5)
                 ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
             else if (attribute < 5)
