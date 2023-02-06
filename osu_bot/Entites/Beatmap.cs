@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace osu_bot.Entites
 {
@@ -14,71 +16,41 @@ namespace osu_bot.Entites
             Attributes = new BeatmapAttributes();
         }
 
-        public void ParseBeatmapJson(JsonObject json)
+        public void ParseBeatmapJson(JToken json)
         {
             if (json != null)
             {
-                if (json.TryGetPropertyValue("id", out JsonNode? node))
-                    Id = node.GetValue<long>();
+                if (json["id"] != null)
+                    Id = json["id"].Value<long>();
 
-                if (json.TryGetPropertyValue("version", out node))
-                    DifficultyName = node.GetValue<string>();
+                if (json["version"] != null)
+                    DifficultyName = json["version"].Value<string>();
 
-                if (json.TryGetPropertyValue("url", out node))
-                    Url = node.GetValue<string>();
-
-                Attributes ??= new();
-
-                if (json.TryGetPropertyValue("difficulty_rating", out node))
-                    Attributes.Stars = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("cs", out node))
-                    Attributes.CS = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("ar", out node))
-                    Attributes.AR = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("accuracy", out node))
-                    Attributes.OD = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("drain", out node))
-                    Attributes.HP = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("bpm", out node))
-                    Attributes.BPM = node.GetValue<float>();
-
-                if (json.TryGetPropertyValue("total_length", out node))
-                    Attributes.Length = node.GetValue<int>();
-
-                if (json.TryGetPropertyValue("count_circles", out node))
-                    Attributes.CircleCount = node.GetValue<int>();
-
-                if (json.TryGetPropertyValue("count_sliders", out node))
-                    Attributes.SliderCount = node.GetValue<int>();
-
-                if (json.TryGetPropertyValue("count_spinners", out node))
-                    Attributes.SpinnerCount = node.GetValue<int>();
+                if (json["url"] != null)
+                    Url = json["url"].Value<string>();
+               
+                Attributes.ParseBeatmapAttributes(json);
             }
         }
 
-        public void ParseBeatmapsetJson(JsonObject json)
+        public void ParseBeatmapsetJson(JToken json)
         {
             if (json != null)
             {
-                if (json.TryGetPropertyValue("title", out JsonNode? node))
-                    Title = node.GetValue<string>();
+                if (json["title"] != null)
+                    Title = json["title"].Value<string>();
 
-                if (json.TryGetPropertyValue("covers", out node))
-                    CoverUrl = node["cover@2x"].GetValue<string>();
+                if (json["covers"] != null)
+                    CoverUrl = json["covers"]["cover@2x"].Value<string>();
 
-                if (json.TryGetPropertyValue("status", out node))
-                    Status = node.GetValue<string>();
+                if (json["status"] != null)
+                    Status = json["status"].Value<string>();
 
-                if (json.TryGetPropertyValue("artist", out node))
-                    Artist = node.GetValue<string>();
+                if (json["artist"] != null)
+                    Artist = json["artist"].Value<string>();
 
-                if (json.TryGetPropertyValue("creator", out node))
-                    MapperName = node.GetValue<string>();
+                if (json["creator"] != null)
+                    MapperName = json["creator"].Value<string>();
             }
         }
 
@@ -100,31 +72,66 @@ namespace osu_bot.Entites
 
         }
 
-        public void ParseAttributesJson(JsonObject json)
+        public void ParseDifficultyAttributesJson(JToken json, Mods mods)
         {
             if (json != null)
             {
-                if (json.TryGetPropertyValue("star_rating", out JsonNode? node))
-                    Stars = node.GetValue<long>();
+                Mods = mods;
 
-                if (json.TryGetPropertyValue("max_combo", out node))
-                    MaxCombo = node.GetValue<int>();
+                if (json["star_rating"] != null)
+                    Stars = json["star_rating"].Value<long>();
 
-                if (json.TryGetPropertyValue("aim_difficulty", out node))
-                    AimDifficulty = node.GetValue<float>();
+                if (json["max_combo"] != null)
+                    MaxCombo = json["max_combo"].Value<int>();
 
-                if (json.TryGetPropertyValue("speed_difficulty", out node))
-                    SpeedDifficulty = node.GetValue<float>();
+                if (json["aim_difficulty"] != null)
+                    AimDifficulty = json["aim_difficulty"].Value<float>();
 
-                if (json.TryGetPropertyValue("speed_note_count", out node))
-                    SpeedNoteCount = node.GetValue<float>();
+                if (json["speed_difficulty"] != null)
+                    SpeedDifficulty = json["speed_difficulty"].Value<float>();
 
-                if (json.TryGetPropertyValue("flashlight_difficulty", out node))
-                    FlashlightDifficulty = node.GetValue<float>();
+                if (json["speed_note_count"] != null)
+                    SpeedNoteCount = json["speed_note_count"].Value<float>();
 
-                if (json.TryGetPropertyValue("slider_factor", out node))
-                    SliderFactor = node.GetValue<float>();
+                if (json["flashlight_difficulty"] != null)
+                    FlashlightDifficulty = json["flashlight_difficulty"].Value<float>();
+
+                if (json["slider_factor"] != null)
+                    SliderFactor = json["slider_factor"].Value<float>();
             }
+        }
+
+        public void ParseBeatmapAttributes(JToken json)
+        {
+            if (json["difficulty_rating"] != null)
+                Stars = json["difficulty_rating"].Value<float>();
+
+            if (json["cs"] != null)
+                CS = json["cs"].Value<float>();
+
+            if (json["ar"] != null)
+                AR = json["ar"].Value<float>();
+
+            if (json["accuracy"] != null)
+                OD = json["accuracy"].Value<float>();
+
+            if (json["drain"] != null)
+                HP = json["drain"].Value<float>();
+
+            if (json["bpm"] != null)
+                BPM = json["bpm"].Value<float>();
+
+            if (json["total_length"] != null)
+                Length = json["total_length"].Value<int>();
+
+            if (json["count_circles"] != null)
+                CircleCount = json["count_circles"].Value<int>();
+
+            if (json["count_sliders"] != null)
+                SliderCount = json["count_sliders"].Value<int>();
+
+            if (json["count_spinners"] != null)
+                SpinnerCount = json["count_spinners"].Value<int>();
         }
 
         public Mods Mods { get; set; }

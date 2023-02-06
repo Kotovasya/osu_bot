@@ -43,7 +43,7 @@ namespace osu_bot.API.Queries
             foreach(var jsonScore in jsonScores)
             {
                 ScoreInfo score = new();
-                score.ParseScoreJson(jsonScore.);
+                score.ParseScoreJson(jsonScore);
                 scores.Add(score);
             }
             var testScores = scores.Where(s => s.Mods > 0).ToList();
@@ -55,7 +55,7 @@ namespace osu_bot.API.Queries
             {
                 beatmapAttributesQuery.Mods = ModsParser.ConvertToInt(score.Mods);
                 beatmapAttributesQuery.BeatmapId = score.Beatmap.Id;
-                score.Beatmap.Attributes = await beatmapAttributesQuery.ExecuteAsync(api);
+                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), Mods);
             }
             return resultScores;
         }

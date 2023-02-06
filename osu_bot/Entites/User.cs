@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,55 +16,46 @@ namespace osu_bot.Entites
 
         }
 
-        public void ParseUserJson(JsonObject json)
+        public void ParseUserJson(JToken json)
         {
             if (json == null)
                 return;
 
-            if (json.TryGetPropertyValue("id", out JsonNode? node))
-                Id = node.GetValue<int>();
+            if (json["id"] != null)
+                Id = json["id"].Value<int>();
+            
+            if (json["username"] != null)
+                Name = json["username"].Value<string>();
 
-            if (json.TryGetPropertyValue("username", out node))
-                Name = node.GetValue<string>();
+            if (json["statistics"] != null)
+                ParseUserStatisticsJson(json["statistics"]);
 
-            if (json.TryGetPropertyValue("statistics", out node))
-                ParseUserStatisticsJson(node.AsObject());
+            if (json["country_code"] != null)
+                CountryCode = json["country_code"].Value<string>();
 
-            if (json.TryGetPropertyValue("country_code", out node))
-                CountryCode = node.GetValue<string>();
+            if (json["avatar_url"] != null)
+                AvatarUrl = json["avatar_url"].Value<string>();
 
-            if (json.TryGetPropertyValue("avatar_url", out node))
-                AvatarUrl = node.GetValue<string>();
+            if (json["join_date"] != null)
+                DateRegistration = DateTime.Parse(json["join_date"].Value<string>());
 
-            if (json.TryGetPropertyValue("join_date", out node))
-                DateRegistration = DateTime.Parse(node.GetValue<string>());
+            if (json["last_visit"] != null)
+                LastOnline = DateTime.Parse(json["last_visit"].Value<string>());
 
-            if (json.TryGetPropertyValue("last_visit", out node))
-                LastOnline = DateTime.Parse(node.GetValue<string>());
-
-            if (json.TryGetPropertyValue("rank_history", out node))
-                RankHistory = node["data"].AsArray().Select(s => s.GetValue<int>()).ToArray();           
+            if (json["rank_history"] != null)
+                RankHistory = json["rank_history"]["data"].Values<int>().ToArray();           
         }
 
-        public void ParseUserStatisticsJson(JsonObject? json)
+        private void ParseUserStatisticsJson(JToken? token)
         {
-            if (json == null)
+            if (token == null)
                 return;
 
-            if (json.TryGetPropertyValue("pp", out JsonNode? node))
-                PP = node.GetValue<int>();
-
-            if (json.TryGetPropertyValue("rank", out node))
-            {
-                WorldRating = node["global"].GetValue<int>();
-                CountryRating = node["country"].GetValue<int>();
-            }
-
-            if (json.TryGetPropertyValue("play_time", out node))
-                PlayTime = node.GetValue<int>();
-
-            if (json.TryGetPropertyValue("play_count", out node))
-                PlayCount = node.GetValue<int>();
+            PP = token.Value<int>();
+            WorldRating = token["global"].Value<int>();
+            CountryRating = token["country"].Value<int>();
+            PlayTime = TimeSpan.FromSeconds(token.Value<int>());
+            PlayCount = token.Value<int>();
         }
 
         public int Id { get; set; }
@@ -72,7 +64,7 @@ namespace osu_bot.Entites
         public int WorldRating { get; set; }
         public int CountryRating { get; set; }
         public float Accuracy { get; set; }
-        public int PlayTime { get; set; }
+        public TimeSpan PlayTime { get; set; }
         public int PlayCount { get; set; }
         public string CountryCode { get; set; }
         public string AvatarUrl { get; set; }

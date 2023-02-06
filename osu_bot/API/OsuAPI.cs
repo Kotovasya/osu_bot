@@ -23,7 +23,7 @@ namespace osu_bot.API
                 scope = "public"
             };
             using var response = await httpClient.PostAsJsonAsync("https://osu.ppy.sh/oauth/token", json);
-            JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
+            JToken jsonResponse = JToken.Parse(await response.Content.ReadAsStringAsync());
             httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse["access_token"].ToString());
         }
@@ -34,11 +34,11 @@ namespace osu_bot.API
         }
 
         //Здесь нужно начать различать массив и обычные объекты
-        public async Task<JObject> GetJsonAsync(string url)
+        public async Task<JToken> GetJsonAsync(string url)
         {
             using var response = await httpClient.GetAsync(url);
             var str = await response.Content.ReadAsStringAsync();
-            return JObject.Parse(str);
+            return JToken.Parse(str);
         }
 
         public async Task<JArray> GetJsonArrayAsync(string url)
@@ -48,10 +48,10 @@ namespace osu_bot.API
             return JArray.Parse(str);
         }
 
-        public async Task<JObject> PostJsonAsync(string url, JObject json)
+        public async Task<JToken> PostJsonAsync(string url, JToken json)
         {
             using var response = await httpClient.PostAsJsonAsync(url, json);
-            return JObject.Parse(await response.Content.ReadAsStringAsync());
+            return JToken.Parse(await response.Content.ReadAsStringAsync());
         }
 
         public async Task<int> GetIdByUsernameAsync(string username)

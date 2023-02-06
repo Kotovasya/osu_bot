@@ -62,7 +62,7 @@ namespace osu_bot.Images
 
         private readonly WebClient WebClient = new();
 
-        private string GetPlayedTimeString(DateTime date)
+        private static string GetPlayedTimeString(DateTime date)
         {
             var diff = DateTime.Now - date;
             if (diff.Days > 0)
@@ -190,7 +190,7 @@ namespace osu_bot.Images
 
             #region map
             g.DrawString($"{score.Beatmap.Title} - {score.Beatmap.Artist} [{score.Beatmap.DifficultyName}]", Rubik15, WhiteBrush, 220, 5);
-            g.DrawString($"Mapped by {score.Beatmap.Mapper.Name}", RubikLightBold11, WhiteBrush, 220, 30);
+            g.DrawString($"Mapped by {score.Beatmap.MapperName}", RubikLightBold11, WhiteBrush, 220, 30);
 
             g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
             x = 220 + g.MeasureString($"CS:", Rubik13).Width;
@@ -378,17 +378,17 @@ namespace osu_bot.Images
             drawableString = "Playtime:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 205);
-            g.DrawString(user.PlayTime, Rubik15, WhiteBrush, x, 205);
+            g.DrawString(user.PlayTime.TotalHours.ToString(), Rubik15, WhiteBrush, x, 205);
 
             drawableString = "Online:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 235);
-            g.DrawString(user.LastOnline, Rubik15, WhiteBrush, x, 235);
+            g.DrawString(GetPlayedTimeString(user.LastOnline), Rubik15, WhiteBrush, x, 235);
 
             drawableString = "Registration:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 265);
-            g.DrawString(user.DateRegistration, Rubik15, WhiteBrush, x, 265);
+            g.DrawString(user.DateRegistration.ToString("dd MM yyyy г."), Rubik15, WhiteBrush, x, 265);
 
             g.DrawString("GLOBAL RANK HISTORY", Rubik17, WhiteBrush, 180, 310);
 

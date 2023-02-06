@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -16,65 +17,54 @@ namespace osu_bot.Entites
             User = new User();
         }
 
-        public void ParseScoreJson(JsonObject json)
+        public void ParseScoreJson(JToken json)
         {
             if (json == null)
                 return;
 
-            if (json.TryGetPropertyValue("id", out JsonNode? node))
-                Id = node.GetValue<long>();
+            if (json["id"] != null)
+                Id = json["id"].Value<long>();
 
-            if (json.TryGetPropertyValue("score", out node))
-                Score = node.GetValue<int>();
+            if (json["score"] != null)
+                Score = json["score"].Value<int>();
 
-            if (json.TryGetPropertyValue("accuracy", out node))
-                Accuracy = node.GetValue<float>();
+            if (json["accuracy"] != null)
+                Accuracy = json["accuracy"].Value<float>();
 
-            if (json.TryGetPropertyValue("created_at", out node))
-                Date = DateTime.Parse(node.GetValue<string>());
+            if (json["created_at"] != null)
+                Date = DateTime.Parse(json["created_at"].Value<string>());
 
-            if (json.TryGetPropertyValue("max_combo", out node))
-                MaxCombo = node.GetValue<int>();
+            if (json["max_combo"] != null)
+                MaxCombo = json["max_combo"].Value<int>();
 
-            if (json.TryGetPropertyValue("pp", out node))
-                PP = node.GetValue<float>();
+            if (json["pp"] != null)
+                PP = json["pp"].Value<float>();
 
-            if (json.TryGetPropertyValue("statistics", out node))
-                ParseScoreStatisticsJson(node.AsObject());
+            if (json["statistics"] != null)
+                ParseScoreStatisticsJson(json["statistics"]);
 
-            if (json.TryGetPropertyValue("rank", out node))
-                Rank = node.GetValue<string>();
+            if (json["rank"] != null)
+                Rank = json["rank"].Value<string>();
 
-            if (json.TryGetPropertyValue("mods", out node))
-            {
-                Mods mods = ModsParser.ConvertToMods(string.Concat(node.GetValue<string[]>));
-                Mods = mods;
-                Beatmap.Attributes.Mods = mods;
-            }
+            if (json["mods"] != null)
+                Mods = ModsParser.ConvertToMods(string.Concat(json["mods"].Values<string>()));
 
-            if (json.TryGetPropertyValue("beatmap", out node))
-                Beatmap.ParseBeatmapJson(node.AsObject());
+            if (json["beatmap"] != null)
+                Beatmap.ParseBeatmapJson(json["beatmap"]);
 
-            if (json.TryGetPropertyValue("beatmapset", out node))
-                Beatmap.ParseBeatmapsetJson(node.AsObject());
+            if (json["beatmapset"] != null)
+                Beatmap.ParseBeatmapsetJson(json["beatmapset"]);
 
-            if (json.TryGetPropertyValue("user", out node))
-                User.ParseUserJson(node.AsObject());
+            if (json["user"] != null)
+                User.ParseUserJson(json["user"]);
         }
 
-        private void ParseScoreStatisticsJson(JsonObject json)
+        private void ParseScoreStatisticsJson(JToken json)
         {
-            if (json.TryGetPropertyValue("count_50", out JsonNode? node))
-                Count50 = node.GetValue<int>();
-
-            if (json.TryGetPropertyValue("count_100", out node))
-                Count100 = node.GetValue<int>();
-
-            if (json.TryGetPropertyValue("count_300", out node))
-                Count300 = node.GetValue<int>();
-
-            if (json.TryGetPropertyValue("count_miss", out node))
-                CountMisses = node.GetValue<int>();
+            Count50 = json["count_50"].Value<int>();
+            Count100 = json["count_100"].Value<int>();
+            Count300 = json["count_300"].Value<int>();
+            CountMisses = json["count_miss"].Value<int>();
         }
 
         public long Id { get; set; }

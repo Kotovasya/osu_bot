@@ -25,14 +25,11 @@ namespace osu_bot
                 Name = "Kotovasya",
                 AvatarUrl = "https://a.ppy.sh/15833700?1673169745.jpeg",
                 CountryCode = "BY",
-                Accuracy = 98.34,
+                Accuracy = 98.34f,
                 WorldRating = 29345,
                 CountryRating = 101,
                 PP = 6212,
                 PlayCount = 88432,
-                PlayTime = "50d 12h 39m 8s",
-                DateRegistration = "28.12.2020",
-                LastOnline = "3 hour ago",
                 RankHistory = new int[]
                     {
                         17321,
@@ -60,7 +57,7 @@ namespace osu_bot
             ScoreInfo bs = new ScoreInfo()
             {
                 MaxCombo = 251,
-                Accuracy = 98.35,
+                Accuracy = 98.35f,
                 Score = 1188308,
                 Date = DateTime.Parse("2022-12-18T12:36:27Z"),
                 Mods = Mods.DT | Mods.HD,
@@ -69,7 +66,6 @@ namespace osu_bot
                 Count300 = 158,
                 Count100 = 4,
                 Count50 = 0,
-                Complition = 100.00,
                 Rank = "SH",
                 Beatmap = new()
                 {
@@ -93,9 +89,9 @@ namespace osu_bot
             };
             ImageGenerator ig = new ImageGenerator();
             List<ScoreInfo> beatmapScores = new() { bs, bs, bs, bs, bs };
-            //ig.CreateSmallCard(bs).Save("TestSmallCard.png");
-            //ig.CreateFullCard(bs).Save("TestFullCard.png");
-            //ig.CreateProfileCard(u).Save("TestProfileCard.png");
+            ig.CreateSmallCard(bs, true).Save("TestSmallCard.png");
+            ig.CreateFullCard(bs).Save("TestFullCard.png");
+            ig.CreateProfileCard(u).Save("TestProfileCard.png");
             ig.CreateScoresCard(beatmapScores).Save("TestScoresCard.png");
         }
     }
