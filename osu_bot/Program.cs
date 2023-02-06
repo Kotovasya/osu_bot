@@ -79,18 +79,15 @@ namespace osu_bot
                     Attributes = new() 
                     { 
                         MaxCombo = 251, 
-                        Stars = 6.54,
-                        CS = 3.6,
-                        AR = 10.33,
-                        OD = 10,
-                        HP = 4.8,
+                        Stars = 6.54f,
+                        CS = 3.6f,
+                        AR = 10.33f,
+                        OD = 10f,
+                        HP = 4.8f,
                         BPM = 279,
                         Length = 54,
                     },
-                    Mapper = new()
-                    {
-                        Name = "Log Off Now"
-                    }
+                    MapperName = "Log Off Now",
                 },
                 User = u,
             };

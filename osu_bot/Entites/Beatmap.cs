@@ -11,7 +11,7 @@ namespace osu_bot.Entites
     {
         public Beatmap()
         {
-
+            Attributes = new BeatmapAttributes();
         }
 
         public void ParseBeatmapJson(JsonObject json)
@@ -77,10 +77,8 @@ namespace osu_bot.Entites
                 if (json.TryGetPropertyValue("artist", out node))
                     Artist = node.GetValue<string>();
 
-                Mapper ??= new();
-
                 if (json.TryGetPropertyValue("creator", out node))
-                    Mapper.Name = node.GetValue<string>();
+                    MapperName = node.GetValue<string>();
             }
         }
 
@@ -91,7 +89,7 @@ namespace osu_bot.Entites
         public string Status { get; set; }
         public string Artist { get; set; }
         public string Url { get; set; }
-        public User Mapper { get; set; }
+        public string MapperName { get; set; }
         public BeatmapAttributes Attributes { get; set; }
     }
 
@@ -129,21 +127,7 @@ namespace osu_bot.Entites
             }
         }
 
-        /*
- * {
-    "attributes": {
-        "star_rating": 4.956999778747559,
-        "max_combo": 447,
-        "aim_difficulty": 2.5800299644470215,
-        "speed_difficulty": 2.1105499267578125,
-        "speed_note_count": 120.0469970703125,
-        "flashlight_difficulty": 0,
-        "slider_factor": 0.9993990063667297,
-        "approach_rate": 9,
-        "overall_difficulty": 8.5
-    }
-}
- */
+        public Mods Mods { get; set; }
 
         public float Stars { get; set; }
         public int MaxCombo { get; set; }

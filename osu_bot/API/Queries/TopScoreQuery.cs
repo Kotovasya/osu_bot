@@ -42,35 +42,8 @@ namespace osu_bot.API.Queries
             List<ScoreInfo> scores = new();
             foreach(var jsonScore in jsonScores)
             {
-                ScoreInfo score = new()
-                {
-                    Id = (long)jsonScore["best_id"],
-                    Score = (int)jsonScore["score"],
-                    Accuracy = Math.Round((double)jsonScore["accuracy"] * 100, 2),
-                    Date = DateTime.Parse((string)jsonScore["created_at"]),
-                    MaxCombo = (int)jsonScore["max_combo"],
-                    PP = (int)jsonScore["pp"],
-                    Count50 = (int)jsonScore["statistics"]["count_50"],
-                    Count100 = (int)jsonScore["statistics"]["count_100"],
-                    Count300 = (int)jsonScore["statistics"]["count_300"],
-                    CountMisses = (int)jsonScore["statistics"]["count_miss"],
-                    Rank = (string)jsonScore["rank"],
-                    Mods = ModsParser.ConvertToMods(string.Concat(jsonScore["mods"])),
-                    Beatmap = new Beatmap()
-                    {
-                        Id = (long)jsonScore["beatmap"]["id"],
-                        Title = $"{jsonScore["beatmapset"]["artist"]} - {jsonScore["beatmapset"]["title"]}",
-                        DifficultyName = (string)jsonScore["beatmap"]["version"],
-                        CoverUrl = (string)jsonScore["beatmapset"]["covers"]["cover@2x"],
-                        //BPM = (int)jsonScore["beatmap"]["bpm"],
-                        Status = (string)jsonScore["beatmap"]["status"],
-                        Artist = (string)jsonScore["beatmapset"]["creator"],
-                        //CS = (double)jsonScore["beatmap"]["cs"],
-                        //AR = (double)jsonScore["beatmap"]["ar"],
-                        //OD = (double)jsonScore["beatmap"]["accuracy"],
-                        //HP = (double)jsonScore["beatmap"]["drain"],
-                    },
-                };
+                ScoreInfo score = new();
+                score.ParseScoreJson(jsonScore.);
                 scores.Add(score);
             }
             var testScores = scores.Where(s => s.Mods > 0).ToList();
