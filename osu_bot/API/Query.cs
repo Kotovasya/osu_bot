@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu_bot.API.Queries
+namespace osu_bot.API
 {
     public abstract class Query<T>
     {
-        public string UrlParameter { get; protected set; }
-
+        public abstract string UrlParameter { get; }
         public abstract Task<T> ExecuteAsync(OsuAPI api);
     }
 }

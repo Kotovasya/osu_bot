@@ -13,6 +13,13 @@ namespace osu_bot
 {
     public static class Extensions
     {
+        public static Stream ToStream(this Image image)
+        {
+            using MemoryStream ms = new MemoryStream();
+            image.Save(ms, image.RawFormat);
+            ms.Position = 0;
+            return ms;
+        }
         public static Image RoundCorners(Image StartImage, int CornerRadius, Color BackgroundColor)
         {
             CornerRadius *= 2;

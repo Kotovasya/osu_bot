@@ -13,6 +13,7 @@ using osu_bot.Bot.Commands;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Bot.Commands.Main;
 using osu_bot.API;
+using System.Linq.Expressions;
 
 namespace osu_bot.Bot
 {
@@ -73,16 +74,29 @@ namespace osu_bot.Bot
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
+            try
             {
-                if (Callbacks.ContainsKey(data))
-                    await Callbacks[data].Invoke(botClient, update, cancellationToken);
+                if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
+                {
+                    if (Callbacks.ContainsKey(data))
+                        await Callbacks[data].Invoke(botClient, update, cancellationToken);
+                }
+                else if (update.Message != null && update.Message.Text is { } messageText)
+                {
+                    messageText = messageText.IndexOf(' ') != -1 
+                        ? messageText[..messageText.IndexOf(' ')]
+                        : messageText;
+                    if (Commands.ContainsKey(messageText))
+                        await Commands[messageText].Invoke(botClient, update, cancellationToken);
+                }
             }
-            else if (update.Message != null && update.Message.Text is { } messageText)
+            catch(Exception ex)
             {
-                messageText = messageText.Substring(0, messageText.IndexOf(' '));
-                if (Commands.ContainsKey(messageText))
-                    await Commands[messageText].Invoke(botClient, update, cancellationToken);
+                await botClient.SendTextMessageAsync(
+                    chatId: update.Message.Chat,
+                    text: ex.Message,
+                    replyToMessageId: update.Message.MessageId,
+                    cancellationToken: cancellationToken);
             }
             return; 
         }

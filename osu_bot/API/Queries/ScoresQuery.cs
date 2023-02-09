@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using osu_bot.API.Parameters;
 using osu_bot.Bot;
 using osu_bot.Entites;
 using System;
@@ -10,35 +11,22 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class TopScoreQuery : Query<List<ScoreInfo>>
+    public class ScoresQuery : Query<List<ScoreInfo>>
     {
+        public ScoreQueryParameters Parameters;
+ 
+        public override string UrlParameter => Parameters.GetQueryString();
+
         private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
 
-        public TopScoreQuery() 
+        public ScoresQuery(ScoreQueryParameters parameters)
         {
-            UrlParameter = "https://osu.ppy.sh/api/v2/users/%userId/scores/best";
-            UserId = 15833700;
-            IncludeFails = false;
-            Limit = 5;
-            Offset = 0;
-            Mods = Mods.ALL;
+            Parameters = parameters;
         }
-
-        public int UserId { get; set; }
-
-        public bool IncludeFails { get; set; }
-
-        public Mods Mods { get; set; }
-
-        public int Offset { get; set; }
-
-        public int Limit { get; set; }
 
         public override async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
         {
-            var url = UrlParameter.Replace("%userId", UserId.ToString());
-            url += $"?include_fails={Convert.ToInt32(IncludeFails)}&limit=100&offset={Offset}";
-            var jsonScores = await api.GetJsonArrayAsync(url);
+            var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
             List<ScoreInfo> scores = new();
             foreach(var jsonScore in jsonScores)
             {
@@ -48,14 +36,14 @@ namespace osu_bot.API.Queries
             }
             var testScores = scores.Where(s => s.Mods > 0).ToList();
             var resultScores = scores
-                .Where(s => s.Mods == Mods || Mods == Mods.ALL)
-                .Take(Limit)
+                .Where(s => s.Mods == Parameters.Mods || Parameters.Mods == Mods.ALL)
+                .Take(Parameters.Limit)
                 .ToList();
             foreach (var score in resultScores)
             {
-                beatmapAttributesQuery.Mods = ModsParser.ConvertToInt(score.Mods);
-                beatmapAttributesQuery.BeatmapId = score.Beatmap.Id;
-                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), Mods);
+                beatmapAttributesQuery.Parameters.Mods = score.Mods;
+                beatmapAttributesQuery.Parameters.BeatmapId = score.Beatmap.Id;
+                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), Parameters.Mods);
             }
             return resultScores;
         }

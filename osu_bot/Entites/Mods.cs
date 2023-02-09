@@ -1,4 +1,5 @@
-﻿using System;
+﻿using osu_bot.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -78,7 +79,14 @@ namespace osu_bot.Entites
 
         public static Mods ConvertToMods(string mods)
         {
-            return (Mods)ConvertToInt(mods);
+            try
+            {
+                return (Mods)ConvertToInt(mods);
+            }
+            catch
+            {
+                throw new ModsArgumentException();
+            }
         }
 
         public static Mods ConvertToMods(int mods)

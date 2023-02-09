@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using osu_bot.API.Parameters;
 using osu_bot.Entites;
 using System;
 using System.Collections.Generic;
@@ -10,23 +11,12 @@ namespace osu_bot.API.Queries
 {
     public class BeatmapAttributesQuery : Query<BeatmapAttributes>
     {
-        public BeatmapAttributesQuery() 
-        {
-            UrlParameter = "https://osu.ppy.sh/api/v2/beatmaps/%beatmapId/attributes";
-        }
-
-        public long BeatmapId { get; set; }
-        public int Mods { get; set; }
+        public BeatmapAttributesQueryParameters Parameters = new();
+        public override string UrlParameter => Parameters.GetQueryString();
 
         public override async Task<BeatmapAttributes> ExecuteAsync(OsuAPI api)
-        {
-            var jObject = JObject.FromObject(new
-            {
-                mods = Mods,
-                ruleset = "osu"
-            });
-            
-            var response = await api.PostJsonAsync(UrlParameter.Replace("%beatmapId", BeatmapId.ToString()), jObject);
+        {      
+            var response = await api.PostJsonAsync(UrlParameter, Parameters.GetJson());
             BeatmapAttributes beatmapAttributes = new();
             beatmapAttributes.ParseBeatmapAttributes(response);
             return beatmapAttributes;
@@ -34,13 +24,7 @@ namespace osu_bot.API.Queries
 
         public async Task<JToken> GetJson(OsuAPI api)
         {
-            var jObject = JObject.FromObject(new
-            {
-                mods = Mods,
-                ruleset = "osu"
-            });
-
-            return await api.PostJsonAsync(UrlParameter.Replace("%beatmapId", BeatmapId.ToString()), jObject);
+            return await api.PostJsonAsync(UrlParameter, Parameters.GetJson());
         }
     }
 }

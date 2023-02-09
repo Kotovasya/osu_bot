@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -32,7 +33,7 @@ namespace osu_bot.Entites
                 Accuracy = json["accuracy"].Value<float>();
 
             if (json["created_at"] != null)
-                Date = DateTime.Parse(json["created_at"].Value<string>());
+                Date = DateTime.ParseExact(json["created_at"].Value<string>(), "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
             if (json["max_combo"] != null)
                 MaxCombo = json["max_combo"].Value<int>();

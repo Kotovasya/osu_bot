@@ -8,15 +8,14 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using osu_bot.Entites;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Images
 {
-    public class ImageGenerator
+    public static class ImageGenerator
     {
-        private readonly Font Arista48 = new Font("Arista 2.0", 48);
-        private readonly Font Arista36 = new("Arista 2.0", 36);
-        private readonly Dictionary<string, SolidBrush> RankBrushes = new()
+        private static readonly Font Arista48 = new Font("Arista 2.0", 48);
+        private static readonly Font Arista36 = new("Arista 2.0", 36);
+        private static readonly Dictionary<string, SolidBrush> RankBrushes = new()
         {
             {"SSH", new SolidBrush(Color.FromArgb(213, 213, 213)) },
             {"SS", new SolidBrush(Color.FromArgb(255, 217, 37)) },
@@ -29,38 +28,38 @@ namespace osu_bot.Images
             {"F", new SolidBrush(Color.FromArgb(180, 180, 180)) }
         };
 
-        private readonly Font Rubik22 = new("Rubik", 22);
-        private readonly Font Rubik20 = new("Rubik", 20);
-        private readonly Font Rubik17 = new("Rubik", 17);
-        private readonly Font Rubik15 = new("Rubik", 15);
-        private readonly Font Rubik14 = new("Rubik", 14);
-        private readonly Font Rubik13 = new("Rubik", 13);
-        private readonly Font Rubik11 = new("Rubik", 11);
+        private static readonly Font Rubik22 = new("Rubik", 22);
+        private static readonly Font Rubik20 = new("Rubik", 20);
+        private static readonly Font Rubik17 = new("Rubik", 17);
+        private static readonly Font Rubik15 = new("Rubik", 15);
+        private static readonly Font Rubik14 = new("Rubik", 14);
+        private static readonly Font Rubik13 = new("Rubik", 13);
+        private static readonly Font Rubik11 = new("Rubik", 11);
         
 
-        private readonly Font RubikBold15 = new("Rubik Medium", 15);
-        private readonly Font RubikBold14 = new("Rubik Medium", 14);
-        private readonly Font RubikBold13 = new("Rubik Medium", 13);
-        private readonly Font RubikBold11 = new("Rubik", 11, FontStyle.Bold);
+        private static readonly Font RubikBold15 = new("Rubik Medium", 15);
+        private static readonly Font RubikBold14 = new("Rubik Medium", 14);
+        private static readonly Font RubikBold13 = new("Rubik Medium", 13);
+        private static readonly Font RubikBold11 = new("Rubik", 11, FontStyle.Bold);
 
-        private readonly Font RubikLightBold10 = new("Rubik Light", 10, FontStyle.Bold);
+        private static readonly Font RubikLightBold10 = new("Rubik Light", 10, FontStyle.Bold);
 
-        private readonly Font RubikLightBold11 = new("Rubik Light", 11, FontStyle.Bold);
+        private static readonly Font RubikLightBold11 = new("Rubik Light", 11, FontStyle.Bold);
 
-        private readonly SolidBrush BackgroundLightBrush = new(Color.FromArgb(66, 68, 78));
-        private readonly SolidBrush BackgroundSemilightBrush = new(Color.FromArgb(39, 41, 49));
-        private readonly SolidBrush BackgroundBrush = new(Color.FromArgb(33, 34, 39));
-        private readonly SolidBrush WhiteBrush = new(Color.White);     
-        private readonly SolidBrush Brush300 = new(Color.FromArgb(119, 197, 237));
-        private readonly SolidBrush Brush100 = new(Color.FromArgb(119, 237, 138));
-        private readonly SolidBrush Brush50 = new(Color.FromArgb(218, 217, 113));
-        private readonly SolidBrush BrushMisses = new(Color.FromArgb(237, 119, 119));
-        private readonly SolidBrush LightGrayBrush = new(Color.FromArgb(154, 160, 174));
+        private static readonly SolidBrush BackgroundLightBrush = new(Color.FromArgb(66, 68, 78));
+        private static readonly SolidBrush BackgroundSemilightBrush = new(Color.FromArgb(39, 41, 49));
+        private static readonly SolidBrush BackgroundBrush = new(Color.FromArgb(33, 34, 39));
+        private static readonly SolidBrush WhiteBrush = new(Color.White);     
+        private static readonly SolidBrush Brush300 = new(Color.FromArgb(119, 197, 237));
+        private static readonly SolidBrush Brush100 = new(Color.FromArgb(119, 237, 138));
+        private static readonly SolidBrush Brush50 = new(Color.FromArgb(218, 217, 113));
+        private static readonly SolidBrush BrushMisses = new(Color.FromArgb(237, 119, 119));
+        private static readonly SolidBrush LightGrayBrush = new(Color.FromArgb(154, 160, 174));
 
-        private readonly Pen GraphicPen = new(Color.FromArgb(218, 217, 113), 2);
-        private readonly Pen LightLinePen = new(Color.FromArgb(30, 200, 200, 200), 0.3f);
+        private static readonly Pen GraphicPen = new(Color.FromArgb(218, 217, 113), 2);
+        private static readonly Pen LightLinePen = new(Color.FromArgb(30, 200, 200, 200), 0.3f);
 
-        private readonly WebClient WebClient = new();
+        private static readonly WebClient WebClient = new();
 
         private static string GetPlayedTimeString(DateTime date)
         {
@@ -85,7 +84,7 @@ namespace osu_bot.Images
             return $"{diff.Seconds} seconds ago";
         }
 
-        public Image CreateSmallCard(ScoreInfo score, bool showNick)
+        public static Image CreateSmallCard(ScoreInfo score, bool showNick)
         {
             int width = 1120;
             int height = 114;
@@ -153,7 +152,7 @@ namespace osu_bot.Images
             return result;
         }
 
-        public Image CreateFullCard(ScoreInfo score)
+        public static Image CreateFullCard(ScoreInfo score)
         {
             int width = 1080;
             int height = 376;
@@ -333,7 +332,7 @@ namespace osu_bot.Images
             return result;
         }
 
-        public Image CreateProfileCard(User user)
+        public static Image CreateProfileCard(User user)
         {
             int width = 600;
             int height = 575;
@@ -419,7 +418,7 @@ namespace osu_bot.Images
             return result;
         }
 
-        public Image CreateScoresCard(IEnumerable<ScoreInfo> scores)
+        public static Image CreateScoresCard(IEnumerable<ScoreInfo> scores)
         {
             int width = 1120;
             int height = 136 + scores.Count() * 114;

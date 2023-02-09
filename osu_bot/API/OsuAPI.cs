@@ -57,6 +57,8 @@ namespace osu_bot.API
         public async Task<int> GetIdByUsernameAsync(string username)
         {
             var json = await GetJsonAsync($"https://osu.ppy.sh/api/v2/users/{username}");
+            if (json.Contains("error"))
+                throw new ArgumentException($"Пользователя с именем {username} не зарегистрировано");
             return int.Parse(json["id"].ToString());
         }
     }
