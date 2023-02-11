@@ -24,7 +24,8 @@ namespace osu_bot.API.Queries
 
         public async Task<JToken> GetJson(OsuAPI api)
         {
-            return await api.PostJsonAsync(UrlParameter, Parameters.GetJson());
+            var json = Parameters.GetJson();
+            return await api.PostJsonAsync(UrlParameter, json);
         }
     }
 }

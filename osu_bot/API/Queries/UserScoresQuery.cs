@@ -11,21 +11,24 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class ScoresQuery : Query<List<ScoreInfo>>
+    public class UserScoresQuery : Query<List<ScoreInfo>>
     {
-        public ScoreQueryParameters Parameters;
+        public UserScoreQueryParameters Parameters { get; private set; }
  
         public override string UrlParameter => Parameters.GetQueryString();
 
         private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
 
-        public ScoresQuery(ScoreQueryParameters parameters)
+        public UserScoresQuery(UserScoreQueryParameters parameters)
         {
             Parameters = parameters;
         }
 
         public override async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
         {
+            var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
+            Parameters.UserId = userInfo.Id;
+
             var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
             List<ScoreInfo> scores = new();
             foreach(var jsonScore in jsonScores)
@@ -33,17 +36,17 @@ namespace osu_bot.API.Queries
                 ScoreInfo score = new();
                 score.ParseScoreJson(jsonScore);
                 scores.Add(score);
-            }
-            var testScores = scores.Where(s => s.Mods > 0).ToList();
+            }            
             var resultScores = scores
                 .Where(s => s.Mods == Parameters.Mods || Parameters.Mods == Mods.ALL)
-                .Take(Parameters.Limit)
+                .Take(Parameters.Limit)             
                 .ToList();
             foreach (var score in resultScores)
             {
                 beatmapAttributesQuery.Parameters.Mods = score.Mods;
                 beatmapAttributesQuery.Parameters.BeatmapId = score.Beatmap.Id;
-                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), Parameters.Mods);
+                score.User = userInfo;
+                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), score.Mods);
             }
             return resultScores;
         }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -37,25 +38,25 @@ namespace osu_bot.Entites
                 AvatarUrl = json["avatar_url"].Value<string>();
 
             if (json["join_date"] != null)
-                DateRegistration = DateTime.Parse(json["join_date"].Value<string>());
+                DateRegistration = DateTime.ParseExact(json["join_date"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
             if (json["last_visit"] != null)
-                LastOnline = DateTime.Parse(json["last_visit"].Value<string>());
+                LastOnline = DateTime.ParseExact(json["last_visit"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
             if (json["rank_history"] != null)
                 RankHistory = json["rank_history"]["data"].Values<int>().ToArray();           
         }
 
-        private void ParseUserStatisticsJson(JToken? token)
+        private void ParseUserStatisticsJson(JToken? json)
         {
-            if (token == null)
+            if (json == null)
                 return;
 
-            PP = token.Value<int>();
-            WorldRating = token["global"].Value<int>();
-            CountryRating = token["country"].Value<int>();
-            PlayTime = TimeSpan.FromSeconds(token.Value<int>());
-            PlayCount = token.Value<int>();
+            PP = json["pp"].Value<int>();
+            WorldRating = json["global_rank"].Value<int>();
+            CountryRating = json["country_rank"].Value<int>();
+            PlayTime = TimeSpan.FromSeconds(json["play_time"].Value<int>());
+            PlayCount = json["play_count"].Value<int>();
         }
 
         public int Id { get; set; }

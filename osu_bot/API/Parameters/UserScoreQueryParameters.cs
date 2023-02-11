@@ -8,8 +8,10 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.API.Parameters
 {
-    public abstract class ScoreQueryParameters : IQueryParameters
+    public abstract class UserScoreQueryParameters : IQueryParameters
     {
+        public string Username { get; set; }
+
         public int UserId { get; set; }
 
         public Mods Mods { get; set; }
@@ -21,17 +23,30 @@ namespace osu_bot.API.Parameters
         public abstract string GetQueryString();
     }
 
-    public class TopScoreQueryParameters : ScoreQueryParameters
+    public class UserTopScoreQueryParameters : UserScoreQueryParameters
     {
+        public UserTopScoreQueryParameters()
+        {
+            Mods = Mods.ALL;
+            Limit = 5;
+        }
+
         public override string GetQueryString()
         {
             return $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/best?limit=100&offset={Offset}";
         }
     }
 
-    public class LastScoreQueryParameters : ScoreQueryParameters
+    public class UserLastScoreQueryParameters : UserScoreQueryParameters
     {
         public bool IncludeFails { get; set; }
+
+        public UserLastScoreQueryParameters()
+        {
+            Mods = Mods.ALL;
+            Limit = 1;
+            IncludeFails = true;
+        }
 
         public override string GetQueryString()
         {

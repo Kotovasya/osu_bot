@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,14 +23,38 @@ namespace osu_bot.Modules
 
         private static int totalHits => countGreat + countOk + countMeh + countMiss;
 
-        public static double Calculate(ScoreInfo score)
+        public static double Calculate(ScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
         {
-            accuracy = score.Accuracy;
-            scoreMaxCombo = score.MaxCombo;
-            countGreat = score.Count300;
-            countOk = score.Count100;
-            countMeh = score.Count50;
-            countMiss = score.CountMisses;
+            if (isFullCombo)
+            {
+                if (isPerfect)
+                {
+                    accuracy = 100.00;
+                    scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
+                    countGreat = score.Beatmap.Attributes.TotalObjects;
+                    countOk = 0;
+                    countMeh = 0;
+                    countMiss = 0;
+                }
+                else
+                {
+                    accuracy = score.Accuracy;
+                    scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
+                    (countGreat, countOk) = Extensions.CalculateGreatAndOkCountsFromAccuracy(accuracy, score.Beatmap.Attributes.TotalObjects);
+                    countMeh = 0;
+                    countMiss = 0;
+                }
+            }
+            else
+            {
+                accuracy = score.Accuracy;
+                scoreMaxCombo = score.MaxCombo;
+                countGreat = score.Count300;
+                countOk = score.Count100;
+                countMeh = score.Count50;
+                countMiss = score.CountMisses;
+            }
+
             effectiveMissCount = CalculateEffectiveMissCount(score.Beatmap.Attributes);
 
             var attributes = score.Beatmap.Attributes;

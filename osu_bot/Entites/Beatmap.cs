@@ -77,9 +77,10 @@ namespace osu_bot.Entites
             if (json != null)
             {
                 Mods = mods;
-
+                json = json["attributes"];
+                
                 if (json["star_rating"] != null)
-                    Stars = json["star_rating"].Value<long>();
+                    Stars = json["star_rating"].Value<float>();
 
                 if (json["max_combo"] != null)
                     MaxCombo = json["max_combo"].Value<int>();
@@ -153,5 +154,7 @@ namespace osu_bot.Entites
         public int CircleCount { get; set; }
         public int SliderCount { get; set; }
         public int SpinnerCount { get; set; }
+
+        public int TotalObjects => CircleCount + SliderCount + SpinnerCount;
     }
 }

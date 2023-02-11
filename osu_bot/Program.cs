@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using osu_bot.Bot;
 using osu_bot.Entites;
-using osu_bot.Images;
+using osu_bot.Modules;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;

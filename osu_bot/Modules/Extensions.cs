@@ -8,17 +8,16 @@ using System.Threading.Tasks;
 using System.Globalization;
 using System.Text.Json.Nodes;
 using osu_bot.Entites;
+using System.Drawing.Imaging;
 
-namespace osu_bot
+namespace osu_bot.Modules
 {
     public static class Extensions
     {
-        public static Stream ToStream(this Image image)
+        public static byte[] ToStream(this Image image)
         {
-            using MemoryStream ms = new MemoryStream();
-            image.Save(ms, image.RawFormat);
-            ms.Position = 0;
-            return ms;
+            ImageConverter converter = new ImageConverter();
+            return (byte[])converter.ConvertTo(image, typeof(byte[]));
         }
         public static Image RoundCorners(Image StartImage, int CornerRadius, Color BackgroundColor)
         {
@@ -80,7 +79,7 @@ namespace osu_bot
             return number.ToString("N", format)[..^3];
         }
 
-        public static Image Darkening(this Image image, int alpha) 
+        public static Image Darkening(this Image image, int alpha)
         {
             Rectangle r = new Rectangle(0, 0, image.Width, image.Height);
             using Graphics g = Graphics.FromImage(image);
@@ -115,13 +114,32 @@ namespace osu_bot
                 attributes.Length = (int)Math.Round(attributes.Length * 0.75f);
                 attributes.BPM = (int)Math.Round(attributes.BPM * 1.5f);
             }
-            else if (mods.HasFlag(Mods.HT)) 
+            else if (mods.HasFlag(Mods.HT))
             {
                 attributes.AR = CalculateAdjustAttribute(attributes.AR, 0.75f);
                 attributes.OD = CalculateAdjustAttribute(attributes.OD, 0.75f);
                 attributes.Length = (int)Math.Round(attributes.Length * 1.5f);
                 attributes.BPM = (int)Math.Round(attributes.BPM * 0.75f);
             }
+        }
+
+        public static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss)
+        {
+            return (300 * count300 + 100 * count100 + 50 * count50) / (300 * (count300 + count100 + count50 + countMiss));
+        }
+
+        public static (int, int) CalculateGreatAndOkCountsFromAccuracy(double accuracy, int totalObjects)
+        {
+            int count300 = totalObjects;
+            int count100 = 0;
+            double lastAccuracy = 100.0;
+            double nowAccuracy = 100.0;
+            while (!(nowAccuracy <= accuracy && accuracy >= lastAccuracy))
+            {
+                lastAccuracy = nowAccuracy;
+                nowAccuracy = CalculateAccuracyFromHits(--count300, ++count100, 0, 0);
+            }
+            return (count300, count100);
         }
 
         /// <summary>
@@ -133,14 +151,14 @@ namespace osu_bot
         /// <returns></returns>
         private static float CalculateAdjustAttribute(float attribute, float coefficient)
         {
-            float ms;             
+            float ms;
             if (attribute > 5)
                 ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
             else if (attribute < 5)
                 ms = 1200 - (1200 - 1800) * (5 - attribute) / coefficient;
             else
                 ms = 1200;
-            
+
             if (ms > 1200)
                 return (1800 - ms) / 120;
             else

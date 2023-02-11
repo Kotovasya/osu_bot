@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Entites
 {
@@ -97,14 +96,14 @@ namespace osu_bot.Entites
         public static Image ConvertToImage(Mods mods)
         {
             if (mods == Mods.NM)
-                return new Bitmap(0, 0);
+                return null;
 
             var modsArray = mods.ToString().Split(", ");
             Image result = new Bitmap(45 * modsArray.Length, 32);
             var g = Graphics.FromImage(result);
             for (int i = 0; i < modsArray.Length; i++)
             {
-                var modFile = (Image)Resources.ResourceManager.GetObject($"{modsArray[i]}");
+                var modFile = Resources.Resources.ResourceManager.GetObject($"{modsArray[i]}") as Image;
                 g.DrawImage(modFile, 45 * i, 0);
             }
             return result;

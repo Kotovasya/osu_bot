@@ -30,10 +30,10 @@ namespace osu_bot.Entites
                 Score = json["score"].Value<int>();
 
             if (json["accuracy"] != null)
-                Accuracy = json["accuracy"].Value<float>();
+                Accuracy = json["accuracy"].Value<float>() * 100;
 
             if (json["created_at"] != null)
-                Date = DateTime.ParseExact(json["created_at"].Value<string>(), "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                Date = DateTime.ParseExact(json["created_at"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);    
 
             if (json["max_combo"] != null)
                 MaxCombo = json["max_combo"].Value<int>();
