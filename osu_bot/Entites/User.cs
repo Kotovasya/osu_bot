@@ -60,8 +60,13 @@ namespace osu_bot.Entites
                 return;
 
             PP = json["pp"].Value<int>();
-            WorldRating = json["global_rank"].Value<int>();
-            CountryRating = json["country_rank"].Value<int>();
+
+            if (json["global_rank"].Value<string>() != null)
+                WorldRating = json["global_rank"].Value<int>();
+
+            if (json["country_rank"].Value<string>() != null)
+                CountryRating = json["country_rank"].Value<int>();
+
             PlayTime = TimeSpan.FromSeconds(json["play_time"].Value<int>());
             PlayCount = json["play_count"].Value<int>();
         }

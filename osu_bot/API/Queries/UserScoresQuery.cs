@@ -28,25 +28,36 @@ namespace osu_bot.API.Queries
         {
             var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
             Parameters.UserId = userInfo.Id;
+            List<ScoreInfo> resultScores = new();
 
-            var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
-            List<ScoreInfo> scores = new();
-            foreach(var jsonScore in jsonScores)
-            {
-                ScoreInfo score = new();
-                score.ParseScoreJson(jsonScore);
-                scores.Add(score);
-            }            
-            var resultScores = scores
-                .Where(s => s.Mods == Parameters.Mods || Parameters.Mods == Mods.ALL)
-                .Take(Parameters.Limit)             
-                .ToList();
+            //if (Parameters.Limit == 1)
+            //{
+            //    ScoreInfo score = new();
+            //    score.ParseScoreJson(await api.GetJsonAsync(UrlParameter));
+            //    resultScores.Add(score);
+            //}
+            //else
+            //{
+                var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
+
+                foreach (var jsonScore in jsonScores)
+                {
+                    ScoreInfo score = new();
+                    score.ParseScoreJson(jsonScore);
+                    resultScores.Add(score);
+                }
+                resultScores = resultScores
+                    .Where(s => s.Mods == Parameters.Mods || Parameters.Mods == Mods.ALL)
+                    .Take(Parameters.Limit)
+                    .ToList();
+            //}
             foreach (var score in resultScores)
             {
                 beatmapAttributesQuery.Parameters.Mods = score.Mods;
                 beatmapAttributesQuery.Parameters.BeatmapId = score.Beatmap.Id;
                 score.User = userInfo;
-                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api), score.Mods);
+                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api));
+                score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
             }
             return resultScores;
         }

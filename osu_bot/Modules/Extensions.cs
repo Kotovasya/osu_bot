@@ -88,41 +88,6 @@ namespace osu_bot.Modules
             return image;
         }
 
-        public static void CalculateAttributesWithMods(this BeatmapAttributes attributes, Mods mods)
-        {
-            float ratio;
-            if (mods.HasFlag(Mods.HR))
-            {
-                ratio = 1.4f;
-                attributes.CS = Math.Min(attributes.CS * 1.3f, 10.0f);
-                attributes.AR = Math.Min(attributes.AR * ratio, 10.0f);
-                attributes.OD = Math.Min(attributes.OD * ratio, 10.0f);
-                attributes.HP = Math.Min(attributes.HP * ratio, 10.0f);
-            }
-            if (mods.HasFlag(Mods.EZ))
-            {
-                ratio = 0.5f;
-                attributes.CS *= ratio;
-                attributes.AR *= ratio;
-                attributes.OD *= ratio;
-                attributes.HP *= ratio;
-            }
-            if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
-            {
-                attributes.AR = CalculateAdjustAttribute(attributes.AR, 1.5f);
-                attributes.OD = CalculateAdjustAttribute(attributes.OD, 1.5f);
-                attributes.Length = (int)Math.Round(attributes.Length * 0.75f);
-                attributes.BPM = (int)Math.Round(attributes.BPM * 1.5f);
-            }
-            else if (mods.HasFlag(Mods.HT))
-            {
-                attributes.AR = CalculateAdjustAttribute(attributes.AR, 0.75f);
-                attributes.OD = CalculateAdjustAttribute(attributes.OD, 0.75f);
-                attributes.Length = (int)Math.Round(attributes.Length * 1.5f);
-                attributes.BPM = (int)Math.Round(attributes.BPM * 0.75f);
-            }
-        }
-
         public static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss)
         {
             return (300 * count300 + 100 * count100 + 50 * count50) / (300 * (count300 + count100 + count50 + countMiss));
@@ -140,29 +105,6 @@ namespace osu_bot.Modules
                 nowAccuracy = CalculateAccuracyFromHits(--count300, ++count100, 0, 0);
             }
             return (count300, count100);
-        }
-
-        /// <summary>
-        /// Method for calculate AR and OD attributes
-        /// </summary>
-        /// <param name="attribute">Ar or OD attribute</param>
-        /// <param name="coefficient">For HalfTime = 0.75, DoubleTime = 1.5</param>
-        /// <param name="mods"></param>
-        /// <returns></returns>
-        private static float CalculateAdjustAttribute(float attribute, float coefficient)
-        {
-            float ms;
-            if (attribute > 5)
-                ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
-            else if (attribute < 5)
-                ms = 1200 - (1200 - 1800) * (5 - attribute) / coefficient;
-            else
-                ms = 1200;
-
-            if (ms > 1200)
-                return (1800 - ms) / 120;
-            else
-                return (1200 - ms) / 150 + 5;
         }
     }
 }

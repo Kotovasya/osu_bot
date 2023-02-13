@@ -17,15 +17,15 @@ namespace osu_bot.Modules
         private static readonly Font SecularOne36 = new("Secular One", 36);
         private static readonly Dictionary<string, Brush> RankBrushes = new()
         {
-            {"XH", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(111, 111, 111), Color.FromArgb(235, 235, 235)) },
-            {"X", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(255, 190, 60), Color.FromArgb(255, 60, 30)) },
-            {"SH", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(111, 111, 111), Color.FromArgb(235, 235, 235)) },
-            {"S", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(255, 190, 60), Color.FromArgb(255, 60, 30)) },
-            {"A", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(27, 114, 0), Color.FromArgb(130, 255, 50)) },
-            {"B", new SolidBrush(Color.FromArgb(44, 39, 255)) },
-            {"C", new SolidBrush(Color.FromArgb(211, 37, 255)) },
-            {"D", new SolidBrush(Color.FromArgb(255, 37, 37)) },
-            {"F", new SolidBrush(Color.FromArgb(180, 180, 180)) }
+            {"XH", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(110, 110, 110), Color.FromArgb(255, 255, 255)) },
+            {"X", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(255, 220, 80), Color.FromArgb(255, 120, 0)) },
+            {"SH", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(110, 110, 110), Color.FromArgb(255, 255, 255)) },
+            {"S", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(255, 190, 60), Color.FromArgb(255, 120, 0)) },
+            {"A", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(27, 114, 0), Color.FromArgb(130, 255, 50)) },
+            {"B", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(0, 70, 220), Color.FromArgb(0, 100, 255)) },
+            {"C", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(160, 0, 255), Color.FromArgb(255, 0, 220)) },
+            {"D", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(150, 0, 0), Color.FromArgb(255, 0, 0)) },
+            {"F", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(150, 0, 0), Color.FromArgb(255, 0, 0)) }
         };
 
         private static readonly Font Rubik22 = new("Rubik", 22);
@@ -100,14 +100,17 @@ namespace osu_bot.Modules
 
             g.FillRectangle(BackgroundBrush, 0, 0, width, height);
 
-            var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
-            g.DrawString(drawableString, SecularOne48, RankBrushes[score.Rank], 10, 20);
-            var leftIndent = 20 + g.MeasureString(drawableString, SecularOne48).Width;
-
-            RectangleF frame = new Rectangle((int)leftIndent, 14, 146, 90);
+            var x = 100.0f;
+            RectangleF frame = new Rectangle((int)x, 14, 146, 90);
             RectangleF imageFrame = new Rectangle(image.Width / 2 - 406, image.Height / 2 - 250, 812, 500);
             g.DrawImage(image, frame, imageFrame, GraphicsUnit.Pixel);
-            var x = leftIndent + 155;
+
+            var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
+            x = x / 2 - g.MeasureString(drawableString, SecularOne48).Width / 2;
+            g.DrawString(drawableString, SecularOne48, RankBrushes[score.Rank], x, 20);
+
+            x = 260;
+
             g.DrawString(score.Beatmap.Title, Rubik15, WhiteBrush, x, 10);
             drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
             g.DrawString(drawableString, Rubik11, LightGrayBrush, x, 35);
@@ -116,7 +119,7 @@ namespace osu_bot.Modules
             x += g.MeasureString(drawableString, Rubik11).Width;
             g.DrawString("★", RubikBold11, LightGrayBrush, x, 55);
 
-            x = leftIndent + 155;
+            x = 260;
 
             drawableString = $"{score.Accuracy:0.00}%";
             g.DrawString(drawableString, Rubik13, WhiteBrush, x, 85);
@@ -236,7 +239,7 @@ namespace osu_bot.Modules
 
             g.DrawString("Stars:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("Stars:", Rubik13).Width;
-            g.DrawString($"{score.Beatmap.Attributes.Stars} ★", RubikBold13, WhiteBrush, x, 180);
+            g.DrawString($"{score.Beatmap.Attributes.Stars:0.00} ★", RubikBold13, WhiteBrush, x, 180);
             #endregion
 
             #region score line 1
@@ -250,7 +253,7 @@ namespace osu_bot.Modules
 
             g.DrawString("Performance", RubikBold15, LightGrayBrush, x, 224);
             stringLength = g.MeasureString("Performance", RubikBold15).Width;
-            drawableString = $"{score.PP}PP";
+            drawableString = $"{(int)score.PP}PP";
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik22).Width / 2;
             g.DrawString(drawableString, Rubik22, WhiteBrush, centerX, 250);
             x = x + 130 + stringLength;

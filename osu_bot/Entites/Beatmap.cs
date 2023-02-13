@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace osu_bot.Entites
                 if (json["url"] != null)
                     Url = json["url"].Value<string>();
                
-                Attributes.ParseBeatmapAttributes(json);
+                Attributes.ParseBeatmapAttributes(json, Mods.NM);
             }
         }
 
@@ -72,13 +73,12 @@ namespace osu_bot.Entites
 
         }
 
-        public void ParseDifficultyAttributesJson(JToken json, Mods mods)
+        public void ParseDifficultyAttributesJson(JToken json)
         {
             if (json != null)
             {
-                Mods = mods;
                 json = json["attributes"];
-                
+
                 if (json["star_rating"] != null)
                     Stars = json["star_rating"].Value<float>();
 
@@ -102,7 +102,7 @@ namespace osu_bot.Entites
             }
         }
 
-        public void ParseBeatmapAttributes(JToken json)
+        public void ParseBeatmapAttributes(JToken json, Mods mods)
         {
             if (json["difficulty_rating"] != null)
                 Stars = json["difficulty_rating"].Value<float>();
@@ -133,6 +133,66 @@ namespace osu_bot.Entites
 
             if (json["count_spinners"] != null)
                 SpinnerCount = json["count_spinners"].Value<int>();
+
+            this.CalculateAttributesWithMods(mods);
+        }
+
+        public void CalculateAttributesWithMods(Mods mods)
+        {
+            float ratio;
+            if (mods.HasFlag(Mods.HR))
+            {
+                ratio = 1.4f;
+                CS = Math.Min(CS * 1.3f, 10.0f);
+                AR = Math.Min(AR * ratio, 10.0f);
+                OD = Math.Min(OD * ratio, 10.0f);
+                HP = Math.Min(HP * ratio, 10.0f);
+            }
+            if (mods.HasFlag(Mods.EZ))
+            {
+                ratio = 0.5f;
+                CS *= ratio;
+                AR *= ratio;
+                OD *= ratio;
+                HP *= ratio;
+            }
+            if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
+            {
+                AR = CalculateAdjustAttribute(AR, 1.5f);
+                OD = CalculateAdjustAttribute(OD, 1.5f);
+                Length = (int)Math.Round(Length * 0.75f);
+                BPM = (int)Math.Round(BPM * 1.5f);
+            }
+            else if (mods.HasFlag(Mods.HT))
+            {
+                AR = CalculateAdjustAttribute(AR, 0.75f);
+                OD = CalculateAdjustAttribute(OD, 0.75f);
+                Length = (int)Math.Round(Length * 1.5f);
+                BPM = (int)Math.Round(BPM * 0.75f);
+            }
+        }
+
+        /// <summary>
+        /// Method for calculate AR and OD attributes
+        /// </summary>
+        /// <param name="attribute">Ar or OD attribute</param>
+        /// <param name="coefficient">For HalfTime = 0.75, DoubleTime = 1.5</param>
+        /// <param name="mods"></param>
+        /// <returns></returns>
+        private static float CalculateAdjustAttribute(float attribute, float coefficient)
+        {
+            float ms;
+            if (attribute > 5)
+                ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
+            else if (attribute < 5)
+                ms = 1200 - (1200 - 1800) * (5 - attribute) / coefficient;
+            else
+                ms = 1200;
+
+            if (ms > 1200)
+                return (1800 - ms) / 120;
+            else
+                return (1200 - ms) / 150 + 5;
         }
 
         public Mods Mods { get; set; }

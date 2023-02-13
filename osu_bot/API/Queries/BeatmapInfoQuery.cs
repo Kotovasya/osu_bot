@@ -18,7 +18,7 @@ namespace osu_bot.API.Queries
         {      
             var response = await api.PostJsonAsync(UrlParameter, Parameters.GetJson());
             BeatmapAttributes beatmapAttributes = new();
-            beatmapAttributes.ParseBeatmapAttributes(response);
+            beatmapAttributes.ParseBeatmapAttributes(response, Parameters.Mods);
             return beatmapAttributes;
         }
 

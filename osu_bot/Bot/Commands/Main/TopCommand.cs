@@ -42,7 +42,7 @@ namespace osu_bot.Bot.Commands.Main
                         throw new Exception
                             ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с модами {ModsParser.ConvertToString(query.Parameters.Mods)}");
                 }
-                var image = ImageGenerator.CreateScoresCard(scores);
+                var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
                 var imageStream = image.ToStream();
                 await botClient.SendPhotoAsync(
                     chatId: update.Message.Chat,
@@ -64,10 +64,7 @@ namespace osu_bot.Bot.Commands.Main
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (args.Length > 2)
-                throw new ArgumentException("В запросе более 2-х аргументов. Синтаксис: /top <number> <username> <+MODS>");
-            
-            if (args.Length == 0)
-                query.Parameters.Username = "Kotovasya";
+                throw new ArgumentException("В запросе более 2-х аргументов. Синтаксис: /top <number> <username> <+MODS>");     
 
             foreach (var arg in args)
             {
@@ -87,6 +84,9 @@ namespace osu_bot.Bot.Commands.Main
                 else
                     query.Parameters.Username = arg ?? "Kotovasya";
             }
+
+            if (query.Parameters.Username == null)
+                query.Parameters.Username = "Kotovasya";
         }
     }
 }
