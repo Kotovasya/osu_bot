@@ -38,10 +38,17 @@ namespace osu_bot.Entites
                 AvatarUrl = json["avatar_url"].Value<string>();
 
             if (json["join_date"] != null)
-                DateRegistration = DateTime.ParseExact(json["join_date"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            {
+                string value = json.SelectToken("join_date").Value<string>();
+                DateRegistration = DateTime.ParseExact(value, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture).ToLocalTime();
+            };           
 
             if (json["last_visit"] != null)
-                LastOnline = DateTime.ParseExact(json["last_visit"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            {
+                string value = json.SelectToken("last_visit").Value<string>();
+                if (value != null)
+                    LastOnline = DateTime.ParseExact(value, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture).ToLocalTime();
+            }
 
             if (json["rank_history"] != null)
                 RankHistory = json["rank_history"]["data"].Values<int>().ToArray();           
@@ -70,7 +77,7 @@ namespace osu_bot.Entites
         public string CountryCode { get; set; }
         public string AvatarUrl { get; set; }
         public DateTime DateRegistration { get; set; }
-        public DateTime LastOnline { get; set; }
+        public DateTime? LastOnline { get; set; }
 
         public int[] RankHistory { get; set; }
     }

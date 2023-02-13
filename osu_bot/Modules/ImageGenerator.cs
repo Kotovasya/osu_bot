@@ -13,15 +13,15 @@ namespace osu_bot.Modules
 {
     public static class ImageGenerator
     {
-        private static readonly Font Arista48 = new Font("Arista 2.0", 48);
-        private static readonly Font Arista36 = new("Arista 2.0", 36);
-        private static readonly Dictionary<string, SolidBrush> RankBrushes = new()
+        private static readonly Font SecularOne48 = new("Secular One", 48);
+        private static readonly Font SecularOne36 = new("Secular One", 36);
+        private static readonly Dictionary<string, Brush> RankBrushes = new()
         {
-            {"SSH", new SolidBrush(Color.FromArgb(213, 213, 213)) },
-            {"SS", new SolidBrush(Color.FromArgb(255, 217, 37)) },
-            {"SH", new SolidBrush(Color.FromArgb(213, 213, 213)) },
-            {"S", new SolidBrush(Color.FromArgb(255, 217, 37)) },
-            {"A", new SolidBrush(Color.FromArgb(73, 255, 37)) },
+            {"XH", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(111, 111, 111), Color.FromArgb(235, 235, 235)) },
+            {"X", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(255, 190, 60), Color.FromArgb(255, 60, 30)) },
+            {"SH", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(111, 111, 111), Color.FromArgb(235, 235, 235)) },
+            {"S", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(255, 190, 60), Color.FromArgb(255, 60, 30)) },
+            {"A", new LinearGradientBrush(new Point(0, 100), new Point(100, 0), Color.FromArgb(27, 114, 0), Color.FromArgb(130, 255, 50)) },
             {"B", new SolidBrush(Color.FromArgb(44, 39, 255)) },
             {"C", new SolidBrush(Color.FromArgb(211, 37, 255)) },
             {"D", new SolidBrush(Color.FromArgb(255, 37, 37)) },
@@ -101,8 +101,8 @@ namespace osu_bot.Modules
             g.FillRectangle(BackgroundBrush, 0, 0, width, height);
 
             var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
-            g.DrawString(drawableString, Arista48, RankBrushes[score.Rank], 10, 20);
-            var leftIndent = 20 + g.MeasureString(drawableString, Arista48).Width;
+            g.DrawString(drawableString, SecularOne48, RankBrushes[score.Rank], 10, 20);
+            var leftIndent = 20 + g.MeasureString(drawableString, SecularOne48).Width;
 
             RectangleF frame = new Rectangle((int)leftIndent, 14, 146, 90);
             RectangleF imageFrame = new Rectangle(image.Width / 2 - 406, image.Height / 2 - 250, 812, 500);
@@ -156,7 +156,10 @@ namespace osu_bot.Modules
 
             var modsImage = ModsParser.ConvertToImage(score.Mods);
             if (modsImage != null)
-                g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
+            {
+                x = (x + g.MeasureString(drawableString, Rubik20).Width / 2) - modsImage.Width / 2;
+                g.DrawImage(modsImage, x, 59);
+            }
 
             return result;
         }
@@ -241,8 +244,8 @@ namespace osu_bot.Modules
             g.DrawString("Rank", RubikBold15, LightGrayBrush, x, 224);
             var stringLength = g.MeasureString("Rank", RubikBold15).Width;
             drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
-            var centerX = x + stringLength / 2 - g.MeasureString(drawableString, Arista36).Width / 2;
-            g.DrawString(drawableString, Arista36, RankBrushes[score.Rank], centerX, 240);
+            var centerX = x + stringLength / 2 - g.MeasureString(drawableString, SecularOne36).Width / 2;
+            g.DrawString(drawableString, SecularOne36, RankBrushes[score.Rank], centerX, 240);
             x = x + 130 + stringLength;
 
             g.DrawString("Performance", RubikBold15, LightGrayBrush, x, 224);
@@ -391,7 +394,7 @@ namespace osu_bot.Modules
             drawableString = "Online:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 235);
-            g.DrawString(GetPlayedTimeString(user.LastOnline), Rubik15, WhiteBrush, x, 235);
+            g.DrawString(user.LastOnline != null ? GetPlayedTimeString(user.LastOnline.Value) : "скрыто", Rubik15, WhiteBrush, x, 235);
 
             drawableString = "Registration:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;

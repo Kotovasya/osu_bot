@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 namespace osu_bot.Entites
 {
@@ -33,7 +34,10 @@ namespace osu_bot.Entites
                 Accuracy = json["accuracy"].Value<float>() * 100;
 
             if (json["created_at"] != null)
-                Date = DateTime.ParseExact(json["created_at"].Value<string>(), "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);    
+            {
+                string value = json.SelectToken("created_at").Value<string>();
+                Date = DateTime.ParseExact(value, "MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture).ToLocalTime();
+            }
 
             if (json["max_combo"] != null)
                 MaxCombo = json["max_combo"].Value<int>();
