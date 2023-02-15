@@ -158,9 +158,9 @@ namespace osu_bot.Entites
             }
             if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
             {
-                AR = CalculateAdjustAttribute(AR, 1.5f);
-                OD = CalculateAdjustAttribute(OD, 1.5f);
-                Length = (int)Math.Round(Length * 0.75f);
+                AR = Math.Min((AR * 2 + 13) / 3, 11.0f);
+                OD = Math.Min((OD * 2 + 13) / 3, 11.0f);
+                Length = (int)Math.Round(Length * 0.5f);
                 BPM = (int)Math.Round(BPM * 1.5f);
             }
             else if (mods.HasFlag(Mods.HT))
