@@ -92,21 +92,23 @@ namespace osu_bot.Modules
 
         public static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss)
         {
-            return Math.Max(Math.Min((count300 + count100 * 1/3 + count50 * 1/6) / (count300 + count100 + count50 + countMiss), 1), 0);
+            return (300.0 * count300 + 100.0 * count100 + 50.0 * count50) / (300.0 * (count300 + count100 + count50 + countMiss));
         }
 
-        public static (int, int) CalculateGreatAndOkCountsFromAccuracy(double accuracy, int totalObjects)
+        public static (int, int, double) CalculateHitsFromAccuracy(double accuracy, int totalObjects)
         {
             int count300 = totalObjects;
             int count100 = 0;
             double lastAccuracy = 1;
             double nowAccuracy = 1;
-            while (!(nowAccuracy <= accuracy && accuracy >= lastAccuracy))
+            while (!(Math.Round(nowAccuracy, 4) <= Math.Round(accuracy, 4) && Math.Round(accuracy, 4) >= Math.Round(lastAccuracy, 4)))
             {
+                count300--;
+                count100++;
                 lastAccuracy = nowAccuracy;
-                nowAccuracy = CalculateAccuracyFromHits(--count300, ++count100, 0, 0);
+                nowAccuracy = CalculateAccuracyFromHits(count300 - 1, count100 + 1, 0, 0);
             }
-            return (count300, count100);
+            return (count300, count100, accuracy);
         }
 
         public static IEnumerable<string> Split(this string str, int n)

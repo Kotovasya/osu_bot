@@ -24,7 +24,7 @@ namespace osu_bot.Modules
 
         private static int totalHits => countGreat + countOk + countMeh + countMiss;
 
-        public static double Calculate(ScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
+        public static int Calculate(ScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
         {
             if (isFullCombo)
             {
@@ -40,10 +40,19 @@ namespace osu_bot.Modules
                 else
                 {
                     scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
-                    (countGreat, countOk) = Extensions.CalculateGreatAndOkCountsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
-                    countMeh = 0;
+                    if (score.Beatmap.Attributes.TotalObjects == totalHits)
+                    {
+                        countGreat += countMiss;
+                        countOk = score.Count100;
+                        countMeh = score.Count50;
+                        accuracy = Extensions.CalculateAccuracyFromHits(countGreat, countOk, countMeh, countMiss);
+                    }
+                    else
+                    {
+                        (countGreat, countOk, accuracy) = Extensions.CalculateHitsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
+                        countMeh = 0;                       
+                    }
                     countMiss = 0;
-                    accuracy = Extensions.CalculateAccuracyFromHits(countGreat, countOk, countMeh, countMiss);
                 }
             }
             else
@@ -87,7 +96,7 @@ namespace osu_bot.Modules
                     Math.Pow(accuracyValue, 1.1) +
                     Math.Pow(flashlightValue, 1.1), 1.0 / 1.1
                 ) * multiplier;
-            return totalValue;
+            return (int)Math.Round(totalValue, MidpointRounding.ToEven);
         }
 
         private static double getComboScalingFactor(BeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);

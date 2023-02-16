@@ -78,10 +78,12 @@ namespace osu_bot.Entites
         public double Stars { get; set; }
         public int MaxCombo { get; set; }
         public double BPM { get; set; }
+
         public double CS { get; set; }
         public double AR { get; set; }
         public double OD { get; set; }
         public double HP { get; set; }
+
         public int Length { get; set; }
 
         public double AimDifficulty { get; set; }

@@ -303,14 +303,14 @@ namespace osu_bot.Modules
 
             g.DrawString("For FC", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("For FC", RubikBold13).Width;
-            drawableString = $"{(int)PerfomanceCalculator.Calculate(score, isFullCombo: true)}pp";
+            drawableString = $"{PerfomanceCalculator.Calculate(score, isFullCombo: true)}pp";
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
             g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
             g.DrawString("SS", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("SS", RubikBold13).Width;
-            drawableString = $"{(int)PerfomanceCalculator.Calculate(score, isFullCombo: true, isPerfect: true)}pp";
+            drawableString = $"{PerfomanceCalculator.Calculate(score, isFullCombo: true, isPerfect: true)}pp";
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
             g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
