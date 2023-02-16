@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace osu_bot.Entites.Mods
 {
-    public class ModNofail : Mod
+    public class ModNoFail : Mod
     {
         public override int Number => 1 << 0;
 

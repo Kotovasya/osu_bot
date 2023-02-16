@@ -5,12 +5,14 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using osu_bot.Entites;
 
 namespace osu_bot.Modules
 {
+    [SupportedOSPlatform("windows")]
     public static class ImageGenerator
     {
         private static readonly Font SecularOne48 = new("Secular One", 48);
@@ -157,7 +159,7 @@ namespace osu_bot.Modules
             x = width - 15 - g.MeasureString(drawableString, Rubik20).Width;
             g.DrawString(drawableString, Rubik20, WhiteBrush, x, 10);
 
-            var modsImage = ModsParser.ConvertToImage(score.Mods);
+            var modsImage = ModsConverter.ToImage(score.Mods);
             if (modsImage != null)
             {
                 x = (x + g.MeasureString(drawableString, Rubik20).Width / 2) - modsImage.Width / 2;
@@ -208,23 +210,27 @@ namespace osu_bot.Modules
 
             g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
             x = 220 + g.MeasureString($"CS:", Rubik13).Width;
-            g.DrawString(score.Beatmap.Attributes.CS.ToString(), RubikBold13, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.CS.ToString(), Rubik13).Width;
+            drawableString = score.Beatmap.Attributes.CS.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, Rubik13).Width;
 
             g.DrawString("AR:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("AR:", Rubik13).Width;
-            g.DrawString(score.Beatmap.Attributes.AR.ToString(), RubikBold13, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.AR.ToString(), RubikBold13).Width;
+            drawableString = score.Beatmap.Attributes.AR.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("OD:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("OD:", Rubik13).Width;
-            g.DrawString(score.Beatmap.Attributes.OD.ToString(), RubikBold13, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.OD.ToString(), RubikBold13).Width;
+            drawableString = score.Beatmap.Attributes.OD.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("HP:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("HP:", Rubik13).Width;
-            g.DrawString(score.Beatmap.Attributes.HP.ToString(), RubikBold13, WhiteBrush, x, 180);
-            x = x + 5 + g.MeasureString(score.Beatmap.Attributes.HP.ToString(), RubikBold13).Width;
+            drawableString = score.Beatmap.Attributes.HP.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("Length:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("Length:", Rubik13).Width;
@@ -274,7 +280,7 @@ namespace osu_bot.Modules
 
             g.DrawString("Mods", RubikBold15, LightGrayBrush, x, 224);
             stringLength = g.MeasureString("Mods", RubikBold15).Width;
-            var modsImage = ModsParser.ConvertToImage(score.Mods);
+            var modsImage = ModsConverter.ToImage(score.Mods);
             centerX = x + stringLength / 2 - modsImage.Width / 2;
             g.DrawImage(modsImage, centerX, 250);
             #endregion

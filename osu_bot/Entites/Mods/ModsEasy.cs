@@ -20,7 +20,7 @@ namespace osu_bot.Entites.Mods
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {
-            float ratio = 0.5f;
+            double ratio = 0.5;
             attributes.CS *= ratio;
             attributes.AR *= ratio;
             attributes.OD *= ratio;

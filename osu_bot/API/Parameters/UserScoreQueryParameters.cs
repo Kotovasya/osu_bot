@@ -1,4 +1,5 @@
 ﻿using osu_bot.Entites;
+using osu_bot.Entites.Mods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace osu_bot.API.Parameters
 
         public int UserId { get; set; }
 
-        public Mods Mods { get; set; }
+        public IEnumerable<Mod>? Mods { get; set; }
 
         public int Offset { get; set; }
 
@@ -27,7 +28,6 @@ namespace osu_bot.API.Parameters
     {
         public UserTopScoreQueryParameters()
         {
-            Mods = Mods.ALL;
             Limit = 5;
         }
 
@@ -43,7 +43,6 @@ namespace osu_bot.API.Parameters
 
         public UserLastScoreQueryParameters()
         {
-            Mods = Mods.ALL;
             Limit = 1;
             IncludeFails = true;
         }

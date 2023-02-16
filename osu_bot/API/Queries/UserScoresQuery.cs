@@ -47,7 +47,7 @@ namespace osu_bot.API.Queries
                     resultScores.Add(score);
                 }
                 resultScores = resultScores
-                    .Where(s => s.Mods == Parameters.Mods || Parameters.Mods == Mods.ALL)
+                    .Where(s => Parameters.Mods == null || s.Mods == Parameters.Mods)
                     .Take(Parameters.Limit)
                     .ToList();
             //}

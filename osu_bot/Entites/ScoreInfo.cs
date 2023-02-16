@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
+using osu_bot.Entites.Mods;
+using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -52,7 +54,7 @@ namespace osu_bot.Entites
                 Rank = json["rank"].Value<string>();
 
             if (json["mods"] != null)
-                Mods = ModsParser.ConvertToMods(string.Concat(json["mods"].Values<string>()));
+                Mods = ModsConverter.ToMods(json["mods"].Values<string>());
 
             if (json["beatmap"] != null)
                 Beatmap.ParseBeatmapJson(json["beatmap"]);
@@ -83,7 +85,7 @@ namespace osu_bot.Entites
         public int Count300 { get; set; }
         public int CountMisses { get; set; }
         public string Rank { get; set; }
-        public Mods Mods { get; set; }
+        public IEnumerable<Mod> Mods { get; set; }
         public Beatmap Beatmap { get; set; }
         public User User { get; set; }
     }

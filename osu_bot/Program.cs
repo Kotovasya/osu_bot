@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Net;
+using System.Runtime.Versioning;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -15,6 +16,7 @@ using User = osu_bot.Entites.User;
 
 namespace osu_bot
 {
+    [SupportedOSPlatform("windows")]
     internal class Program
     {
         static async Task Main(string[] args)

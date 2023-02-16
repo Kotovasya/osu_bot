@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
+using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
 using System;
@@ -32,15 +33,15 @@ namespace osu_bot.Bot.Commands.Main
         {
             if (update.Message?.Text != null)
             {
-                await Parse(update.Message.Text);
+                Parse(update.Message.Text);
                 List<ScoreInfo> scores = await query.ExecuteAsync(API);
                 if (scores.Count == 0)
                 {
-                    if (query.Parameters.Mods == Mods.ALL)
+                    if (query.Parameters.Mods != null)
                         throw new Exception($"У пользователя {query.Parameters.Username} отсутствуют топ скоры");
                     else
                         throw new Exception
-                            ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с модами {ModsParser.ConvertToString(query.Parameters.Mods)}");
+                            ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с {ModsConverter.ToString(query.Parameters.Mods)}");
                 }
                 var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
                 var imageStream = image.ToStream();
@@ -52,7 +53,7 @@ namespace osu_bot.Bot.Commands.Main
             }
         }
 
-        private async Task Parse(string text)
+        private void Parse(string text)
         {
             if (text == Text)
             {
@@ -75,11 +76,16 @@ namespace osu_bot.Bot.Commands.Main
                 }
                 else if (arg.StartsWith('+'))
                 {
-                    var mods = arg.Remove(0, 1);
-                    if (mods.Length < 2 || mods.Length % 2 != 0)
+                    var parameterMods = new HashSet<Mod>();
+                    query.Parameters.Mods = parameterMods;
+
+                    string modsString = arg.Remove(0, 1);
+                    if (modsString.Length < 2 || modsString.Length % 2 != 0)
                         throw new ModsArgumentException();
 
-                    query.Parameters.Mods = ModsParser.ConvertToMods(arg);
+                    var mods = modsString.Split(2);
+                    foreach(var mod in mods)
+                        parameterMods.Add(ModsConverter.ToMod(mod));
                 }
                 else
                     query.Parameters.Username = arg ?? "Kotovasya";

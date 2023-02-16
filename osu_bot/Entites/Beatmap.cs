@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using osu_bot.Entites.Mods;
 using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace osu_bot.Entites
             Attributes = new BeatmapAttributes();
         }
 
+
         public void ParseBeatmapJson(JToken json)
         {
             if (json != null)
@@ -30,7 +32,7 @@ namespace osu_bot.Entites
                 if (json["url"] != null)
                     Url = json["url"].Value<string>();
                
-                Attributes.ParseBeatmapAttributes(json, Mods.NM);
+                Attributes.ParseBeatmapAttributesJson(json);
             }
         }
 
@@ -73,6 +75,26 @@ namespace osu_bot.Entites
 
         }
 
+        public double Stars { get; set; }
+        public int MaxCombo { get; set; }
+        public double BPM { get; set; }
+        public double CS { get; set; }
+        public double AR { get; set; }
+        public double OD { get; set; }
+        public double HP { get; set; }
+        public int Length { get; set; }
+
+        public double AimDifficulty { get; set; }
+        public double SpeedDifficulty { get; set; }
+        public double SpeedNoteCount { get; set; }
+        public double FlashlightDifficulty { get; set; }
+        public double SliderFactor { get; set; }
+        public int CircleCount { get; set; }
+        public int SliderCount { get; set; }
+        public int SpinnerCount { get; set; }
+
+        public int TotalObjects => CircleCount + SliderCount + SpinnerCount;
+
         public void ParseDifficultyAttributesJson(JToken json)
         {
             if (json != null)
@@ -80,47 +102,47 @@ namespace osu_bot.Entites
                 json = json["attributes"];
 
                 if (json["star_rating"] != null)
-                    Stars = json["star_rating"].Value<float>();
+                    Stars = json["star_rating"].Value<double>();
 
                 if (json["max_combo"] != null)
                     MaxCombo = json["max_combo"].Value<int>();
 
                 if (json["aim_difficulty"] != null)
-                    AimDifficulty = json["aim_difficulty"].Value<float>();
+                    AimDifficulty = json["aim_difficulty"].Value<double>();
 
                 if (json["speed_difficulty"] != null)
-                    SpeedDifficulty = json["speed_difficulty"].Value<float>();
+                    SpeedDifficulty = json["speed_difficulty"].Value<double>();
 
                 if (json["speed_note_count"] != null)
-                    SpeedNoteCount = json["speed_note_count"].Value<float>();
+                    SpeedNoteCount = json["speed_note_count"].Value<double>();
 
                 if (json["flashlight_difficulty"] != null)
-                    FlashlightDifficulty = json["flashlight_difficulty"].Value<float>();
+                    FlashlightDifficulty = json["flashlight_difficulty"].Value<double>();
 
                 if (json["slider_factor"] != null)
-                    SliderFactor = json["slider_factor"].Value<float>();
+                    SliderFactor = json["slider_factor"].Value<double>();
             }
         }
 
-        public void ParseBeatmapAttributes(JToken json, Mods mods)
+        public void ParseBeatmapAttributesJson(JToken json, IEnumerable<Mod>? mods = null)
         {
             if (json["difficulty_rating"] != null)
-                Stars = json["difficulty_rating"].Value<float>();
+                Stars = json["difficulty_rating"].Value<double>();
 
             if (json["cs"] != null)
-                CS = json["cs"].Value<float>();
+                CS = json["cs"].Value<double>();
 
             if (json["ar"] != null)
-                AR = json["ar"].Value<float>();
+                AR = json["ar"].Value<double>();
 
             if (json["accuracy"] != null)
-                OD = json["accuracy"].Value<float>();
+                OD = json["accuracy"].Value<double>();
 
             if (json["drain"] != null)
-                HP = json["drain"].Value<float>();
+                HP = json["drain"].Value<double>();
 
             if (json["bpm"] != null)
-                BPM = json["bpm"].Value<float>();
+                BPM = json["bpm"].Value<double>();
 
             if (json["total_length"] != null)
                 Length = json["total_length"].Value<int>();
@@ -134,87 +156,26 @@ namespace osu_bot.Entites
             if (json["count_spinners"] != null)
                 SpinnerCount = json["count_spinners"].Value<int>();
 
-            this.CalculateAttributesWithMods(mods);
+            if (mods != null)
+                CalculateAttributesWithMods(mods);
         }
 
-        public void CalculateAttributesWithMods(Mods mods)
+        public void CalculateAttributesWithMods(IEnumerable<Mod> mods)
         {
-            float ratio;
-            if (mods.HasFlag(Mods.HR))
-            {
-                ratio = 1.4f;
-                CS = Math.Min(CS * 1.3f, 10.0f);
-                AR = Math.Min(AR * ratio, 10.0f);
-                OD = Math.Min(OD * ratio, 10.0f);
-                HP = Math.Min(HP * ratio, 10.0f);
-            }
-            if (mods.HasFlag(Mods.EZ))
-            {
-                ratio = 0.5f;
-                CS *= ratio;
-                AR *= ratio;
-                OD *= ratio;
-                HP *= ratio;
-            }
-            if (mods.HasFlag(Mods.DT) || mods.HasFlag(Mods.NC))
-            {
-                AR = Math.Min((AR * 2 + 13) / 3, 11.0f);
-                OD = Math.Min((OD * 2 + 13) / 3, 11.0f);
-                Length = (int)Math.Round(Length * 0.5f);
-                BPM = (int)Math.Round(BPM * 1.5f);
-            }
-            else if (mods.HasFlag(Mods.HT))
-            {
-                AR = CalculateAdjustAttribute(AR, 0.75f);
-                OD = CalculateAdjustAttribute(OD, 0.75f);
-                Length = (int)Math.Round(Length * 1.5f);
-                BPM = (int)Math.Round(BPM * 0.75f);
-            }
+            if (!mods.Any())
+                return;
+
+            var applicableMods = mods.Where(m => m is IApplicableMod).Select(m => m as IApplicableMod);
+            var firstApplicableMods = applicableMods.Where(m => m is ModHardRock || m is ModsEasy);
+            
+            foreach (var mod in firstApplicableMods)
+                mod.ApplyToAttributes(this);
+
+            applicableMods = applicableMods.Except(firstApplicableMods);
+            foreach (var mod in applicableMods)
+                mod.ApplyToAttributes(this);
         }
 
-        /// <summary>
-        /// Method for calculate AR and OD attributes
-        /// </summary>
-        /// <param name="attribute">Ar or OD attribute</param>
-        /// <param name="coefficient">For HalfTime = 0.75, DoubleTime = 1.5</param>
-        /// <param name="mods"></param>
-        /// <returns></returns>
-        private static float CalculateAdjustAttribute(float attribute, float coefficient)
-        {
-            float ms;
-            if (attribute > 5)
-                ms = 1200 + (450 - 1200) * (attribute - 5) / coefficient;
-            else if (attribute < 5)
-                ms = 1200 - (1200 - 1800) * (5 - attribute) / coefficient;
-            else
-                ms = 1200;
-
-            if (ms > 1200)
-                return (1800 - ms) / 120;
-            else
-                return (1200 - ms) / 150 + 5;
-        }
-
-        public Mods Mods { get; set; }
-
-        public float Stars { get; set; }
-        public int MaxCombo { get; set; }
-        public float BPM { get; set; }
-        public float CS { get; set; }
-        public float AR { get; set; }
-        public float OD { get; set; }
-        public float HP { get; set; }
-        public int Length { get; set; }
-
-        public float AimDifficulty { get; set; }
-        public float SpeedDifficulty { get; set; }
-        public float SpeedNoteCount { get; set; }
-        public float FlashlightDifficulty { get; set; }
-        public float SliderFactor { get; set; }
-        public int CircleCount { get; set; }
-        public int SliderCount { get; set; }
-        public int SpinnerCount { get; set; }
-
-        public int TotalObjects => CircleCount + SliderCount + SpinnerCount;
+        public IEnumerable<Mod> Mods { get; set; }
     }
 }

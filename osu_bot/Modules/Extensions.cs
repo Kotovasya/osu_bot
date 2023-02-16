@@ -9,9 +9,11 @@ using System.Globalization;
 using System.Text.Json.Nodes;
 using osu_bot.Entites;
 using System.Drawing.Imaging;
+using System.Runtime.Versioning;
 
 namespace osu_bot.Modules
 {
+    [SupportedOSPlatform("windows")]
     public static class Extensions
     {
         public static byte[] ToStream(this Image image)
@@ -90,21 +92,34 @@ namespace osu_bot.Modules
 
         public static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss)
         {
-            return (300 * count300 + 100 * count100 + 50 * count50) / (300 * (count300 + count100 + count50 + countMiss));
+            return Math.Max(Math.Min((count300 + count100 * 1/3 + count50 * 1/6) / (count300 + count100 + count50 + countMiss), 1), 0);
         }
 
         public static (int, int) CalculateGreatAndOkCountsFromAccuracy(double accuracy, int totalObjects)
         {
             int count300 = totalObjects;
             int count100 = 0;
-            double lastAccuracy = 100.0;
-            double nowAccuracy = 100.0;
+            double lastAccuracy = 1;
+            double nowAccuracy = 1;
             while (!(nowAccuracy <= accuracy && accuracy >= lastAccuracy))
             {
                 lastAccuracy = nowAccuracy;
                 nowAccuracy = CalculateAccuracyFromHits(--count300, ++count100, 0, 0);
             }
             return (count300, count100);
+        }
+
+        public static IEnumerable<string> Split(this string str, int n)
+        {
+            if (string.IsNullOrEmpty(str) || n < 1)
+            {
+                throw new ArgumentException();
+            }
+
+            for (int i = 0; i < str.Length; i += n)
+            {
+                yield return str.Substring(i, Math.Min(n, str.Length - i));
+            }
         }
     }
 }

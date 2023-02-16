@@ -20,11 +20,11 @@ namespace osu_bot.Entites.Mods
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {
-            attributes.AR = Math.Min((attributes.AR * 2 + 13) / 3, 11.0f);
-            attributes.OD = Math.Min((attributes.OD * 2 + 13) / 3, 11.0f);
-            attributes.HP = Math.Min((attributes.HP * 2 + 13) / 3, 11.0f);
-            attributes.Length = (int)Math.Round(attributes.Length * 0.5f);
-            attributes.BPM = (int)Math.Round(attributes.BPM * 1.5f);
+            attributes.AR = Math.Min((attributes.AR * 2 + 13) / 3, 11.0);
+            attributes.OD = Math.Min((attributes.OD * 2 + 13) / 3, 11.0);
+            attributes.HP = Math.Min((attributes.HP * 2 + 13) / 3, 11.0);
+            attributes.Length = (int)Math.Round(attributes.Length * 0.66);
+            attributes.BPM = (int)Math.Round(attributes.BPM * 1.5);
         }
     }
 }

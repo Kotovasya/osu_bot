@@ -1,4 +1,5 @@
 ﻿using osu_bot.Entites;
+using osu_bot.Entites.Mods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace osu_bot.Modules
             {
                 if (isPerfect)
                 {
-                    accuracy = 100.00;
+                    accuracy = 1;
                     scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
                     countGreat = score.Beatmap.Attributes.TotalObjects;
                     countOk = 0;
@@ -38,16 +39,16 @@ namespace osu_bot.Modules
                 }
                 else
                 {
-                    accuracy = score.Accuracy;
                     scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
-                    (countGreat, countOk) = Extensions.CalculateGreatAndOkCountsFromAccuracy(accuracy, score.Beatmap.Attributes.TotalObjects);
+                    (countGreat, countOk) = Extensions.CalculateGreatAndOkCountsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
                     countMeh = 0;
                     countMiss = 0;
+                    accuracy = Extensions.CalculateAccuracyFromHits(countGreat, countOk, countMeh, countMiss);
                 }
             }
             else
             {
-                accuracy = score.Accuracy;
+                accuracy = score.Accuracy * 0.01;
                 scoreMaxCombo = score.MaxCombo;
                 countGreat = score.Count300;
                 countOk = score.Count100;
@@ -61,13 +62,13 @@ namespace osu_bot.Modules
 
             double multiplier = PERFORMANCE_BASE_MULTIPLIER;
 
-            if (score.Mods.HasFlag(Mods.NF))
+            if (score.Mods.Any(m => m.Name == "NF"))
                 multiplier *= Math.Max(0.90, 1.0 - 0.02 * effectiveMissCount);
 
-            if (score.Mods.HasFlag(Mods.SO) && totalHits > 0)
+            if (score.Mods.Any(m => m.Name == "SO") && totalHits > 0)
                 multiplier *= 1.0 - Math.Pow((double)attributes.SpinnerCount / totalHits, 0.85);
 
-            if (score.Mods.HasFlag(Mods.RX))
+            if (score.Mods.Any(m => m.Name == "RL"))
             {
                 double okMultiplier = Math.Max(0.0, attributes.OD > 0.0 ? 1 - Math.Pow(attributes.OD / 13.33, 1.8) : 1.0);
                 double mehMultiplier = Math.Max(0.0, attributes.OD > 0.0 ? 1 - Math.Pow(attributes.OD / 13.33, 5) : 1.0);
@@ -110,12 +111,12 @@ namespace osu_bot.Modules
             else if (attributes.AR < 8.0)
                 approachRateFactor = 0.05 * (8.0 - attributes.AR);
 
-            if (score.Mods.HasFlag(Mods.RX))
+            if (score.Mods.Any(m => m.Name == "RL"))
                 approachRateFactor = 0.0;
 
             aimValue *= 1.0 + approachRateFactor * lengthBonus;
 
-            if (score.Mods.HasFlag(Mods.HD))
+            if (score.Mods.Any(m => m.Name == "HD"))
             {
                 aimValue *= 1.0 + 0.04 * (12.0 - attributes.AR);
             }
@@ -137,7 +138,7 @@ namespace osu_bot.Modules
 
         private static double computeSpeedValue(ScoreInfo score, BeatmapAttributes attributes)
         {
-            if (score.Mods.HasFlag(Mods.RX))
+            if (score.Mods.Any(m => m.Name == "RL"))
                 return 0.0;
 
             double speedValue = Math.Pow(5.0 * Math.Max(1.0, attributes.SpeedDifficulty / 0.0675) - 4.0, 3.0) / 100000.0;
@@ -157,7 +158,7 @@ namespace osu_bot.Modules
 
             speedValue *= 1.0 + approachRateFactor * lengthBonus;
 
-            if (score.Mods.HasFlag(Mods.HD))
+            if (score.Mods.Any(m => m.Name == "HD"))
             {
                 speedValue *= 1.0 + 0.04 * (12.0 - attributes.AR);
             }
@@ -177,7 +178,7 @@ namespace osu_bot.Modules
 
         private static double computeAccuracyValue(ScoreInfo score, BeatmapAttributes attributes)
         {
-            if (score.Mods.HasFlag(Mods.RX))
+            if (score.Mods.Any(m => m.Name == "RL"))
                 return 0.0;
 
             double betterAccuracyPercentage;
@@ -195,10 +196,10 @@ namespace osu_bot.Modules
 
             accuracyValue *= Math.Min(1.15, Math.Pow(amountHitObjectsWithAccuracy / 1000.0, 0.3));
 
-            if (score.Mods.HasFlag(Mods.HD))
+            if (score.Mods.Any(m => m.Name == "HD"))
                 accuracyValue *= 1.08;
 
-            if (score.Mods.HasFlag(Mods.FL))
+            if (score.Mods.Any(m => m.Name == "FL"))
                 accuracyValue *= 1.02;
 
             return accuracyValue;
@@ -206,7 +207,7 @@ namespace osu_bot.Modules
 
         private static double computeFlashlightValue(ScoreInfo score, BeatmapAttributes attributes)
         {
-            if (!score.Mods.HasFlag(Mods.FL))
+            if (!score.Mods.Any(m => m.Name == "FL"))
                 return 0.0;
 
             double flashlightValue = Math.Pow(attributes.FlashlightDifficulty, 2.0) * 25.0;
