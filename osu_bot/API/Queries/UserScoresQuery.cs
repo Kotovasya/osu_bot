@@ -13,16 +13,11 @@ namespace osu_bot.API.Queries
 {
     public class UserScoresQuery : Query<List<ScoreInfo>>
     {
-        public UserScoreQueryParameters Parameters { get; private set; }
+        public UserScoreQueryParameters Parameters { get; set; }
  
         public override string UrlParameter => Parameters.GetQueryString();
 
         private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
-
-        public UserScoresQuery(UserScoreQueryParameters parameters)
-        {
-            Parameters = parameters;
-        }
 
         public override async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
         {

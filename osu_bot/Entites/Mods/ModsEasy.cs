@@ -21,10 +21,10 @@ namespace osu_bot.Entites.Mods
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {
             double ratio = 0.5;
-            attributes.CS *= ratio;
-            attributes.AR *= ratio;
-            attributes.OD *= ratio;
-            attributes.HP *= ratio;
+            attributes.CS = Math.Min(attributes.CS * ratio, 10.0);
+            attributes.AR = Math.Min(attributes.AR * ratio, 10.0);
+            attributes.OD = Math.Min(attributes.OD * ratio, 10.0);
+            attributes.HP = Math.Min(attributes.HP * ratio, 10.0);
         }
     }
 }

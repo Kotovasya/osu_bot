@@ -40,9 +40,9 @@ namespace osu_bot.Modules
                 else
                 {
                     scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
-                    if (score.Beatmap.Attributes.TotalObjects == totalHits)
+                    if (score.Beatmap.Attributes.TotalObjects == score.Count300 + score.Count100 + score.Count50 + score.CountMisses)
                     {
-                        countGreat += countMiss;
+                        countGreat = score.Count300 + score.CountMisses;
                         countOk = score.Count100;
                         countMeh = score.Count50;
                         accuracy = Extensions.CalculateAccuracyFromHits(countGreat, countOk, countMeh, countMiss);
@@ -96,7 +96,7 @@ namespace osu_bot.Modules
                     Math.Pow(accuracyValue, 1.1) +
                     Math.Pow(flashlightValue, 1.1), 1.0 / 1.1
                 ) * multiplier;
-            return (int)Math.Round(totalValue, MidpointRounding.ToEven);
+            return (int)Math.Round(totalValue, 2, MidpointRounding.ToEven);
         }
 
         private static double getComboScalingFactor(BeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);

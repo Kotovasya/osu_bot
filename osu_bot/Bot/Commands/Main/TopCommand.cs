@@ -25,7 +25,7 @@ namespace osu_bot.Bot.Commands.Main
     //top <number> <username> <+MODS>
     public class TopCommand : Command
     {
-        private readonly UserScoresQuery query = new(new UserTopScoreQueryParameters());
+        private readonly UserScoresQuery query = new();
 
         public override string Text => "/top";
 
@@ -55,6 +55,7 @@ namespace osu_bot.Bot.Commands.Main
 
         private void Parse(string text)
         {
+            query.Parameters = new UserTopScoreQueryParameters();
             if (text == Text)
             {
                 query.Parameters.Username = "Kotovasya";
