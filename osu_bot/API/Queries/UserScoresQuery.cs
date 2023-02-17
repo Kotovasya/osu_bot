@@ -24,6 +24,7 @@ namespace osu_bot.API.Queries
         {
             var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
             Parameters.UserId = userInfo.Id;
+
             List<ScoreInfo> resultScores = new();
             
             var jsonScores = await api.GetJsonArrayAsync(UrlParameter);

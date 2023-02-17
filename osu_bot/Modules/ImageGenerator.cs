@@ -80,10 +80,10 @@ namespace osu_bot.Modules
             if (diff.Minutes > 0)
                 return diff.Minutes == 1 ? "1 minute ago" : $"{diff.Minutes} minutes ago";
 
-            if (diff.Seconds < 30)
-                return "few seconds ago";
+            if (diff.Seconds > 30)
+                return $"{diff.Seconds} seconds ago";
 
-            return $"{diff.Seconds} seconds ago";
+            return "few seconds ago"; 
         }
 
         public static Image CreateSmallCard(ScoreInfo score, bool showNick)

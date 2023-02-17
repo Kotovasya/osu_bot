@@ -14,19 +14,23 @@ using osu_bot.Bot.Callbacks;
 using osu_bot.Bot.Commands.Main;
 using osu_bot.API;
 using System.Linq.Expressions;
+using LiteDB;
+using osu_bot.Entites.Database;
 
 namespace osu_bot.Bot
 {
     public class BotHandle
     {
-        private static Command[] commands =
+        private static readonly string connectionString = @$"{Environment.ProcessPath}\Database.db";
+
+        private readonly Command[] commands =
         {
             new HelpCommand(),
             new StartCommand(),
             new TopCommand(),
             new LastCommand()
         };
-        private static Callback[] callbacks =
+        private readonly Callback[] callbacks =
         {
             new HelpCallback(),
             new MapsCallback()
@@ -37,6 +41,8 @@ namespace osu_bot.Bot
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Commands = new();
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Callbacks = new();
 
+        private readonly DatabaseContext database = new(new LiteDatabase(connectionString));
+
         private readonly OsuAPI API = new();
 
         public BotHandle() 
@@ -45,6 +51,7 @@ namespace osu_bot.Bot
             {
                 Commands.Add(command.Text, command.ActionAsync);
                 command.API = API;
+                command.Database = database;
             }
 
             foreach (var callback in callbacks)
@@ -88,7 +95,9 @@ namespace osu_bot.Bot
                         ? messageText[..messageText.IndexOf(' ')]
                         : messageText;
                     if (Commands.ContainsKey(messageText))
+                    {
                         await Commands[messageText].Invoke(botClient, update, cancellationToken);
+                    }
                 }
             }
             catch(Exception ex)

@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
+using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
@@ -32,25 +33,25 @@ namespace osu_bot.Bot.Commands.Main
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message?.Text != null)
+                return;
+
+            Parse(update.Message.Text);
+            List<ScoreInfo> scores = await query.ExecuteAsync(API);
+            if (scores.Count == 0)
             {
-                Parse(update.Message.Text);
-                List<ScoreInfo> scores = await query.ExecuteAsync(API);
-                if (scores.Count == 0)
-                {
-                    if (query.Parameters.Mods == null)
-                        throw new Exception($"У пользователя {query.Parameters.Username} отсутствуют топ скоры");
-                    else
-                        throw new Exception
-                            ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с {ModsConverter.ToString(query.Parameters.Mods)}");
-                }
-                var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
-                var imageStream = image.ToStream();
-                await botClient.SendPhotoAsync(
-                    chatId: update.Message.Chat,
-                    photo: new InputOnlineFile(new MemoryStream(imageStream)),
-                    replyToMessageId: update.Message.MessageId,
-                    cancellationToken: cancellationToken);
+                if (query.Parameters.Mods == null)
+                    throw new Exception($"У пользователя {query.Parameters.Username} отсутствуют топ скоры");
+                else
+                    throw new Exception
+                        ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с {ModsConverter.ToString(query.Parameters.Mods)}");
             }
+            var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
+            var imageStream = image.ToStream();
+            await botClient.SendPhotoAsync(
+                chatId: update.Message.Chat,
+                photo: new InputOnlineFile(new MemoryStream(imageStream)),
+                replyToMessageId: update.Message.MessageId,
+                cancellationToken: cancellationToken);
         }
 
         private void Parse(string text)
@@ -59,7 +60,7 @@ namespace osu_bot.Bot.Commands.Main
             query.Parameters = parameters;
             if (text == Text)
             {
-                parameters.Username = "Kotovasya";
+                if (Database.TelegramUsers.Find)
                 return;
             }
 
