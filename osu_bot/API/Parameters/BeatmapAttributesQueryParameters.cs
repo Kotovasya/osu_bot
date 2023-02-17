@@ -21,9 +21,15 @@ namespace osu_bot.API.Parameters
 
         public JObject GetJson()
         {
+            IEnumerable<string> queryMods;
+            if (Mods.Any(m => m.Name == "NM"))
+                queryMods = new string[] { };
+            else
+                queryMods = Mods?.Select(m => m.Name);
+
             return JObject.FromObject(new
             {
-                mods = Mods?.Select(m => m.Name),
+                mods = queryMods,
                 ruleset = "osu"
             });
         }

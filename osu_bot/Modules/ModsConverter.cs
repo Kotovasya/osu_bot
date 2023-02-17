@@ -89,26 +89,36 @@ namespace osu_bot.Modules
                 throw new ModsArgumentException(str);
         }
 
-        public static IEnumerable<Mod> ToMods(IEnumerable<string> strings)
+        public static IEnumerable<Mod> ToMods(IEnumerable<string> mods)
         {
-            return strings.Select(m => ToMod(m));
+            HashSet<Mod> result = new();
+            
+            if (!mods.Any())
+            {
+                result.Add(ToMod("NM"));
+                return result;
+            }
+
+            foreach(var modString in mods)
+            {
+                result.Add(ToMod(modString));
+            }
+            return result;
         }
 
         public static string ToString(IEnumerable<Mod> mods)
         {
             StringBuilder sb = new();
-            sb.Append(mods.GetEnumerator().Current.Name);
-            mods.GetEnumerator().MoveNext();
 
             foreach (var mod in mods)
-                sb.Append($", {mod.Name}");
+                sb.Append($"{mod.Name},");
 
-            return sb.ToString();
+            return sb.Remove(sb.Length - 1, 1).ToString();
         }
 
         public static Image ToImage(IEnumerable<Mod>? mods)
         {
-            if (mods == null || mods.Any(m => m.Name == "NM"))
+            if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
                 return null;
 
             Image result = new Bitmap(45 * mods.Count(), 32);

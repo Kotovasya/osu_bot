@@ -24,12 +24,12 @@ namespace osu_bot.Bot.Callbacks
 /top 24 peppy - показать #24 скор игрока peppy
 /top peppy +HD - показать топ-5 скоров игрока peppy с модом HD
 
-/last <number> <username> <+MODS>
+/last <number> <username> <+MODS> <+pass>
 Показать свой/указанного игрока последний скор
 Примеры:
 /last peppy - показать последний скор игрока peppy
-/last 24 peppy - показать последний #24 скор игрока peppy
-/last peppy +HD - показать последний скор игрока peppy с модом HD
+/last 5 peppy +HD - показать последние 5 скоров игрока peppy с модом HD
+/last 3 +HD +pass - показать свои последние пасснутые 3 скора с модом HD
 ";
 
         public const string DATA = "Help callback";

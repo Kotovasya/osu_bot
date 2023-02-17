@@ -45,8 +45,8 @@ namespace osu_bot.Entites
                 MaxCombo = json["max_combo"].Value<int>();
 
             if (json["pp"] != null)
-                PP = json["pp"].Value<float>();
-
+                PP = json["pp"].Value<float?>();
+           
             if (json["statistics"] != null)
                 ParseScoreStatisticsJson(json["statistics"]);
 
@@ -79,7 +79,7 @@ namespace osu_bot.Entites
         public float Accuracy { get; set; }
         public DateTime Date { get; set; }
         public int MaxCombo { get; set; }
-        public float PP { get; set; }
+        public float? PP { get; set; }
         public int Count50 { get; set; }
         public int Count100 { get; set; }
         public int Count300 { get; set; }

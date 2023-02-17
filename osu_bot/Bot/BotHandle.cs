@@ -23,7 +23,8 @@ namespace osu_bot.Bot
         {
             new HelpCommand(),
             new StartCommand(),
-            new TopCommand()
+            new TopCommand(),
+            new LastCommand()
         };
         private static Callback[] callbacks =
         {

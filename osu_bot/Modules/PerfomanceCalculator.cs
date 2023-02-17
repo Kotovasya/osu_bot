@@ -49,7 +49,8 @@ namespace osu_bot.Modules
                     }
                     else
                     {
-                        (countGreat, countOk, accuracy) = Extensions.CalculateHitsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
+                        (countGreat, countOk) = Extensions.CalculateHitsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
+                        accuracy = score.Accuracy * 0.01;
                         countMeh = 0;                       
                     }
                     countMiss = 0;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using osu_bot.Assets;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Half Time";
 
-        public override Image? Image => throw new NotImplementedException();
+        public override Image? Image => Resources.HT;
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

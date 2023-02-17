@@ -2,6 +2,7 @@
 using osu_bot.API.Parameters;
 using osu_bot.Bot;
 using osu_bot.Entites;
+using osu_bot.Entites.Mods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,28 +25,21 @@ namespace osu_bot.API.Queries
             var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
             Parameters.UserId = userInfo.Id;
             List<ScoreInfo> resultScores = new();
+            
+            var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
 
-            //if (Parameters.Limit == 1)
-            //{
-            //    ScoreInfo score = new();
-            //    score.ParseScoreJson(await api.GetJsonAsync(UrlParameter));
-            //    resultScores.Add(score);
-            //}
-            //else
-            //{
-                var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
-
-                foreach (var jsonScore in jsonScores)
-                {
-                    ScoreInfo score = new();
-                    score.ParseScoreJson(jsonScore);
-                    resultScores.Add(score);
-                }
-                resultScores = resultScores
-                    .Where(s => Parameters.Mods == null || s.Mods == Parameters.Mods)
-                    .Take(Parameters.Limit)
-                    .ToList();
-            //}
+            foreach (var jsonScore in jsonScores)
+            {
+                ScoreInfo score = new();
+                score.ParseScoreJson(jsonScore);
+                resultScores.Add(score);
+            }
+            resultScores = resultScores
+                .Where(s => Parameters.Mods == null ||
+                    new HashSet<Mod>(s.Mods).SetEquals(Parameters.Mods))                    
+                .Take(Parameters.Limit)
+                .ToList();
+            
             foreach (var score in resultScores)
             {
                 beatmapAttributesQuery.Parameters.Mods = score.Mods;

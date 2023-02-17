@@ -37,7 +37,7 @@ namespace osu_bot.Bot.Commands.Main
                 List<ScoreInfo> scores = await query.ExecuteAsync(API);
                 if (scores.Count == 0)
                 {
-                    if (query.Parameters.Mods != null)
+                    if (query.Parameters.Mods == null)
                         throw new Exception($"У пользователя {query.Parameters.Username} отсутствуют топ скоры");
                     else
                         throw new Exception
@@ -55,10 +55,11 @@ namespace osu_bot.Bot.Commands.Main
 
         private void Parse(string text)
         {
-            query.Parameters = new UserTopScoreQueryParameters();
+            var parameters = new UserTopScoreQueryParameters();
+            query.Parameters = parameters;
             if (text == Text)
             {
-                query.Parameters.Username = "Kotovasya";
+                parameters.Username = "Kotovasya";
                 return;
             }
 
@@ -72,13 +73,13 @@ namespace osu_bot.Bot.Commands.Main
             {
                 if (int.TryParse(arg, out int number))
                 {
-                    query.Parameters.Offset = number - 1;
-                    query.Parameters.Limit = 1;
+                    parameters.Offset = number - 1;
+                    parameters.Limit = 1;
                 }
                 else if (arg.StartsWith('+'))
                 {
                     var parameterMods = new HashSet<Mod>();
-                    query.Parameters.Mods = parameterMods;
+                    parameters.Mods = parameterMods;
 
                     string modsString = arg.Remove(0, 1);
                     if (modsString.Length < 2 || modsString.Length % 2 != 0)
@@ -89,11 +90,10 @@ namespace osu_bot.Bot.Commands.Main
                         parameterMods.Add(ModsConverter.ToMod(mod));
                 }
                 else
-                    query.Parameters.Username = arg ?? "Kotovasya";
+                    parameters.Username = arg ?? "Kotovasya";
             }
 
-            if (query.Parameters.Username == null)
-                query.Parameters.Username = "Kotovasya";
+            parameters.Username ??= "Kotovasya";
         }
     }
 }

@@ -155,17 +155,15 @@ namespace osu_bot.Modules
             drawableString = score.CountMisses.ToString();
             g.DrawString(drawableString, Rubik13, BrushMisses, x, 85);
 
-            drawableString = $"{(int)score.PP} PP";
+            int pp = score.PP != null ? (int)score.PP : PerfomanceCalculator.Calculate(score);
+            drawableString = $"{pp} PP";
             x = width - 15 - g.MeasureString(drawableString, Rubik20).Width;
             g.DrawString(drawableString, Rubik20, WhiteBrush, x, 10);
 
             var modsImage = ModsConverter.ToImage(score.Mods);
             if (modsImage != null)
-            {
-                x = (x + g.MeasureString(drawableString, Rubik20).Width / 2) - modsImage.Width / 2;
-                g.DrawImage(modsImage, x, 59);
-            }
-
+                g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
+            
             return result;
         }
 
@@ -259,7 +257,8 @@ namespace osu_bot.Modules
 
             g.DrawString("Performance", RubikBold15, LightGrayBrush, x, 224);
             stringLength = g.MeasureString("Performance", RubikBold15).Width;
-            drawableString = $"{(int)score.PP}PP";
+            int pp = score.PP != null ? (int)score.PP : PerfomanceCalculator.Calculate(score);
+            drawableString = $"{pp}PP";
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik22).Width / 2;
             g.DrawString(drawableString, Rubik22, WhiteBrush, centerX, 250);
             x = x + 130 + stringLength;
@@ -279,10 +278,16 @@ namespace osu_bot.Modules
             x = x + 130 + stringLength;
 
             g.DrawString("Mods", RubikBold15, LightGrayBrush, x, 224);
-            stringLength = g.MeasureString("Mods", RubikBold15).Width;
             var modsImage = ModsConverter.ToImage(score.Mods);
-            centerX = x + stringLength / 2 - modsImage.Width / 2;
-            g.DrawImage(modsImage, centerX, 250);
+            if (modsImage != null)
+            {
+                stringLength = g.MeasureString("Mods", RubikBold15).Width;
+                centerX = x + stringLength / 2 - modsImage.Width / 2;
+                if (centerX + modsImage.Width < width)
+                    g.DrawImage(modsImage, centerX, 250);
+                else
+                    g.DrawImage(modsImage, width - 5 - modsImage.Width, 250);
+            }
             #endregion
 
             #region score line 2
@@ -320,21 +325,21 @@ namespace osu_bot.Modules
             drawableString = score.Count300.ToString();
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
             g.DrawString(drawableString, Rubik13, Brush300, centerX, 350);
-            x = x + 5 + stringLength;
+            x = x + 15 + stringLength;
 
             g.DrawString("100", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("100", RubikBold13).Width;
             drawableString = score.Count100.ToString();
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
             g.DrawString(drawableString, Rubik13, Brush100, centerX, 350);
-            x = x + 5 + stringLength;
+            x = x + 15 + stringLength;
 
             g.DrawString("50", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("50", RubikBold13).Width;
             drawableString = score.Count50.ToString();
             centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
             g.DrawString(drawableString, Rubik13, Brush50, centerX, 350);
-            x = x + 5 + stringLength;
+            x = x + 15 + stringLength;
 
             g.DrawString("X", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("X", RubikBold13).Width;

@@ -63,6 +63,26 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap AP {
+            get {
+                object obj = ResourceManager.GetObject("AP", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap AT {
+            get {
+                object obj = ResourceManager.GetObject("AT", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap DT {
             get {
                 object obj = ResourceManager.GetObject("DT", resourceCulture);
@@ -113,6 +133,16 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap HT {
+            get {
+                object obj = ResourceManager.GetObject("HT", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap NC {
             get {
                 object obj = ResourceManager.GetObject("NC", resourceCulture);
@@ -133,6 +163,26 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap PF {
+            get {
+                object obj = ResourceManager.GetObject("PF", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap RL {
+            get {
+                object obj = ResourceManager.GetObject("RL", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap SD {
             get {
                 object obj = ResourceManager.GetObject("SD", resourceCulture);
@@ -146,16 +196,6 @@ namespace osu_bot.Assets {
         internal static System.Drawing.Bitmap SO {
             get {
                 object obj = ResourceManager.GetObject("SO", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap TD {
-            get {
-                object obj = ResourceManager.GetObject("TD", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
