@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -27,7 +28,7 @@ namespace osu_bot.Bot.Commands.Main
             if (update.Message?.Text == null)
                 return;
 
-            Parse(update.Message.Text);
+            Parse(update.Message);
             List<ScoreInfo> scores = await query.ExecuteAsync(API);
             if (scores.Count == 0)
             {
@@ -47,48 +48,72 @@ namespace osu_bot.Bot.Commands.Main
         }
 
         //last<number> <username> <+MODS>
-        private void Parse(string text)
+        private void Parse(Message message)
         {
             var parameters = new UserLastScoreQueryParameters();
             query.Parameters = parameters;
-            if (text == Text)
+
+            var text = message.Text.Trim();
+
+            text = text[Text.Length..];
+            int endIndex = 0;
+
+            for (int i = 0; i < text.Length; i++)
             {
-                parameters.Username = "Kotovasya";
-                return;
-            }
-
-            string[] args = text[text.IndexOf(' ')..]
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            if (args.Length > 4)
-                throw new ArgumentException("В запросе более 4-х аргументов. Синтаксис: /last <number> <username> <+MODS> <+pass>");
-
-            foreach (var arg in args)
-            {
-                if (int.TryParse(arg, out int number))
-                    parameters.Limit = number;
-                
-                else if (arg == "+pass")
-                    parameters.IncludeFails = false;
-               
-                else if (arg.StartsWith('+'))
+                if (char.IsDigit(text[i]))
                 {
-                    var parameterMods = new HashSet<Mod>();
-                    parameters.Mods = parameterMods;
+                    int startIndex = i;
+                    while (text.Length > i && char.IsDigit(text[i]))
+                        i++;
 
-                    string modsString = arg.Remove(0, 1);
-                    if (modsString.Length < 2 || modsString.Length % 2 != 0)
-                        throw new ModsArgumentException();
-
-                    var modsStrings = modsString.Split(2);
-                    foreach (var modString in modsStrings)
-                        parameterMods.Add(ModsConverter.ToMod(modString));
+                    string result = text[startIndex..i];
+                    parameters.Offset = 0;
+                    parameters.Limit = int.Parse(result);
+                    endIndex = i;
                 }
-                else
-                    parameters.Username = arg ?? "Kotovasya";
+
+                else if (text[i] == '+')
+                {
+                    int startIndex = ++i;
+                    while (text.Length > i && char.IsLetterOrDigit(text[i]))
+                        i++;
+
+                    string result = text[startIndex..i];
+                    endIndex = i;
+
+                    if (int.TryParse(result, out int number))
+                    {
+                        parameters.Offset = number - 1; ;
+                        parameters.Limit = 1;
+                    }
+                    else if (result == "pass")
+                        parameters.IncludeFails = false;
+                    else
+                    {
+                        var parameterMods = new HashSet<Mod>();
+                        parameters.Mods = parameterMods;
+
+                        if (result.Length < 2 || result.Length % 2 != 0)
+                            throw new ModsArgumentException();
+
+                        var modsStrings = result.Split(2);
+                        foreach (var modString in modsStrings)
+                            parameterMods.Add(ModsConverter.ToMod(modString));
+                    }
+                }
             }
 
-            parameters.Username ??= "Kotovasya";
+            if (text.Length > endIndex)
+                parameters.Username = text.Substring(endIndex + 1, text.Length - endIndex - 1);
+
+            if (parameters.Username == null || message.Text == Text)
+            {
+                var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
+                if (telegramUser != null)
+                    parameters.Username = telegramUser.OsuName;
+                else
+                    throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+            }
         }
     }
 }

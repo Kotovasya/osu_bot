@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapAttributesQuery : Query<BeatmapAttributes>
+    public class BeatmapAttributesQuery : IQuery<BeatmapAttributes>
     {
         public BeatmapAttributesQueryParameters Parameters = new();
-        public override string UrlParameter => Parameters.GetQueryString();
+        public string UrlParameter => Parameters.GetQueryString();
 
-        public override async Task<BeatmapAttributes> ExecuteAsync(OsuAPI api)
+        public async Task<BeatmapAttributes> ExecuteAsync(OsuAPI api)
         {      
             var response = await api.PostJsonAsync(UrlParameter, Parameters.GetJson());
             BeatmapAttributes beatmapAttributes = new();

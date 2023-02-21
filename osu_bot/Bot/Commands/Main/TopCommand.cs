@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -32,10 +33,14 @@ namespace osu_bot.Bot.Commands.Main
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message?.Text != null)
+            if (update.Message == null)
                 return;
 
-            Parse(update.Message.Text);
+            if (update.Message.Text == null)
+                return;
+
+            Parse(update.Message);
+
             List<ScoreInfo> scores = await query.ExecuteAsync(API);
             if (scores.Count == 0)
             {
@@ -54,47 +59,70 @@ namespace osu_bot.Bot.Commands.Main
                 cancellationToken: cancellationToken);
         }
 
-        private void Parse(string text)
+        private void Parse(Message message)
         {
             var parameters = new UserTopScoreQueryParameters();
             query.Parameters = parameters;
-            if (text == Text)
+
+            var text = message.Text.Trim();
+
+            text = text[Text.Length..];
+            int endIndex = 0;
+
+            for (int i = 0; i < text.Length; i++)
             {
-                if (Database.TelegramUsers.Find)
-                return;
+                if (char.IsDigit(text[i]))
+                {
+                    int startIndex = i;
+                    while (text.Length > i && char.IsDigit(text[i]))
+                        i++;
+
+                    string result = text[startIndex..i];
+                    parameters.Offset = 0;
+                    parameters.Limit = int.Parse(result);
+                    endIndex = i;
+                }
+
+                else if (text[i] == '+')
+                {
+                    int startIndex = ++i;
+                    while (text.Length > i && char.IsLetterOrDigit(text[i]))
+                        i++;
+
+                    string result = text[startIndex..i];
+                    endIndex = i;
+
+                    if (int.TryParse(result, out int number))
+                    {
+                        parameters.Offset = number - 1; ;
+                        parameters.Limit = 1;
+                    }
+                    else
+                    {
+                        var parameterMods = new HashSet<Mod>();
+                        parameters.Mods = parameterMods;
+
+                        if (result.Length < 2 || result.Length % 2 != 0)
+                            throw new ModsArgumentException();
+
+                        var modsStrings = result.Split(2);
+                        foreach (var modString in modsStrings)
+                            parameterMods.Add(ModsConverter.ToMod(modString));
+                    }
+                }
             }
 
-            string[] args = text[text.IndexOf(' ')..]
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (text.Length > endIndex)
+                parameters.Username = text.Substring(endIndex + 1, text.Length - endIndex - 1);
 
-            if (args.Length > 2)
-                throw new ArgumentException("В запросе более 2-х аргументов. Синтаксис: /top <number> <username> <+MODS>");     
-
-            foreach (var arg in args)
+            if (parameters.Username == null || message.Text == Text)
             {
-                if (int.TryParse(arg, out int number))
-                {
-                    parameters.Offset = number - 1;
-                    parameters.Limit = 1;
-                }
-                else if (arg.StartsWith('+'))
-                {
-                    var parameterMods = new HashSet<Mod>();
-                    parameters.Mods = parameterMods;
-
-                    string modsString = arg.Remove(0, 1);
-                    if (modsString.Length < 2 || modsString.Length % 2 != 0)
-                        throw new ModsArgumentException();
-
-                    var mods = modsString.Split(2);
-                    foreach(var mod in mods)
-                        parameterMods.Add(ModsConverter.ToMod(mod));
-                }
+                var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
+                if (telegramUser != null)
+                    parameters.Username = telegramUser.OsuName;
                 else
-                    parameters.Username = arg ?? "Kotovasya";
+                    throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
             }
-
-            parameters.Username ??= "Kotovasya";
         }
     }
 }

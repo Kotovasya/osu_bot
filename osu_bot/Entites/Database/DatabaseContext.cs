@@ -9,11 +9,13 @@ namespace osu_bot.Entites.Database
 {
     public class DatabaseContext
     {
-        public DatabaseContext(LiteDatabase database)
+        private readonly LiteDatabase db;
+
+        public DatabaseContext(string connectionString)
         {
-            TelegramUsers = database.GetCollection<TelegramUser>();
+            db = new LiteDatabase(connectionString);
         }
 
-        public ILiteCollection<TelegramUser> TelegramUsers { get; private set; }
+        public ILiteCollection<TelegramUser> TelegramUsers => db.GetCollection<TelegramUser>();
     }
 }

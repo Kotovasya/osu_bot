@@ -21,7 +21,7 @@ namespace osu_bot.Bot
 {
     public class BotHandle
     {
-        private static readonly string connectionString = @$"{Environment.ProcessPath}\Database.db";
+        private static readonly string connectionString = @"Database.db";
 
         private readonly Command[] commands =
         {
@@ -41,7 +41,7 @@ namespace osu_bot.Bot
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Commands = new();
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Callbacks = new();
 
-        private readonly DatabaseContext database = new(new LiteDatabase(connectionString));
+        private readonly DatabaseContext database = new(connectionString);
 
         private readonly OsuAPI API = new();
 

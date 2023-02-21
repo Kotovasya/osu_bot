@@ -12,17 +12,19 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class UserScoresQuery : Query<List<ScoreInfo>>
+    public class UserScoresQuery : IQuery<List<ScoreInfo>>
     {
         public UserScoreQueryParameters Parameters { get; set; }
  
-        public override string UrlParameter => Parameters.GetQueryString();
+        public string UrlParameter => Parameters.GetQueryString();
 
         private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
 
-        public override async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
+        public async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
         {
             var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
+            if (userInfo.Id == 0)
+                throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             Parameters.UserId = userInfo.Id;
 
             List<ScoreInfo> resultScores = new();

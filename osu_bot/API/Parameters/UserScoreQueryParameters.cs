@@ -9,9 +9,10 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.API.Parameters
 {
-    public abstract class UserScoreQueryParameters : IQueryParameters
+    public abstract class UserScoreQueryParameters 
+        : IQueryParameters
     {
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         public int UserId { get; set; }
 
