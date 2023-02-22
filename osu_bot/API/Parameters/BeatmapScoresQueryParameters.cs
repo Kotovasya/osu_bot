@@ -17,9 +17,11 @@ namespace osu_bot.API.Parameters
 
         public IEnumerable<Mod>? Mods { get; set; }
 
+        public bool IsAll { get; set; } 
+
         public string GetQueryString()
         {
-            return $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/all";
+            return $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/{(IsAll ? "all" : string.Empty)}";
         }
     }
 }

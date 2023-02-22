@@ -26,7 +26,7 @@ namespace osu_bot.Bot.Callbacks
 
         public override string Data => DATA;
 
-        public override async Task Action(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             await botClient.SendTextMessageAsync(
                 chatId: update.CallbackQuery.Message.Chat,

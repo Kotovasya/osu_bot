@@ -17,8 +17,6 @@ namespace osu_bot.Bot.Commands
 
         public abstract string Text { get; }
 
-        public string InputCommand { get; set; }
-
         public DatabaseContext Database { get; set; }
 
         public abstract Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);

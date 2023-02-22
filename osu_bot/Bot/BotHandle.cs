@@ -57,7 +57,11 @@ namespace osu_bot.Bot
             }
 
             foreach (var callback in callbacks)
-                Callbacks.Add(callback.Data, callback.Action);
+            {
+                Callbacks.Add(callback.Data, callback.ActionAsync);
+                callback.Database = database;
+                callback.API = API;
+            }
         }
 
         public async Task Run()

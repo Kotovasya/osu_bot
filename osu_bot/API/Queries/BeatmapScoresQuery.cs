@@ -30,6 +30,7 @@ namespace osu_bot.API.Queries
             {
                 ScoreInfo score = new();
                 score.ParseScoreJson(jsonScore);
+                score.User = userInfo;
                 resultScores.Add(score);
             }
             resultScores = resultScores

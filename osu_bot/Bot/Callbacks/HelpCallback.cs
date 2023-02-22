@@ -91,11 +91,9 @@ SO - Spin Out",
 
         private int currentPage = 0;
 
-        public const string DATA = "Help callback";
+        public override string Data => "Help callback";
 
-        public override string Data => DATA;
-
-        public override async Task Action(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.CallbackQuery.Data == null)
                 return;
@@ -109,20 +107,20 @@ SO - Spin Out",
             List<InlineKeyboardButton> buttons = new();
 
             if (currentPage != 0)
-                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "◀️Назад", callbackData: $"{DATA} p{currentPage - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "◀️Назад", callbackData: $"{Data} p{currentPage - 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️Назад"));
 
             buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {currentPage + 1}/{Descriptions.Length}"));
 
             if (currentPage != Descriptions.Length - 1)
-                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "Вперед▶️", callbackData: $"{DATA} p{currentPage + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "Вперед▶️", callbackData: $"{Data} p{currentPage + 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("Вперед▶️"));
 
             InlineKeyboardMarkup inlineKeyboard = new(buttons);
 
-            if (data == DATA)
+            if (data == Data)
             {
                 await botClient.SendTextMessageAsync(
                     chatId: update.CallbackQuery.Message.Chat,
