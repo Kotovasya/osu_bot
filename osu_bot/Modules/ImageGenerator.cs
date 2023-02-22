@@ -393,7 +393,7 @@ namespace osu_bot.Modules
             drawableString = "Accuracy:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 145);
-            g.DrawString($"{user.Accuracy}%", Rubik15, WhiteBrush, x, 145);
+            g.DrawString($"{user.Accuracy:0.00}%", Rubik15, WhiteBrush, x, 145);
 
             drawableString = "Playcount:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
@@ -403,7 +403,7 @@ namespace osu_bot.Modules
             drawableString = "Playtime:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;
             g.DrawString(drawableString, Rubik15, LightGrayBrush, startX, 205);
-            g.DrawString(user.PlayTime.TotalHours.ToString(), Rubik15, WhiteBrush, x, 205);
+            g.DrawString($"{user.PlayTime.Days}d {user.PlayTime.Hours}h {user.PlayTime.Minutes}m {user.PlayTime.Seconds}s", Rubik15, WhiteBrush, x, 205);
 
             drawableString = "Online:";
             x = startX + 2 + g.MeasureString(drawableString, Rubik15).Width;

@@ -64,6 +64,9 @@ namespace osu_bot.Entites
             if (json["global_rank"].Value<string>() != null)
                 WorldRating = json["global_rank"].Value<int>();
 
+            if (json["hit_accuracy"] != null)
+                Accuracy = json["hit_accuracy"].Value<float>();
+
             if (json["country_rank"].Value<string>() != null)
                 CountryRating = json["country_rank"].Value<int>();
 

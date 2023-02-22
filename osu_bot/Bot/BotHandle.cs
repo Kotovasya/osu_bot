@@ -28,7 +28,9 @@ namespace osu_bot.Bot
             new HelpCommand(),
             new StartCommand(),
             new TopCommand(),
-            new LastCommand()
+            new LastCommand(),
+            new RegCommand(),
+            new StatsCommand()
         };
         private readonly Callback[] callbacks =
         {
@@ -86,8 +88,9 @@ namespace osu_bot.Bot
             {
                 if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
                 {
-                    if (Callbacks.ContainsKey(data))
-                        await Callbacks[data].Invoke(botClient, update, cancellationToken);
+                    var callback = Callbacks.Keys.FirstOrDefault(s => data.Contains(s));
+                    if (callback != null)
+                        await Callbacks[callback].Invoke(botClient, update, cancellationToken);
                 }
                 else if (update.Message != null && update.Message.Text is { } messageText)
                 {

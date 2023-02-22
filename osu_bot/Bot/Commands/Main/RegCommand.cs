@@ -20,10 +20,11 @@ namespace osu_bot.Bot.Commands.Main
 
             var message = update.Message;
             string text = message.Text;
-            string name = text.Substring(text.IndexOf(' '), text.Length - 1);
+            int startIndex = text.IndexOf(' ') + 1;
+            string name = text[startIndex..];
 
             if (Database.TelegramUsers.Exists(u => u.OsuName == name))
-                throw new ArgumentException($"Пользователь с именем {name} уже зарегистрирован");
+                throw new ArgumentException($"Аккаунт {name} уже привязан к другому пользователю");
 
             var osuUser = await API.GetUserInfoByUsernameAsync(name);
 
@@ -35,6 +36,12 @@ namespace osu_bot.Bot.Commands.Main
             }
             else
                 Database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
+
+            await botClient.SendTextMessageAsync(
+                    chatId: update.Message.Chat,
+                    text: $"Аккаунт {name} успешно привязан к Вашему аккаунту",
+                    replyToMessageId: update.Message.MessageId,
+                    cancellationToken: cancellationToken);
         }
     }
 }
