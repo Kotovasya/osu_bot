@@ -21,7 +21,9 @@ namespace osu_bot.Bot.Commands.Main
             var message = update.Message;
             string text = message.Text;
             int startIndex = text.IndexOf(' ') + 1;
-            string name = text[startIndex..];
+            string name = text[startIndex..].ToLower();
+
+            var users = Database.TelegramUsers.FindAll().ToArray();
 
             if (Database.TelegramUsers.Exists(u => u.OsuName == name))
                 throw new ArgumentException($"Аккаунт {name} уже привязан к другому пользователю");
@@ -33,6 +35,7 @@ namespace osu_bot.Bot.Commands.Main
             {
                 telegramUser.OsuName = name;
                 telegramUser.OsuId = osuUser.Id;
+                Database.TelegramUsers.Update(telegramUser);
             }
             else
                 Database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
