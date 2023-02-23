@@ -35,7 +35,8 @@ namespace osu_bot.Bot
         private readonly Callback[] callbacks =
         {
             new HelpCallback(),
-            new MapsCallback()
+            new MapsCallback(),
+            new MyScoreCallback()
         };
 
         private readonly ITelegramBotClient botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
@@ -88,16 +89,19 @@ namespace osu_bot.Bot
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            Message? message = null;
             try
             {
                 if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
                 {
+                    message = update.CallbackQuery?.Message;
                     var callback = Callbacks.Keys.FirstOrDefault(s => data.Contains(s));
                     if (callback != null)
                         await Callbacks[callback].Invoke(botClient, update, cancellationToken);
                 }
                 else if (update.Message != null && update.Message.Text is { } messageText)
                 {
+                    message = update.Message;
                     messageText = messageText.IndexOf(' ') != -1 
                         ? messageText[..messageText.IndexOf(' ')]
                         : messageText;
@@ -110,9 +114,9 @@ namespace osu_bot.Bot
             catch(Exception ex)
             {
                 await botClient.SendTextMessageAsync(
-                    chatId: update.Message.Chat,
+                    chatId: message.Chat,
                     text: ex.Message,
-                    replyToMessageId: update.Message.MessageId,
+                    replyToMessageId: message.MessageId,
                     cancellationToken: cancellationToken);
             }
             return; 

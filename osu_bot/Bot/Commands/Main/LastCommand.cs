@@ -1,11 +1,13 @@
 ﻿using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
+using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
@@ -14,6 +16,7 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Commands.Main
 {
@@ -38,12 +41,31 @@ namespace osu_bot.Bot.Commands.Main
                     throw new Exception
                         ($"У пользователя {query.Parameters.Username} отсутствуют скоры {ModsConverter.ToString(query.Parameters.Mods)} за последние 24 часа");
             }
-            var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
-            var imageStream = image.ToStream();
+
+            byte[]? imageStream;
+            string? caption = null;
+            InlineKeyboardMarkup? inlineKeyboard = null;
+            if (scores.Count > 1)
+                imageStream = ImageGenerator.CreateScoresCard(scores).ToStream();
+            else
+            {
+                var score = scores.First();
+                imageStream = ImageGenerator.CreateFullCard(score).ToStream();
+                caption = score.Beatmap.Url;
+                inlineKeyboard = new(
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{score.Beatmap.Id})"),
+                        InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: MapsCallback.DATA)
+                    });
+            }
+
             await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
+                caption: caption,
                 photo: new InputOnlineFile(new MemoryStream(imageStream)),
                 replyToMessageId: update.Message.MessageId,
+                replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
         }
 

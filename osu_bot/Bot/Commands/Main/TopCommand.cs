@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
+using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -20,6 +21,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Types.ReplyMarkups;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace osu_bot.Bot.Commands.Main
@@ -50,12 +52,31 @@ namespace osu_bot.Bot.Commands.Main
                     throw new Exception
                         ($"У пользователя {query.Parameters.Username} отсутствуют топ скоры с {ModsConverter.ToString(query.Parameters.Mods)}");
             }
-            var image = scores.Count > 1 ? ImageGenerator.CreateScoresCard(scores) : ImageGenerator.CreateFullCard(scores.First());
-            var imageStream = image.ToStream();
+
+            byte[]? imageStream;
+            string? caption = null;
+            InlineKeyboardMarkup? inlineKeyboard = null;
+            if (scores.Count > 1)
+                imageStream = ImageGenerator.CreateScoresCard(scores).ToStream();
+            else
+            {
+                var score = scores.First();
+                imageStream = ImageGenerator.CreateFullCard(score).ToStream();
+                caption = score.Beatmap.Url;
+                inlineKeyboard = new(
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{score.Beatmap.Id})"),
+                        InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: MapsCallback.DATA)
+                    });
+            }
+
             await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
+                caption: caption,
                 photo: new InputOnlineFile(new MemoryStream(imageStream)),
                 replyToMessageId: update.Message.MessageId,
+                replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
         }
 

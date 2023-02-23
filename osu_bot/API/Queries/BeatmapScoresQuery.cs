@@ -1,6 +1,5 @@
 ﻿using osu_bot.API.Parameters;
 using osu_bot.Entites;
-using osu_bot.Entites.Mods;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,23 +21,19 @@ namespace osu_bot.API.Queries
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             Parameters.UserId = userInfo.Id;
 
-            List<ScoreInfo> resultScores = new();
+            var result = new List<ScoreInfo>();
+            var queryResult = await api.GetJsonAsync(UrlParameter);
+            if (queryResult["error"] != null)
+                return result;
 
-            var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
-
-            foreach (var jsonScore in jsonScores)
+            foreach(var jsonScore in queryResult["scores"])
             {
-                ScoreInfo score = new();
+                var score = new ScoreInfo();
                 score.ParseScoreJson(jsonScore);
                 score.User = userInfo;
-                resultScores.Add(score);
             }
-            resultScores = resultScores
-                .Where(s => Parameters.Mods == null ||
-                    new HashSet<Mod>(s.Mods).SetEquals(Parameters.Mods))
-                .ToList();
 
-            return resultScores;
+            return result;
         }
     }
 }

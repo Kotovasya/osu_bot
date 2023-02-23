@@ -91,7 +91,9 @@ SO - Spin Out",
 
         private int currentPage = 0;
 
-        public override string Data => "Help callback";
+        public const string DATA = "Help callback";
+
+        public override string Data => DATA;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
