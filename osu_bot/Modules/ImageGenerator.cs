@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using osu_bot.Entites;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Modules
 {
@@ -181,8 +182,12 @@ namespace osu_bot.Modules
             using var avatarImgStream = new MemoryStream(WebClient.DownloadData(score.User.AvatarUrl));
             using var backgroundImgStream = new MemoryStream(WebClient.DownloadData(score.Beatmap.CoverUrl));
 
+            var backgroundImage = Image.FromStream(backgroundImgStream).Darkening(128);
+            Rectangle frame = new(204, 0, 876, 204);
+            Rectangle imageFrame = new(0, 36, 1800, 428);
+
             g.DrawImage(Image.FromStream(avatarImgStream).Darkening(128), 0, 0, 204, 204);
-            g.DrawImage(Image.FromStream(backgroundImgStream).Darkening(128), 204, 0, 876, 204);
+            g.DrawImage(backgroundImage, frame, imageFrame, GraphicsUnit.Pixel);
 
             #region avatar
             string drawableString = $"#{score.User.WorldRating}";
@@ -472,6 +477,72 @@ namespace osu_bot.Modules
                     g.DrawLine(LightLinePen, 0, y, width, y);
                 i++;
             }
+
+            return result;
+        }
+
+        public static Image CreateTableScoresCard(IEnumerable<ScoreInfo> scores)
+        {
+            int width = 876;
+            int height = 204 + scores.Count() * 40;
+
+            Image result = new Bitmap(width, height);
+            var g = Graphics.FromImage(result);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+            g.FillRectangle(BackgroundSemilightBrush, 0, 0, width, height);
+
+            var beatmap = scores.First().Beatmap;
+            using var backgroundImgStream = new MemoryStream(WebClient.DownloadData(beatmap.CoverUrl));
+            var backgroundImage = Image.FromStream(backgroundImgStream).Darkening(128);
+            g.DrawImage(backgroundImage, 0, 0, 876, 243);
+
+            #region map
+            var drawableString = $"{beatmap.Title} - {beatmap.Artist} [{beatmap.DifficultyName}]";
+            g.MeasureString(drawableString, RubikLightBold11);
+            g.DrawString(, Rubik15, WhiteBrush, 220, 5);
+            g.DrawString($"Mapped by {beatmap.MapperName}", RubikLightBold11, WhiteBrush, 220, 30);
+
+            g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
+            var x = 15 + g.MeasureString($"CS:", Rubik13).Width;
+            drawableString = beatmap.Attributes.CS.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, Rubik13).Width;
+
+            g.DrawString("AR:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("AR:", Rubik13).Width;
+            drawableString = beatmap.Attributes.AR.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+
+            g.DrawString("OD:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("OD:", Rubik13).Width;
+            drawableString = beatmap.Attributes.OD.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+
+            g.DrawString("HP:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("HP:", Rubik13).Width;
+            drawableString = beatmap.Attributes.HP.ToString("0.00");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+
+            g.DrawString("Length:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("Length:", Rubik13).Width;
+            drawableString = TimeSpan.FromSeconds(beatmap.Attributes.Length).ToString(@"mm\:ss");
+            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+
+            g.DrawString("BPM:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("BPM:", Rubik13).Width;
+            g.DrawString(beatmap.Attributes.BPM.ToString(), RubikBold13, WhiteBrush, x, 180);
+            x = x + 5 + g.MeasureString(beatmap.Attributes.BPM.ToString(), RubikBold13).Width;
+
+            g.DrawString("Stars:", Rubik13, WhiteBrush, x, 180);
+            x += g.MeasureString("Stars:", Rubik13).Width;
+            g.DrawString($"{beatmap.Attributes.Stars:0.00} ★", RubikBold13, WhiteBrush, x, 180);
+            #endregion
 
             return result;
         }
