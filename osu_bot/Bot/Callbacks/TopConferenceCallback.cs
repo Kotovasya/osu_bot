@@ -14,6 +14,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using static System.Formats.Asn1.AsnWriter;
 using Telegram.Bot.Types.InputFiles;
+using Telegram.Bot.Requests;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -47,26 +48,16 @@ namespace osu_bot.Bot.Callbacks
             beatmap.Attributes.ParseDifficultyAttributesJson(await attributesQuery.GetJson(API));
 
             List<ScoreInfo> result = new();
+            var telegramUsers = Database.TelegramUsers.FindAll().ToList();
 
-            foreach (var telegramUser in Database.TelegramUsers.FindAll())
+            foreach (var telegramUser in telegramUsers)
             {
                 parameters.Username = telegramUser.OsuName;
                 var scores = await query.ExecuteAsync(API);
-
                 foreach (var score in scores)
-                {
-                    var resultScore = result.FirstOrDefault(s => s.User.Name == telegramUser.OsuName
-                        && new HashSet<Mod>(s.Mods).SetEquals(score.Mods));
-                    if (resultScore == null)
-                        result.Add(score);
-
-                    else if (score.Score > resultScore.Score)
-                    {
-                        result.Add(score);
-                        result.Remove(resultScore);  
-                    }
                     score.Beatmap = beatmap;
-                }
+
+                result.AddRange(scores);
             }
 
             var image = ImageGenerator.CreateTableScoresCard(result);

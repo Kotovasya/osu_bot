@@ -79,6 +79,11 @@ namespace osu_bot.Entites
         public int MaxCombo { get; set; }
         public double BPM { get; set; }
 
+        public double BaseCS { get; set; }
+        public double BaseAR { get; set; }
+        public double BaseOD { get; set; }
+        public double BaseHP { get; set; }
+
         public double CS { get; set; }
         public double AR { get; set; }
         public double OD { get; set; }
@@ -132,16 +137,28 @@ namespace osu_bot.Entites
                 Stars = json["difficulty_rating"].Value<double>();
 
             if (json["cs"] != null)
+            {
+                BaseCS = json["cs"].Value<double>();
                 CS = json["cs"].Value<double>();
+            }
 
             if (json["ar"] != null)
+            {
+                BaseAR = json["ar"].Value<double>();
                 AR = json["ar"].Value<double>();
+            }
 
             if (json["accuracy"] != null)
+            {
+                BaseOD = json["accuracy"].Value<double>();
                 OD = json["accuracy"].Value<double>();
+            }
 
             if (json["drain"] != null)
+            {
+                BaseHP = json["drain"].Value<double>();
                 HP = json["drain"].Value<double>();
+            }
 
             if (json["bpm"] != null)
                 BPM = json["bpm"].Value<double>();

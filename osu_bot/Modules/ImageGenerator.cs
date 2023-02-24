@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +20,7 @@ namespace osu_bot.Modules
     {
         private static readonly Font SecularOne48 = new("Secular One", 48);
         private static readonly Font SecularOne36 = new("Secular One", 36);
-        private static readonly Dictionary<string, Brush> RankBrushes = new()
+        private static readonly Dictionary<string, Brush> RankShadowBrushes = new()
         {
             {"XH", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(110, 110, 110), Color.FromArgb(255, 255, 255)) },
             {"X", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(255, 220, 80), Color.FromArgb(255, 120, 0)) },
@@ -29,6 +31,19 @@ namespace osu_bot.Modules
             {"C", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(160, 0, 255), Color.FromArgb(255, 0, 220)) },
             {"D", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(150, 0, 0), Color.FromArgb(255, 0, 0)) },
             {"F", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(150, 0, 0), Color.FromArgb(255, 0, 0)) }
+        };
+
+        private static readonly Dictionary<string, Brush> RankBrushes = new()
+        {
+            {"XH", new SolidBrush(Color.FromArgb(221, 221, 221)) },
+            {"X", new SolidBrush(Color.FromArgb(255, 190, 60)) },
+            {"SH", new SolidBrush(Color.FromArgb(221, 221, 221)) },
+            {"S", new SolidBrush(Color.FromArgb(255, 190, 60)) },
+            {"A", new SolidBrush(Color.FromArgb(90, 200, 10)) },
+            {"B", new SolidBrush(Color.FromArgb(3, 105, 241)) },
+            {"C", new SolidBrush(Color.FromArgb(208, 23, 228)) },
+            {"D", new SolidBrush(Color.FromArgb(226, 0, 0)) },
+            {"F", new SolidBrush(Color.FromArgb(226, 0, 0)) }
         };
 
         private static readonly Font Rubik22 = new("Rubik", 22);
@@ -110,7 +125,7 @@ namespace osu_bot.Modules
 
             var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
             x = x / 2 - g.MeasureString(drawableString, SecularOne48).Width / 2;
-            g.DrawString(drawableString, SecularOne48, RankBrushes[score.Rank], x, 20);
+            g.DrawString(drawableString, SecularOne48, RankShadowBrushes[score.Rank], x, 20);
 
             x = 260;
 
@@ -213,26 +228,54 @@ namespace osu_bot.Modules
 
             g.DrawString("CS:", Rubik13, WhiteBrush, 220, 180);
             x = 220 + g.MeasureString($"CS:", Rubik13).Width;
-            drawableString = score.Beatmap.Attributes.CS.ToString("0.00");
+            drawableString = score.Beatmap.Attributes.BaseCS.ToString("0.0");
             g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+
+            if (score.Beatmap.Attributes.CS != score.Beatmap.Attributes.BaseCS)
+            {
+                x += g.MeasureString(drawableString, RubikBold11).Width;
+                drawableString = $"{score.Beatmap.Attributes.CS:0.0}▲";
+                g.DrawString(drawableString, RubikBold11, BrushMisses, x, 180);
+            }
             x = x + 5 + g.MeasureString(drawableString, Rubik13).Width;
 
             g.DrawString("AR:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("AR:", Rubik13).Width;
-            drawableString = score.Beatmap.Attributes.AR.ToString("0.00");
+            drawableString = score.Beatmap.Attributes.BaseAR.ToString("0.0");
             g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+
+            if (score.Beatmap.Attributes.AR != score.Beatmap.Attributes.BaseAR)
+            {
+                x += g.MeasureString(drawableString, RubikBold11).Width;
+                drawableString = $"{score.Beatmap.Attributes.AR:0.0}▲";
+                g.DrawString(drawableString, RubikBold11, BrushMisses, x, 180);
+            }
             x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("OD:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("OD:", Rubik13).Width;
-            drawableString = score.Beatmap.Attributes.OD.ToString("0.00");
+            drawableString = score.Beatmap.Attributes.BaseOD.ToString("0.0");
             g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+
+            if (score.Beatmap.Attributes.OD != score.Beatmap.Attributes.BaseOD)
+            {
+                x += g.MeasureString(drawableString, RubikBold11).Width;
+                drawableString = $"{score.Beatmap.Attributes.OD:0.0}▲";
+                g.DrawString(drawableString, RubikBold11, BrushMisses, x, 180);
+            }
             x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("HP:", Rubik13, WhiteBrush, x, 180);
             x += g.MeasureString("HP:", Rubik13).Width;
-            drawableString = score.Beatmap.Attributes.HP.ToString("0.00");
+            drawableString = score.Beatmap.Attributes.BaseHP.ToString("0.0");
             g.DrawString(drawableString, RubikBold13, WhiteBrush, x, 180);
+
+            if (score.Beatmap.Attributes.HP != score.Beatmap.Attributes.BaseHP)
+            {
+                x += g.MeasureString(drawableString, RubikBold11).Width;
+                drawableString = $"{score.Beatmap.Attributes.HP:0.0}▲";
+                g.DrawString(drawableString, RubikBold11, BrushMisses, x, 180);
+            }
             x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
 
             g.DrawString("Length:", Rubik13, WhiteBrush, x, 180);
@@ -257,7 +300,7 @@ namespace osu_bot.Modules
             var stringLength = g.MeasureString("Rank", RubikBold15).Width;
             drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
             var centerX = x + stringLength / 2 - g.MeasureString(drawableString, SecularOne36).Width / 2;
-            g.DrawString(drawableString, SecularOne36, RankBrushes[score.Rank], centerX, 240);
+            g.DrawString(drawableString, SecularOne36, RankShadowBrushes[score.Rank], centerX, 240);
             x = x + 130 + stringLength;
 
             g.DrawString("Performance", RubikBold15, LightGrayBrush, x, 224);
@@ -304,12 +347,14 @@ namespace osu_bot.Modules
             g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
             x = x + 70 + stringLength;
 
-            //g.DrawString("Completion", RubikBold13, LightGrayBrush, x, 330);
-            //stringLength = g.MeasureString("Completion", RubikBold13).Width;
-            //drawableString = $"{score.Complition:F2}%";
-            //centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
-            //g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
-            //x = x + 70 + stringLength;
+            g.DrawString("Hit objects", RubikBold13, LightGrayBrush, x, 330);
+            stringLength = g.MeasureString("Hit objects", RubikBold13).Width;
+            var hitObjects = score.Count300 + score.Count100 + score.Count50 + score.CountMisses;
+            var hits = hitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
+            drawableString = $"{hits:F2}%";
+            centerX = x + stringLength / 2 - g.MeasureString(drawableString, Rubik13).Width / 2;
+            g.DrawString(drawableString, Rubik13, WhiteBrush, centerX, 350);
+            x = x + 70 + stringLength;
 
             g.DrawString("For FC", RubikBold13, LightGrayBrush, x, 330);
             stringLength = g.MeasureString("For FC", RubikBold13).Width;
@@ -483,8 +528,10 @@ namespace osu_bot.Modules
 
         public static Image CreateTableScoresCard(IEnumerable<ScoreInfo> scores)
         {
-            int width = 972;
-            int height = 270 + scores.Count() * 40;
+            scores = scores.OrderByDescending(score => score.Score);
+
+            int width = 1080;
+            int height = 370 + scores.Count() * 35;
 
             Image result = new Bitmap(width, height);
             var g = Graphics.FromImage(result);
@@ -496,78 +543,78 @@ namespace osu_bot.Modules
             var beatmap = scores.First().Beatmap;
             using var backgroundImgStream = new MemoryStream(WebClient.DownloadData(beatmap.CoverUrl));
             var backgroundImage = Image.FromStream(backgroundImgStream).Darkening(128);
-            g.DrawImage(backgroundImage, 0, 0, 972, 270);
+            g.DrawImage(backgroundImage, 0, 0, 1080, 300);
 
             #region map
             var drawableString = $"{beatmap.Title} - {beatmap.Artist} [{beatmap.DifficultyName}]";
-            var x = width / 2 - g.MeasureString(drawableString, Rubik15).Width / 2;
-            g.DrawString(drawableString, Rubik15, WhiteBrush, x, 10);
+            var x = width / 2 - g.MeasureString(drawableString, Rubik17).Width / 2;
+            g.DrawString(drawableString, Rubik17, WhiteBrush, x, 10);
 
             drawableString = $"Mapped by {beatmap.MapperName}";
-            x = width / 2 - g.MeasureString(drawableString, Rubik14).Width / 2;
-            g.DrawString(drawableString, Rubik14, WhiteBrush, x, 20);
+            x = width / 2 - g.MeasureString(drawableString, Rubik15).Width / 2;
+            g.DrawString(drawableString, Rubik15, WhiteBrush, x, 40);
 
-            x = 15;
-            var y = 255;
-            g.DrawString("CS:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("CS:", Rubik13).Width;
-            drawableString = beatmap.Attributes.CS.ToString("0.00");
-            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(drawableString, Rubik13).Width;
+            x = 200;
+            var y = 275;
+            g.DrawString("CS:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("CS:", Rubik15).Width;
+            drawableString = beatmap.Attributes.CS.ToString("0.0");
+            g.DrawString(drawableString, RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold15).Width;
 
-            g.DrawString("AR:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("AR:", Rubik13).Width;
-            drawableString = beatmap.Attributes.AR.ToString("0.00");
-            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+            g.DrawString("AR:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("AR:", Rubik15).Width;
+            drawableString = beatmap.Attributes.AR.ToString("0.0");
+            g.DrawString(drawableString, RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold15).Width;
 
-            g.DrawString("OD:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("OD:", Rubik13).Width;
-            drawableString = beatmap.Attributes.OD.ToString("0.00");
-            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+            g.DrawString("OD:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("OD:", Rubik15).Width;
+            drawableString = beatmap.Attributes.OD.ToString("0.0");
+            g.DrawString(drawableString, RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold15).Width;
 
-            g.DrawString("HP:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("HP:", Rubik13).Width;
-            drawableString = beatmap.Attributes.HP.ToString("0.00");
-            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+            g.DrawString("HP:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("HP:", Rubik15).Width;
+            drawableString = beatmap.Attributes.HP.ToString("0.0");
+            g.DrawString(drawableString, RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold15).Width;
 
-            g.DrawString("Length:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("Length:", Rubik13).Width;
+            g.DrawString("Length:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("Length:", Rubik15).Width;
             drawableString = TimeSpan.FromSeconds(beatmap.Attributes.Length).ToString(@"mm\:ss");
-            g.DrawString(drawableString, RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(drawableString, RubikBold13).Width;
+            g.DrawString(drawableString, RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(drawableString, RubikBold15).Width;
 
-            g.DrawString("BPM:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("BPM:", Rubik13).Width;
-            g.DrawString(beatmap.Attributes.BPM.ToString(), RubikBold13, WhiteBrush, x, y);
-            x = x + 5 + g.MeasureString(beatmap.Attributes.BPM.ToString(), RubikBold13).Width;
+            g.DrawString("BPM:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("BPM:", Rubik15).Width;
+            g.DrawString(beatmap.Attributes.BPM.ToString(), RubikBold15, WhiteBrush, x, y);
+            x = x + 5 + g.MeasureString(beatmap.Attributes.BPM.ToString(), RubikBold15).Width;
 
-            g.DrawString("Stars:", Rubik13, WhiteBrush, x, y);
-            x += g.MeasureString("Stars:", Rubik13).Width;
-            g.DrawString($"{beatmap.Attributes.Stars:0.00} ★", RubikBold13, WhiteBrush, x, y);
+            g.DrawString("Stars:", Rubik15, WhiteBrush, x, y);
+            x += g.MeasureString("Stars:", Rubik15).Width;
+            g.DrawString($"{beatmap.Attributes.Stars:0.00} ★", RubikBold15, WhiteBrush, x, y);
             #endregion
 
             #region header row
             var centerX = 40;
-            y = 290;
+            y = 320;
             drawableString = "Rank";
             var renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
             drawableString = "Username";
-            centerX += 90;
+            centerX += 100;
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
             drawableString = "Score";
-            centerX += 90;
+            centerX += 120;
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
             drawableString = "Accuracy";
-            centerX += 90;
+            centerX += 120;
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
@@ -577,22 +624,22 @@ namespace osu_bot.Modules
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
             drawableString = "Mods";
-            centerX += 90;
-            renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
-            g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
-
-            drawableString = "PP";
-            centerX += 90;
-            renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
-            g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
-
-            drawableString = "Date";
             centerX += 110;
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
+            drawableString = "PP";
+            centerX += 100;
+            renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
+            g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
+
+            drawableString = "Date";
+            centerX += 100;
+            renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
+            g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
+
             drawableString = "300";
-            centerX += 90;
+            centerX += 100;
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
@@ -611,7 +658,87 @@ namespace osu_bot.Modules
             renderX = centerX - g.MeasureString(drawableString, RubikBold14).Width / 2;
             g.DrawString(drawableString, RubikBold14, LightGrayBrush, renderX, y);
 
-            g.DrawLine(LightLinePen, 0, 305, width, 300);
+            g.DrawLine(LightLinePen, 0, 345, width, 345);
+            #endregion
+
+            #region score rows
+            int i = 0;
+            foreach(var score in scores)
+            {
+                centerX = 40;
+                y = 365 + 35 * i;
+                i++;
+                drawableString = $"# {i}";
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                drawableString = score.User.Name;
+                centerX += 100;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                drawableString = score.Score.Separate(".");
+                centerX += 120;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                var scoreString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
+                drawableString = $"{score.Accuracy:0.00}% ({score.Rank})";
+                centerX += 120;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString($"{score.Accuracy:0.00}% (", Rubik13, WhiteBrush, renderX, y);
+
+                renderX += g.MeasureString($"{score.Accuracy:0.00}% (", Rubik13).Width - 7;
+                g.DrawString(scoreString, RubikBold13, RankBrushes[score.Rank], renderX, y);
+
+                renderX += g.MeasureString(scoreString, RubikBold13).Width - 7;
+                g.DrawString(")", Rubik13, WhiteBrush, renderX, y);
+
+                drawableString = $"{score.MaxCombo}/{score.Beatmap.Attributes.MaxCombo}x";
+                centerX += 110;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                var modsImage = ModsConverter.ToImage(score.Mods);
+                centerX += 110;
+                if (modsImage != null)
+                {
+                    var modsWidth = modsImage.Width * 0.625f;
+                    var modsHeight = modsImage.Height * 0.625f;
+                    renderX = centerX - modsWidth / 2;
+                    g.DrawImage(modsImage, renderX, y, modsWidth, modsHeight);
+                }
+
+                drawableString = $"{(int)score.PP}pp";
+                centerX += 100;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                drawableString = score.Date.ToShortDateString();
+                centerX += 100;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);
+
+                drawableString = score.Count300.ToString();
+                centerX += 100;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, Brush300, renderX, y);
+
+                drawableString = score.Count100.ToString();
+                centerX += 50;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, Brush100, renderX, y);
+
+                drawableString = score.Count50.ToString();
+                centerX += 50;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, Brush50, renderX, y);
+
+                drawableString = score.CountMisses.ToString();
+                centerX += 50;
+                renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
+                g.DrawString(drawableString, Rubik13, BrushMisses, renderX, y);
+            }
             #endregion
 
             return result;
