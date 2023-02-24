@@ -36,7 +36,8 @@ namespace osu_bot.Bot
         {
             new HelpCallback(),
             new MapsCallback(),
-            new MyScoreCallback()
+            new MyScoreCallback(),
+            new TopConferenceCallback(),
         };
 
         private readonly ITelegramBotClient botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");

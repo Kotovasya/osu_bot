@@ -3,6 +3,7 @@ using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
 using osu_bot.Entites.Mods;
+using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using static System.Formats.Asn1.AsnWriter;
+using Telegram.Bot.Types.InputFiles;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -38,7 +41,10 @@ namespace osu_bot.Bot.Callbacks
             parameters.BeatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
             var beatmap = await new BeatmapInfoQuery(parameters.BeatmapId).ExecuteAsync(API);
-            beatmap.Attributes.ParseDifficultyAttributesJson(await new BeatmapAttributesQuery().GetJson(API));
+            var attributesQuery = new BeatmapAttributesQuery();
+            attributesQuery.Parameters.BeatmapId = parameters.BeatmapId;
+            attributesQuery.Parameters.Mods = ModsConverter.ToMods(Array.Empty<string>());
+            beatmap.Attributes.ParseDifficultyAttributesJson(await attributesQuery.GetJson(API));
 
             List<ScoreInfo> result = new();
 
@@ -62,6 +68,16 @@ namespace osu_bot.Bot.Callbacks
                     score.Beatmap = beatmap;
                 }
             }
+
+            var image = ImageGenerator.CreateTableScoresCard(result);
+            var imageStream = image.ToStream();
+
+            await botClient.SendPhotoAsync(
+                chatId: update.CallbackQuery.Message.Chat,
+                caption: beatmap.Url,
+                photo: new InputOnlineFile(new MemoryStream(imageStream)),
+                replyToMessageId: update.CallbackQuery.Message.MessageId,
+                cancellationToken: cancellationToken);
         }
     }
 }

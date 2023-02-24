@@ -31,6 +31,7 @@ namespace osu_bot.API.Queries
                 var score = new ScoreInfo();
                 score.ParseScoreJson(jsonScore);
                 score.User = userInfo;
+                result.Add(score);
             }
 
             return result;
