@@ -10,20 +10,20 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapBestScoreQuery : IQuery<ScoreInfo>
+    public class BeatmapBestScoreQuery : Query<BeatmapBestScoresQueryParameters, ScoreInfo>
     {
-        public BeatmapBestScoresQueryParamters Parameters = new();
 
-        public string UrlParameter => Parameters.GetQueryString();
+        private readonly BeatmapInfoQuery beatmapInfoQuery = new();
+        private readonly BeatmapAttributesJsonQuery beatmapAttributesJsonQuery = new();
 
-        public async Task<ScoreInfo> ExecuteAsync(OsuAPI api)
+        protected override async Task<ScoreInfo> RunAsync()
         {
-            var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
+            var userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             Parameters.UserId = userInfo.Id;
 
-            var jsonScore = await api.GetJsonAsync(UrlParameter);
+            var jsonScore = await API.GetJsonAsync(UrlParameter);
             if (jsonScore["error"] != null)
                 throw new Exception($"У пользователя {Parameters.Username} отсутствуют скоры на карте {Parameters.BeatmapId}");
 
@@ -31,13 +31,12 @@ namespace osu_bot.API.Queries
             score.ParseScoreJson(jsonScore["score"]);
             score.User = userInfo;
 
-            var beatmapQuery = new BeatmapInfoQuery(Parameters.BeatmapId);
-            score.Beatmap = await beatmapQuery.ExecuteAsync(api);
+            beatmapInfoQuery.Parameters.BeatmapId = Parameters.BeatmapId;
+            score.Beatmap = await beatmapInfoQuery.ExecuteAsync();
 
-            var beatmapAttributesQuery = new BeatmapAttributesQuery();
-            beatmapAttributesQuery.Parameters.BeatmapId = Parameters.BeatmapId;
-            beatmapAttributesQuery.Parameters.Mods = score.Mods;
-            score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api));
+            beatmapAttributesJsonQuery.Parameters.BeatmapId = Parameters.BeatmapId;
+            beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
+            score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesJsonQuery.ExecuteAsync());
             score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
 
             return score;

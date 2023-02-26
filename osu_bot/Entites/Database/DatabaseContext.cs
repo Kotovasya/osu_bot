@@ -9,9 +9,15 @@ namespace osu_bot.Entites.Database
 {
     public class DatabaseContext
     {
+        private static readonly string connectionString = @"Database.db";
+
+        private static readonly DatabaseContext instance = new(connectionString);
+        
+        public static DatabaseContext Instance { get => instance; }
+
         private readonly LiteDatabase db;
 
-        public DatabaseContext(string connectionString)
+        private DatabaseContext(string connectionString)
         {
             db = new LiteDatabase(connectionString);
         }

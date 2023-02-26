@@ -12,7 +12,11 @@ namespace osu_bot.API
 {
     public class OsuAPI
     {
+        private static readonly OsuAPI instacne = new();
+
         private readonly HttpClient httpClient = new();
+
+        public static OsuAPI Instance { get => instacne; }
 
         private async Task SetTokenAsync()
         {

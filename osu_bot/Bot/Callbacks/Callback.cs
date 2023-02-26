@@ -12,10 +12,6 @@ namespace osu_bot.Bot.Callbacks
 {
     public abstract class Callback
     {
-        public DatabaseContext Database { get; set; }
-
-        public OsuAPI API { get; set; }
-
         public abstract string Data { get; }
 
         public abstract Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);

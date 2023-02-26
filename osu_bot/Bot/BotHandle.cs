@@ -11,7 +11,6 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using osu_bot.Bot.Commands;
 using osu_bot.Bot.Callbacks;
-using osu_bot.Bot.Commands.Main;
 using osu_bot.API;
 using System.Linq.Expressions;
 using LiteDB;
@@ -21,12 +20,9 @@ namespace osu_bot.Bot
 {
     public class BotHandle
     {
-        private static readonly string connectionString = @"Database.db";
-
         private readonly Command[] commands =
         {
             new HelpCommand(),
-            new StartCommand(),
             new TopCommand(),
             new LastCommand(),
             new RegCommand(),
@@ -45,30 +41,19 @@ namespace osu_bot.Bot
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Commands = new();
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Callbacks = new();
 
-        private readonly DatabaseContext database = new(connectionString);
-
-        private readonly OsuAPI API = new();
-
         public BotHandle() 
         {
             foreach (var command in commands)
-            {
-                Commands.Add(command.Text, command.ActionAsync);
-                command.API = API;
-                command.Database = database;
-            }
+                Commands.Add(command.CommandText, command.ActionAsync);
+            
 
             foreach (var callback in callbacks)
-            {
-                Callbacks.Add(callback.Data, callback.ActionAsync);
-                callback.Database = database;
-                callback.API = API;
-            }
+                Callbacks.Add(callback.Data, callback.ActionAsync);           
         }
 
         public async Task Run()
         {
-            await API.InitalizeAsync();
+            await OsuAPI.Instance.InitalizeAsync();
             using CancellationTokenSource cts = new();
             ReceiverOptions receiverOptions = new()
             {

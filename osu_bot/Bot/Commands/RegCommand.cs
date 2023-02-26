@@ -1,4 +1,5 @@
-﻿using osu_bot.Entites.Database;
+﻿using osu_bot.API;
+using osu_bot.Entites.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,14 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace osu_bot.Bot.Commands.Main
+namespace osu_bot.Bot.Commands
 {
     public class RegCommand : Command
     {
-        public override string Text => "/reg";
+        public override string CommandText => "/reg";
+
+        private readonly DatabaseContext Database = DatabaseContext.Instance;
+        private readonly OsuAPI API = OsuAPI.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {

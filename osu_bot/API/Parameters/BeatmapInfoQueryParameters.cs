@@ -7,15 +7,13 @@ using System.Threading.Tasks;
 
 namespace osu_bot.API.Parameters
 {
-    public class BeatmapBestScoresQueryParameters : IQueryParameters
+    public class BeatmapInfoQueryParameters : IQueryParameters
     {
-        public int UserId { get; set; }
-        public string Username { get; set; }
-
         public int BeatmapId { get; set; }
+
         public string GetQueryString()
         {
-            return $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/";
+            return $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}";
         }
     }
 }
