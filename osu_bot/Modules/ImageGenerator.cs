@@ -724,7 +724,7 @@ namespace osu_bot.Modules
                     g.DrawImage(modsImage, renderX, y, modsWidth, modsHeight);
                 }
 
-                drawableString = $"{(int)score.PP}pp";
+                drawableString = $"{(int)(score.PP ?? PerfomanceCalculator.Calculate(score))}pp";
                 centerX += 100;
                 renderX = centerX - g.MeasureString(drawableString, Rubik13).Width / 2;
                 g.DrawString(drawableString, Rubik13, WhiteBrush, renderX, y);

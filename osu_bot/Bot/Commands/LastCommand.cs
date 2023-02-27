@@ -43,8 +43,11 @@ namespace osu_bot.Bot.Commands
             var args = message.Text.Trim()[CommandText.Length..];
             parameters.Parse(args);
 
-            if (parameters.Username == null || message.Text == CommandText)
+            if (parameters.Username == null)
             {
+                if (message.Text == CommandText)
+                    parameters.Limit = 1;
+
                 var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
                 if (telegramUser != null)
                     parameters.Username = telegramUser.OsuName;
