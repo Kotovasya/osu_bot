@@ -12,24 +12,20 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API.Queries
 {
-    public class UserScoresQuery : IQuery<List<ScoreInfo>>
+    public class UserScoresQuery : Query<UserScoreQueryParameters, List<ScoreInfo>>
     {
-        public UserScoreQueryParameters Parameters { get; set; }
- 
-        public string UrlParameter => Parameters.GetQueryString();
+        private readonly BeatmapAttributesJsonQuery beatmapAttributesJsonQuery = new();
 
-        private readonly BeatmapAttributesQuery beatmapAttributesQuery = new();
-
-        public async Task<List<ScoreInfo>> ExecuteAsync(OsuAPI api)
+        protected override async Task<List<ScoreInfo>> RunAsync()
         {
-            var userInfo = await api.GetUserInfoByUsernameAsync(Parameters.Username);
+            var userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             Parameters.UserId = userInfo.Id;
 
             List<ScoreInfo> resultScores = new();
             
-            var jsonScores = await api.GetJsonArrayAsync(UrlParameter);
+            var jsonScores = await API.GetJsonArrayAsync(UrlParameter);
 
             foreach (var jsonScore in jsonScores)
             {
@@ -37,18 +33,20 @@ namespace osu_bot.API.Queries
                 score.ParseScoreJson(jsonScore);
                 resultScores.Add(score);
             }
+
             resultScores = resultScores
                 .Where(s => Parameters.Mods == null ||
-                    new HashSet<Mod>(s.Mods).SetEquals(Parameters.Mods))                    
+                    new HashSet<Mod>(s.Mods).SetEquals(Parameters.Mods))
+                .Skip(Parameters.Offset)
                 .Take(Parameters.Limit)
                 .ToList();
-            
+
             foreach (var score in resultScores)
             {
-                beatmapAttributesQuery.Parameters.Mods = score.Mods;
-                beatmapAttributesQuery.Parameters.BeatmapId = score.Beatmap.Id;
+                beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
+                beatmapAttributesJsonQuery.Parameters.BeatmapId = score.Beatmap.Id;
                 score.User = userInfo;
-                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.GetJson(api));
+                score.Beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesJsonQuery.ExecuteAsync());
                 score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
             }
             return resultScores;

@@ -13,11 +13,7 @@ namespace osu_bot.Bot.Commands
 {
     public abstract class Command
     {
-        public OsuAPI API { get; set; }
-
-        public abstract string Text { get; }
-
-        public DatabaseContext Database { get; set; }
+        public abstract string CommandText { get; }
 
         public abstract Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);
     }

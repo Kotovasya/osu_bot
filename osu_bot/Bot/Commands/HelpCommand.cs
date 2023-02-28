@@ -8,11 +8,11 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace osu_bot.Bot.Commands.Main
+namespace osu_bot.Bot.Commands
 {
     public class HelpCommand : Command
     {
-        public override string Text => "/help";
+        public override string CommandText => "/help";
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {

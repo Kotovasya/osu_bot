@@ -1,4 +1,6 @@
-﻿using osu_bot.Modules;
+﻿using osu_bot.API;
+using osu_bot.Entites.Database;
+using osu_bot.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +10,14 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 
-namespace osu_bot.Bot.Commands.Main
+namespace osu_bot.Bot.Commands
 {
     public class StatsCommand : Command
     {
-        public override string Text => "/stats";
+        private readonly DatabaseContext Database = DatabaseContext.Instance;
+        private readonly OsuAPI API = OsuAPI.Instance;
+
+        public override string CommandText => "/stats";
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
@@ -22,7 +27,7 @@ namespace osu_bot.Bot.Commands.Main
             var message = update.Message;
             string text = message.Text.Trim();
             string name;
-            if (text == Text)
+            if (text == CommandText)
             {
                 var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
                 if (telegramUser != null)
@@ -45,7 +50,7 @@ namespace osu_bot.Bot.Commands.Main
 
             var image = ImageGenerator.CreateProfileCard(userInfo);
             var imageStream = image.ToStream();
-            
+
             await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
                 photo: new InputOnlineFile(new MemoryStream(imageStream)),
