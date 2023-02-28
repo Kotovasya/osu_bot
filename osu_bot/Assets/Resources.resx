@@ -157,6 +157,9 @@
   <data name="SD" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>images\mods\sd.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="SecularOne_Regular" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>fonts\secularone-regular.ttf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="SO" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>images\mods\so.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

@@ -19,7 +19,6 @@ using User = osu_bot.Entites.User;
 
 namespace osu_bot
 {
-    [SupportedOSPlatform("windows")]
     internal class Program
     {
         static async Task Main(string[] args)

@@ -191,6 +191,16 @@ namespace osu_bot.Assets {
         }
         
         /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
+        internal static byte[] SecularOne_Regular {
+            get {
+                object obj = ResourceManager.GetObject("SecularOne_Regular", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap SO {
