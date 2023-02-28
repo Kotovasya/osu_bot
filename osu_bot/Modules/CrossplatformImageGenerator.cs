@@ -7,13 +7,65 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using SkiaSharp;
 
 namespace osu_bot.Modules
 {
     public class CrossplatformImageGenerator
     {
-        private static readonly Font SecularOne48 = new("Secular One", 48);
-        private static readonly Font SecularOne36 = new("Secular One", 36);
+        static CrossplatformImageGenerator()
+        {
+            SKPaint paint = new SKPaint()
+            {
+                Color = SKColor
+            };
+        }
+
+        #region SKTypefaces initialization
+        private static readonly SKTypeface SecularOneTypeface = SKTypeface.FromFamilyName("Secular One");
+        private static readonly SKTypeface RubikTypeface = SKTypeface.FromFamilyName("Rubik");
+        private static readonly SKTypeface RubikMediumTypeface = SKTypeface.FromFamilyName("Rubik Medium");
+
+        private static readonly SKTypeface RubikBoldTypeface = SKTypeface.FromFamilyName("Rubik", SKFontStyle.Bold);
+        private static readonly SKTypeface RubikLightBoldTypeface = SKTypeface.FromFamilyName("Rubik Light", SKFontStyle.Bold);
+        #endregion
+
+        #region SKFonts initialization
+        private static readonly SKFont SecularOne48 = new(SecularOneTypeface, 48);
+        private static readonly SKFont SecularOne36 = new(SecularOneTypeface, 36);
+
+        private static readonly SKFont Rubik22 = new(RubikTypeface, 22);
+        private static readonly SKFont Rubik20 = new(RubikTypeface, 20);
+        private static readonly SKFont Rubik17 = new(RubikTypeface, 17);
+        private static readonly SKFont Rubik15 = new(RubikTypeface, 15);
+        private static readonly SKFont Rubik14 = new(RubikTypeface, 14);
+        private static readonly SKFont Rubik13 = new(RubikTypeface, 13);
+        private static readonly SKFont Rubik11 = new(RubikTypeface, 11);
+
+        private static readonly SKFont RubikBold15 = new(RubikMediumTypeface, 15);
+        private static readonly SKFont RubikBold14 = new(RubikMediumTypeface, 14);
+        private static readonly SKFont RubikBold13 = new(RubikMediumTypeface, 13);
+        private static readonly SKFont RubikBold11 = new(RubikBoldTypeface, 11);
+
+        private static readonly SKFont RubikLightBold10 = new(RubikLightBoldTypeface, 10);
+        private static readonly SKFont RubikLightBold11 = new(RubikLightBoldTypeface, 11);
+        #endregion
+
+
+        private static readonly Dictionary<string, SKPaint> RankPaints = new()
+        {
+            {"XH", new SKPaint()},
+            {"X", },
+            {"SH", },
+            {"S", },
+            {"A", },
+            {"B", },
+            {"C", },
+            {"D", },
+            {"F", }
+        };
+
+
         private static readonly Dictionary<string, Brush> RankBrushes = new()
         {
             {"XH", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(110, 110, 110), Color.FromArgb(255, 255, 255)) },
@@ -27,23 +79,6 @@ namespace osu_bot.Modules
             {"F", new LinearGradientBrush(new Point(0, 75), new Point(75, 0), Color.FromArgb(150, 0, 0), Color.FromArgb(255, 0, 0)) }
         };
 
-        private static readonly Font Rubik22 = new("Rubik", 22);
-        private static readonly Font Rubik20 = new("Rubik", 20);
-        private static readonly Font Rubik17 = new("Rubik", 17);
-        private static readonly Font Rubik15 = new("Rubik", 15);
-        private static readonly Font Rubik14 = new("Rubik", 14);
-        private static readonly Font Rubik13 = new("Rubik", 13);
-        private static readonly Font Rubik11 = new("Rubik", 11);
-
-
-        private static readonly Font RubikBold15 = new("Rubik Medium", 15);
-        private static readonly Font RubikBold14 = new("Rubik Medium", 14);
-        private static readonly Font RubikBold13 = new("Rubik Medium", 13);
-        private static readonly Font RubikBold11 = new("Rubik", 11, FontStyle.Bold);
-
-        private static readonly Font RubikLightBold10 = new("Rubik Light", 10, FontStyle.Bold);
-
-        private static readonly Font RubikLightBold11 = new("Rubik Light", 11, FontStyle.Bold);
 
         private static readonly SolidBrush BackgroundLightBrush = new(Color.FromArgb(66, 68, 78));
         private static readonly SolidBrush BackgroundSemilightBrush = new(Color.FromArgb(39, 41, 49));
