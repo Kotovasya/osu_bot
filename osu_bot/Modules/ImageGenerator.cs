@@ -189,8 +189,8 @@ namespace osu_bot.Modules
             g.DrawString(drawableString, Rubik20, WhiteBrush, x, 10);
 
             var modsImage = ModsConverter.ToImage(score.Mods);
-            if (modsImage != null)
-                g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
+            //if (modsImage != null)
+                //g.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
             #endregion
 
             return result;
@@ -339,16 +339,16 @@ namespace osu_bot.Modules
             x = x + 130 + stringLength;
 
             g.DrawString("Mods", RubikBold15, LightGrayBrush, x, 224);
-            var modsImage = ModsConverter.ToImage(score.Mods);
-            if (modsImage != null)
-            {
-                stringLength = g.MeasureString("Mods", RubikBold15).Width;
-                centerX = x + stringLength / 2 - modsImage.Width / 2;
-                if (centerX + modsImage.Width < width)
-                    g.DrawImage(modsImage, centerX, 250);
-                else
-                    g.DrawImage(modsImage, width - 5 - modsImage.Width, 250);
-            }
+            //var modsImage = ModsConverter.ToImage(score.Mods);
+            //if (modsImage != null)
+            //{
+            //    stringLength = g.MeasureString("Mods", RubikBold15).Width;
+            //    centerX = x + stringLength / 2 - modsImage.Width / 2;
+            //    if (centerX + modsImage.Width < width)
+            //        g.DrawImage(modsImage, centerX, 250);
+            //    else
+            //        g.DrawImage(modsImage, width - 5 - modsImage.Width, 250);
+            //}
             #endregion
 
             #region Score line 2
@@ -722,7 +722,7 @@ namespace osu_bot.Modules
                     var modsWidth = modsImage.Width * 0.625f;
                     var modsHeight = modsImage.Height * 0.625f;
                     renderX = centerX - modsWidth / 2;
-                    g.DrawImage(modsImage, renderX, y, modsWidth, modsHeight);
+                    //g.DrawImage(modsImage, renderX, y, modsWidth, modsHeight);
                 }
 
                 drawableString = $"{(int)(score.PP ?? PerfomanceCalculator.Calculate(score))}pp";

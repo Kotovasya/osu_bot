@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using osu_bot.Assets;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
+using SkiaSharp;
 
 namespace osu_bot.Modules
 {
@@ -116,20 +117,21 @@ namespace osu_bot.Modules
             return sb.Remove(sb.Length - 1, 1).ToString();
         }
 
-        public static Image ToImage(IEnumerable<Mod>? mods)
+        public static SKImage? ToImage(IEnumerable<Mod>? mods)
         {
             if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
                 return null;
 
-            Image result = new Bitmap(45 * mods.Count(), 32);
-            var g = Graphics.FromImage(result);
+            using SKSurface surface = SKSurface.Create(new SKImageInfo(45 * mods.Count(), 32));
+            var canvas = surface.Canvas;
             int i = 0;
-            foreach(var mod in mods)
-            { 
-                g.DrawImage(mod.Image, 45 * i, 0);
+            foreach (var mod in mods)
+            {
+                canvas.DrawImage(mod.Image, 45 * i, 0);
                 i++;
             }
-            return result;
+
+            return surface.Snapshot();
         }
     }
 }

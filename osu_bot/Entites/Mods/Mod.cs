@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -17,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public abstract string Fullname { get; }
 
-        public abstract Image? Image { get; }
+        public abstract SKImage? Image { get; }
 
         public bool Equals(Mod? other)
         {

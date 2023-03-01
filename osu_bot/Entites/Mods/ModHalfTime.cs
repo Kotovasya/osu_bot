@@ -1,4 +1,6 @@
 ﻿using osu_bot.Assets;
+using osu_bot.Modules;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Half Time";
 
-        public override Image? Image => Resources.HT;
+        public override SKImage? Image => SKImage.FromEncodedData(Resources.HT.ToStream());
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

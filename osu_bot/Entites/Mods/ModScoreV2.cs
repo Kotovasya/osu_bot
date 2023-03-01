@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -15,6 +16,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Score V2";
 
-        public override Image? Image => throw new NotImplementedException();
+        public override SKImage? Image => throw new NotImplementedException();
     }
 }

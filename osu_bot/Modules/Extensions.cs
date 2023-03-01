@@ -10,6 +10,7 @@ using System.Text.Json.Nodes;
 using osu_bot.Entites;
 using System.Drawing.Imaging;
 using System.Runtime.Versioning;
+using SkiaSharp;
 
 namespace osu_bot.Modules
 {
@@ -122,6 +123,24 @@ namespace osu_bot.Modules
             {
                 yield return str.Substring(i, Math.Min(n, str.Length - i));
             }
+        }
+
+        public static SKPaint SetColor(this SKPaint paint, SKColor color)
+        {
+            paint.Color = color;
+            return paint;
+        }
+
+        public static SKPaint SetSize(this SKPaint paint, float size)
+        {
+            paint.TextSize = size;
+            return paint;
+        }
+
+        public static SKPaint SetTypeface(this SKPaint paint, SKTypeface typeface)
+        {
+            paint.Typeface = typeface;
+            return paint;
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using osu_bot.Assets;
+using osu_bot.Modules;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Relax";
 
-        public override Image? Image => Resources.RL;
+        public override SKImage? Image => SKImage.FromEncodedData(Resources.RL.ToStream());
     }
 }
