@@ -74,7 +74,7 @@ namespace osu_bot
                 User = u,
             };
 
-            var image = CrossplatformImageGenerator.CreateSmallCard(score, true);
+            var image = CrossplatformImageGenerator.Instance.CreateSmallCard(score, true);
             var stream = new MemoryStream();
             image.Encode().SaveTo(stream);
             Image.FromStream(stream).Save("TestSmallCard.png");

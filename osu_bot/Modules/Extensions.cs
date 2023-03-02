@@ -14,7 +14,6 @@ using SkiaSharp;
 
 namespace osu_bot.Modules
 {
-    [SupportedOSPlatform("windows")]
     public static class Extensions
     {
         public static byte[] ToStream(this Image image)

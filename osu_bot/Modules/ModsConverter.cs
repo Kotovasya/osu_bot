@@ -51,7 +51,6 @@ namespace osu_bot.Modules
     //    ALL = 1 << 31
     //}
 
-    [SupportedOSPlatform("windows")]
     public static class ModsConverter
     {
         private static readonly List<Mod> Mods = new()

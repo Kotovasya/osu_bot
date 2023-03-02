@@ -88,5 +88,7 @@ namespace osu_bot.Entites
         public IEnumerable<Mod> Mods { get; set; }
         public Beatmap Beatmap { get; set; }
         public User User { get; set; }
+
+        public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
     }
 }

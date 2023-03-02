@@ -8,30 +8,37 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using SkiaSharp;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Modules
 {
     public class CrossplatformImageGenerator
     {
-        private static readonly SKTypeface EmojiTypeface;
+        private const int STAR_UNICODE = 9733;
 
-        static CrossplatformImageGenerator()
+        public static CrossplatformImageGenerator Instance { get; } = new();
+
+        private readonly SKTypeface _starTypeface = SKFontManager.Default.MatchCharacter(STAR_UNICODE);
+
+        private readonly SKPaint _paint = new()
         {
-            var emojiChar = StringUtilities.GetUnicodeCharacterCode("★", SKTextEncoding.Utf32);
-            var fontManager = SKFontManager.Default;
-            EmojiTypeface = fontManager.MatchCharacter(emojiChar);
-        }
+            FilterQuality = SKFilterQuality.High,
+            SubpixelText = true,
+            IsAntialias = true,
+            TextScaleX = 1.05f,
+            LcdRenderText = true,
+        };
 
         #region SKColors initializations
-        private static readonly SKColor BackgroundColor = new(33, 34, 39);
-        private static readonly SKColor BackgroundLightColor = new(66, 68, 78);
-        private static readonly SKColor BackgroundSemilightColor = new(39, 41, 49);
-        private static readonly SKColor WhiteColor = new(255, 255, 255);
-        private static readonly SKColor Color300 = new(119, 197, 237);
-        private static readonly SKColor Color100 = new(119, 237, 138);
-        private static readonly SKColor Color50 = new(218, 217, 113);
-        private static readonly SKColor ColorMisses = new(237, 119, 119);
-        private static readonly SKColor LightGrayColor = new(154, 160, 174);
+        private readonly SKColor _backgroundColor = new(33, 34, 39);
+        private readonly SKColor _backgroundLightColor = new(66, 68, 78);
+        private readonly SKColor _backgroundSemilightColor = new(39, 41, 49);
+        private readonly SKColor _whiteColor = new(255, 255, 255);
+        private readonly SKColor _color300 = new(119, 197, 237);
+        private readonly SKColor _color100 = new(119, 237, 138);
+        private readonly SKColor _color50 = new(218, 217, 113);
+        private readonly SKColor _colorMisses = new(237, 119, 119);
+        private readonly SKColor _lightGrayColor = new(154, 160, 174);
 
         private static readonly Dictionary<string, SKColor> Rankcolors = new()
         {
@@ -48,56 +55,21 @@ namespace osu_bot.Modules
 
         #endregion
 
-        #region SKPaints initializations
-
-        private static readonly Dictionary<string, SKPaint> RankPaints = new()
-        {
-            {"XH", new SKPaint() { Color = new SKColor(221, 221, 221) } },
-            {"X", new SKPaint() { Color = new SKColor(255, 190, 60) } },
-            {"SH", new SKPaint() { Color = new SKColor(221, 221, 221) } },
-            {"S", new SKPaint() { Color = new SKColor(255, 190, 60) } },
-            {"A", new SKPaint() { Color = new SKColor(90, 200, 10) } },
-            {"B", new SKPaint() { Color = new SKColor(3, 105, 241) } },
-            {"C", new SKPaint() { Color = new SKColor(208, 23, 228) } },
-            {"D", new SKPaint() { Color = new SKColor(226, 0, 0) } },
-            {"F", new SKPaint() { Color = new SKColor(226, 0, 0) } }
-        };
-        #endregion
-
         #region SKTypefaces initialization
-        private static readonly SKTypeface SecularOneTypeface = SKTypeface.FromFamilyName("Secular One");
-        private static readonly SKTypeface RubikTypeface = SKTypeface.FromFamilyName("Rubik");
-        private static readonly SKTypeface RubikMediumTypeface = SKTypeface.FromFamilyName("Rubik Medium");
+        private readonly SKTypeface _secularOneTypeface = SKTypeface.FromFamilyName("Secular One");
+        private readonly SKTypeface _rubikTypeface = SKTypeface.FromFamilyName("Rubik Regular");
+        private readonly SKTypeface _rubikMediumTypeface = SKTypeface.FromFamilyName("Rubik Medium");
 
-        private static readonly SKTypeface RubikBoldTypeface = SKTypeface.FromFamilyName("Rubik", SKFontStyle.Bold);
-        private static readonly SKTypeface RubikLightBoldTypeface = SKTypeface.FromFamilyName("Rubik Light", SKFontStyle.Bold);
+        private readonly SKTypeface _rubikBoldTypeface = SKTypeface.FromFamilyName("Rubik", SKFontStyle.Bold);
+        private readonly SKTypeface _rubikLightBoldTypeface = SKTypeface.FromFamilyName("Rubik Light", SKFontStyle.Bold);
         #endregion
 
-        //#region SKFonts initialization
-        //private static readonly SKFont SecularOne48 = new(SecularOneTypeface, 48);
-        //private static readonly SKFont SecularOne36 = new(SecularOneTypeface, 36);
+        private readonly WebClient _webClient = new();
 
-        //private static readonly SKFont Rubik22 = new(RubikTypeface, 22);
-        //private static readonly SKFont Rubik20 = new(RubikTypeface, 20);
-        //private static readonly SKFont Rubik17 = new(RubikTypeface, 17);
-        //private static readonly SKFont Rubik15 = new(RubikTypeface, 15);
-        //private static readonly SKFont Rubik14 = new(RubikTypeface, 14);
-        //private static readonly SKFont Rubik13 = new(RubikTypeface, 13);
-        //private static readonly SKFont Rubik11 = new(RubikTypeface, 11);
+        private CrossplatformImageGenerator()
+        {
 
-        //private static readonly SKFont RubikBold15 = new(RubikMediumTypeface, 15);
-        //private static readonly SKFont RubikBold14 = new(RubikMediumTypeface, 14);
-        //private static readonly SKFont RubikBold13 = new(RubikMediumTypeface, 13);
-        //private static readonly SKFont RubikBold11 = new(RubikBoldTypeface, 11);
-
-        //private static readonly SKFont RubikLightBold10 = new(RubikLightBoldTypeface, 10);
-        //private static readonly SKFont RubikLightBold11 = new(RubikLightBoldTypeface, 11);
-        //#endregion
-
-        private static readonly Pen GraphicPen = new(Color.FromArgb(218, 217, 113), 2);
-        private static readonly Pen LightLinePen = new(Color.FromArgb(30, 200, 200, 200), 0.3f);
-
-        private static readonly WebClient WebClient = new();
+        }
 
         private static string GetPlayedTimeString(DateTime date)
         {
@@ -122,7 +94,7 @@ namespace osu_bot.Modules
             return "few seconds ago";
         }
 
-        public static SKImage CreateSmallCard(ScoreInfo score, bool showNick)
+        public SKImage CreateSmallCard(ScoreInfo score, bool showNick)
         {
             int width = 1120;
             int height = 114;
@@ -132,108 +104,110 @@ namespace osu_bot.Modules
             {
                 SKCanvas canvas = surface.Canvas;
 
-                canvas.Clear(BackgroundColor);
+                canvas.Clear(_backgroundColor);
 
                 #region Rank, Image, MapInfo
 
-                var x = 100.0f;
+                float x = 100f;
 
-                var data = WebClient.DownloadData(score.Beatmap.CoverUrl);
+                byte[] data = _webClient.DownloadData(score.Beatmap.CoverUrl);
                 var image = SKImage.FromEncodedData(data);
-                var sourceRect = new SKRect(image.Width / 2 - 406, image.Height / 2 - 250, 812, 500);
-                var destRect = new SKRect(x, 14, 146, 90);
-                canvas.DrawImage(image, sourceRect, destRect);
+                var sourceRect = new SKRect() { Location = new SKPoint(image.Width / 2 - 406, image.Height / 2 - 250), Size = new SKSize(812, 500) };
+                var destRect = new SKRect() { Location = new SKPoint(x, 14), Size = new SKSize(146, 90) };
+                canvas.DrawImage(image, sourceRect, destRect, new SKPaint() { FilterQuality = SKFilterQuality.High, IsAntialias = true });
 
-                var drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
-                var paint = new SKPaint()
-                {
-                    Color = Rankcolors[score.Rank],
-                    FilterQuality = SKFilterQuality.High,
-                    SubpixelText = true,
-                    Typeface = SecularOneTypeface,
-                    TextSize = 48,
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Fill,
-                };
-                x = x / 2 - paint.MeasureText(drawableString);
-                canvas.DrawText(drawableString, x, 68, paint);
+                string drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
+
+                _paint.SetColor(Rankcolors[score.Rank]).SetTypeface(_secularOneTypeface).SetSize(64);
+
+                x = x / 2 - _paint.MeasureText(drawableString) / 2;
+                canvas.DrawText(drawableString, x, 78, _paint);
 
                 x = 260;
 
-                paint.SetColor(WhiteColor).SetTypeface(RubikTypeface).SetSize(18);
-                canvas.DrawText(score.Beatmap.Title, x, 28, paint);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
+                canvas.DrawText(score.Beatmap.Title, x, 28, _paint);
 
                 drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
-                paint.SetColor(LightGrayColor).SetSize(15);
-                canvas.DrawText(drawableString, x, 50, paint);
+                _paint.SetColor(_lightGrayColor).SetSize(15);
+                canvas.DrawText(drawableString, x, 50, _paint);
 
                 drawableString = $"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars:0.00}";
-                canvas.DrawText(drawableString, x, 70, paint);
+                canvas.DrawText(drawableString, x, 70, _paint);
 
-                x += paint.MeasureText(drawableString);
+                x += _paint.MeasureText(drawableString);
 
-                paint.SetTypeface(EmojiTypeface);
-                canvas.DrawText("★", x, 70, paint);
+                _paint.SetTypeface(_starTypeface).SetSize(22);
+                canvas.DrawText("★", x, 71, _paint);
                 #endregion
 
                 #region Play stats
                 x = 260;
-                var y = 85;
+                float y = 101f;
 
                 drawableString = $"{score.Accuracy:0.00}%";
-                paint.SetColor(WhiteColor).SetTypeface(RubikTypeface).SetSize(16);
-                canvas.DrawText(drawableString, x, y, paint);
-                x = x + 10 + paint.MeasureText(drawableString);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(16);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 20 + _paint.MeasureText(drawableString);
 
                 drawableString = $"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x";
-                canvas.DrawText(drawableString, x, y, paint);
-                x = x + 10 + paint.MeasureText(drawableString);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 20 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count300.ToString();
-                paint.SetColor(Color300);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_color300);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                paint.SetColor(WhiteColor);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_whiteColor);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count100.ToString();
-                paint.SetColor(Color100);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_color100);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                paint.SetColor(WhiteColor);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_whiteColor);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count50.ToString();
-                paint.SetColor(Color50);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_color50);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                paint.SetColor(WhiteColor);
-                canvas.DrawText(drawableString, x, y, paint);
-                x += paint.MeasureText(drawableString);
+                _paint.SetColor(_whiteColor);
+                canvas.DrawText(drawableString, x, y, _paint);
+                x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.CountMisses.ToString();
-                paint.SetColor(ColorMisses);
-                canvas.DrawText(drawableString, x, y, paint);
+                _paint.SetColor(_colorMisses);
+                canvas.DrawText(drawableString, x, y, _paint);
+
+                //if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
+                //{
+                //    float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
+                //    drawableString = $"{hits:F2}";
+                //    _paint.SetColor(_whiteColor);
+                //    x = 50 - _paint.MeasureText(drawableString) / 2;
+                //    canvas.DrawText(drawableString, x, y, _paint);
+                //}
 
                 int pp = score.PP != null ? (int)score.PP : PerfomanceCalculator.Calculate(score);
                 drawableString = $"{pp} PP";
-                paint.SetColor(WhiteColor).SetSize(20);
-                x = width - 15 - paint.MeasureText(drawableString);
-                canvas.DrawText(drawableString, x, 10, paint);
+                _paint.SetColor(_whiteColor).SetSize(30);
+                x = width - 15 - _paint.MeasureText(drawableString);
+                canvas.DrawText(drawableString, x, 40, _paint);
 
-                var modsImage = ModsConverter.ToImage(score.Mods);
+                SKImage? modsImage = ModsConverter.ToImage(score.Mods);
                 if (modsImage != null)
                     canvas.DrawImage(modsImage, width - 15 - modsImage.Width, 59);
                 #endregion
-
+                
                 return surface.Snapshot();
             }
         }
