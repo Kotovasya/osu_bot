@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Half Time";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.HT.ToStream());
+        public override SKImage? Image => Resources.HT.ToSKImage();
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

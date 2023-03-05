@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SkiaSharp;
 using static System.Formats.Asn1.AsnWriter;
+using osu_bot.Assets;
 
 namespace osu_bot.Modules
 {
@@ -32,7 +33,7 @@ namespace osu_bot.Modules
             public StringsLinker(SKPaint firstPaint, SKPaint secondPaint, bool isCenter = true)
             {
                 CopyFonts(firstPaint, secondPaint);
-                IsCenter = IsCenter;
+                IsCenter = isCenter;
             }
 
             public StringsLinker(SKPaint firstPaint, SKPaint secondPaint, float stringSpacing)
@@ -62,7 +63,7 @@ namespace osu_bot.Modules
                 return this;
             }
 
-            public void Draw(SKCanvas canvas)
+            public float Draw(SKCanvas canvas)
             {
                 canvas.DrawText(FirstString, X, Y1, FirstPaint);
                 if (IsCenter)
@@ -70,11 +71,13 @@ namespace osu_bot.Modules
                     float centerX = X + FirstPaint.MeasureText(FirstString) / 2;
                     float X2 = centerX - SecondPaint.MeasureText(SecondString) / 2;
                     canvas.DrawText(SecondString, X2, Y2, SecondPaint);
+                    return X + FirstPaint.MeasureText(FirstString);
                 }
                 else
                 {
                     float X2 = X + FirstPaint.MeasureText(FirstString) + StringSpacing;
                     canvas.DrawText(SecondString, X2, Y2, SecondPaint);
+                    return X2 + SecondPaint.MeasureText(SecondString);
                 }
             }
         }
@@ -138,6 +141,17 @@ namespace osu_bot.Modules
 
         #endregion
 
+        private readonly Dictionary<RankStatus, SKImage> _rankStatus = new()
+        {
+            { RankStatus.Graveyard, Resources.GraveyardStatus.ToSKImage()  },
+            { RankStatus.Wip, Resources.GraveyardStatus.ToSKImage()  },
+            { RankStatus.Pending, Resources.GraveyardStatus.ToSKImage()  },
+            { RankStatus.Ranked, Resources.RatingStatus.ToSKImage()  },
+            { RankStatus.Approved, Resources.ApprovedStatus.ToSKImage()  },
+            { RankStatus.Qualified, Resources.ApprovedStatus.ToSKImage()  },
+            { RankStatus.Loved, Resources.LovedStatus.ToSKImage()  },
+        };
+
         private readonly WebClient _webClient = new();
 
         private CrossplatformImageGenerator()
@@ -170,7 +184,7 @@ namespace osu_bot.Modules
 
         public async Task<SKImage> CreateSmallCardAsync(ScoreInfo score, bool showNick)
         {
-            int width = 1120;
+            int width = 1000;
             int height = 114;
 
             SKImageInfo imageInfo = new(width, height);
@@ -199,20 +213,20 @@ namespace osu_bot.Modules
 
                 x = 260;
 
-                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
-                canvas.DrawText(score.Beatmap.Title, x, 28, _paint);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                canvas.DrawText(score.Beatmap.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
 
                 drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
                 _paint.SetColor(_lightGrayColor).SetSize(15);
-                canvas.DrawText(drawableString, x, 50, _paint);
+                canvas.DrawText(drawableString, x, 55, _paint);
 
                 drawableString = $"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars:0.00}";
-                canvas.DrawText(drawableString, x, 70, _paint);
+                canvas.DrawText(drawableString, x, 75, _paint);
 
                 x += _paint.MeasureText(drawableString);
 
                 _paint.SetTypeface(_starTypeface).SetSize(22);
-                canvas.DrawText("★", x, 71, _paint);
+                canvas.DrawText("★", x, 76, _paint);
                 #endregion
 
                 #region Play stats
@@ -262,14 +276,14 @@ namespace osu_bot.Modules
                 _paint.SetColor(_colorMisses);
                 canvas.DrawText(drawableString, x, y, _paint);
 
-                //if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
-                //{
-                //    float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
-                //    drawableString = $"{hits:F2}";
-                //    _paint.SetColor(_whiteColor);
-                //    x = 50 - _paint.MeasureText(drawableString) / 2;
-                //    canvas.DrawText(drawableString, x, y, _paint);
-                //}
+                if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
+                {
+                    float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
+                    drawableString = $"{hits:F2}";
+                    _paint.SetColor(_whiteColor);
+                    x = 50 - _paint.MeasureText(drawableString) / 2;
+                    canvas.DrawText(drawableString, x, y, _paint);
+                }
 
                 int pp = score.PP != null ? (int)score.PP : PerfomanceCalculator.Calculate(score);
                 drawableString = $"{pp} PP";
@@ -316,175 +330,158 @@ namespace osu_bot.Modules
                 destRect = new SKRect() { Location = new SKPoint(0, 0), Size = new SKSize(204, 204) };
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
-                float x;
-                string drawableString = $"#{score.User.WorldRating}";
-                _paint.SetColor(_whiteColor).SetTypeface(_rubikBoldTypeface).SetSize(16);
-                x = 102 - _paint.MeasureText(drawableString) / 2;
-                canvas.DrawText(drawableString, x, 23, _paint);
+                SKPaint paint1 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
+                SKPaint paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikLightTypeface).SetSize(18);
+                StringsLinker stringLinker = new(paint1, paint2, true);
 
-                drawableString = $"({score.User.CountryCode} #{score.User.CountryRating})";
-                _paint.SetTypeface(_rubikTypeface).SetSize(18);
-                x = 102 - _paint.MeasureText(drawableString) / 2;
-                canvas.DrawText(drawableString, x, 48, _paint);
+                string drawableString1 = $"#{score.User.WorldRating}";
+                string drawableString2 = $"({score.User.CountryCode} #{score.User.CountryRating})";      
+                float x = 102 - paint1.MeasureText(drawableString1) / 2;
 
-                drawableString = score.User.Name;
-                _paint.SetTypeface(_rubikBoldTypeface);
-                x = 102 - _paint.MeasureText(drawableString) / 2;
-                canvas.DrawText(drawableString, x, 173, _paint);
+                stringLinker.SetStrings(drawableString1, drawableString2)
+                    .SetPositions(x, 23, 48)
+                    .Draw(canvas);
 
-                drawableString = $"{score.User.PP.Separate(".")}pp";
-                _paint.SetTypeface(_rubikTypeface);
-                x = 102 - _paint.MeasureText(drawableString) / 2;
-                canvas.DrawText(drawableString, x, 198, _paint);
+                drawableString1 = score.User.Name;
+                drawableString2 = $"{score.User.PP.Separate(".")}pp";
+                x = 102 - paint1.MeasureText(drawableString1) / 2;
+
+                stringLinker.SetStrings(drawableString1, drawableString2)
+                    .SetPositions(x, 173, 198)
+                    .Draw(canvas);
                 #endregion
 
                 #region Map info
-                x = 220;
-                _paint.SetSize(20);
-                drawableString = $"{score.Beatmap.Title} - {score.Beatmap.Artist} [{score.Beatmap.DifficultyName}]";
+                x = 218;
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                string drawableString = $"{score.Beatmap.Title} [{score.Beatmap.DifficultyName}]";
                 canvas.DrawText(drawableString, x, 23, _paint);
+               
+                drawableString = $"{score.Beatmap.Artist}";
+                _paint.SetSize(18);
+                canvas.DrawText(drawableString, x, 48, _paint);
 
                 drawableString = $"Mapped by {score.Beatmap.MapperName}";
                 _paint.SetSize(15);
-                canvas.DrawText(drawableString, x, 48, _paint);
+                canvas.DrawText(drawableString, x, 73, _paint);
 
                 float y = 195;
-                float columnSpacing = 15;
+                float columnSpacing = 18;
                 float wordSpacing = 4;
-                var firstPaint = new SKPaint() { Color = _whiteColor, TextSize = 15, Typeface = _rubikLightTypeface };
-                var secondPaint = new SKPaint() { Color = _whiteColor, TextSize = 15, Typeface = _rubikTypeface };
-                var mapAttributesLinker = new StringsLinker(firstPaint, secondPaint, wordSpacing);
+                paint1 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikLightTypeface).SetSize(18);
+                paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
+                stringLinker = new StringsLinker(paint1, paint2, wordSpacing);
 
-                drawableString = score.Beatmap.Attributes.BaseCS.ToString("0.0");
-                mapAttributesLinker.SetStrings("CS:", drawableString).SetPositions(x, y, y).Draw(canvas);
-                //ТУТ ОСТАНОВИЛИСЬ!!!!
+                drawableString2 = score.Beatmap.Attributes.BaseCS.ToString("0.0");
+                x = stringLinker.SetStrings("CS:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
                 if (score.Beatmap.Attributes.CS != score.Beatmap.Attributes.BaseCS)
                 {
-                    x += _paint.MeasureText(drawableString);
+                    x += 2;
                     drawableString = $"{score.Beatmap.Attributes.CS:0.0}";
-                    _paint.SetColor(_colorMisses).SetSize(11);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
-
-                    _paint.SetColor(_whiteColor).SetSize(15);
+                    x += _paint.MeasureText(drawableString);
                 }
 
-                drawableString = score.Beatmap.Attributes.BaseAR.ToString("0.0");
-                mapAttributesLinker.SetStrings("CS:", drawableString).SetPositions(x, y, y).Draw(canvas);
+                x += columnSpacing;
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "AR:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
-
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = score.Beatmap.Attributes.BaseAR.ToString("0.0");
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = score.Beatmap.Attributes.BaseAR.ToString("0.0");
+                x = stringLinker.SetStrings("AR:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
                 if (score.Beatmap.Attributes.AR != score.Beatmap.Attributes.BaseAR)
                 {
-                    x += _paint.MeasureText(drawableString);
+                    x += 2;
                     drawableString = $"{score.Beatmap.Attributes.AR:0.0}";
-                    _paint.SetColor(_colorMisses).SetSize(11);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
-
-                    _paint.SetColor(_whiteColor).SetSize(15);
+                    x += _paint.MeasureText(drawableString);
                 }
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "OD:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                x += columnSpacing;
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = score.Beatmap.Attributes.BaseOD.ToString("0.0");
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = score.Beatmap.Attributes.BaseOD.ToString("0.0");
+                x = stringLinker.SetStrings("OD:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
                 if (score.Beatmap.Attributes.OD != score.Beatmap.Attributes.BaseOD)
                 {
-                    x += _paint.MeasureText(drawableString);
+                    x += 2;
                     drawableString = $"{score.Beatmap.Attributes.OD:0.0}";
-                    _paint.SetColor(_colorMisses).SetSize(11);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
-
-                    _paint.SetColor(_whiteColor).SetSize(15);
+                    x += _paint.MeasureText(drawableString);
                 }
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "HP:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                x += columnSpacing;
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = score.Beatmap.Attributes.BaseHP.ToString("0.0");
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = score.Beatmap.Attributes.BaseHP.ToString("0.0");
+                x = stringLinker.SetStrings("HP:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
                 if (score.Beatmap.Attributes.HP != score.Beatmap.Attributes.BaseHP)
                 {
-                    x += _paint.MeasureText(drawableString);
+                    x += 2;
                     drawableString = $"{score.Beatmap.Attributes.HP:0.0}";
-                    _paint.SetColor(_colorMisses).SetSize(11);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
-
-                    _paint.SetColor(_whiteColor).SetSize(15);
+                    x += _paint.MeasureText(drawableString);
                 }
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "Length:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                x += columnSpacing;
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = TimeSpan.FromSeconds(score.Beatmap.Attributes.Length).ToString(@"mm\:ss");
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = TimeSpan.FromSeconds(score.Beatmap.Attributes.Length).ToString(@"mm\:ss");
+                x = stringLinker.SetStrings("Length:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "BPM:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                x += columnSpacing;
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = score.Beatmap.Attributes.BPM.ToString();
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = score.Beatmap.Attributes.BPM.ToString();
+                x = stringLinker.SetStrings("BPM:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
-                x += columnSpacing + _paint.MeasureText(drawableString);
-                drawableString = "Stars:";
-                _paint.SetTypeface(_rubikLightTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                x += columnSpacing;
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
-                drawableString = $"{score.Beatmap.Attributes.Stars:0.00}";
-                _paint.SetTypeface(_rubikTypeface);
-                canvas.DrawText(drawableString, x, y, _paint);
+                drawableString2 = $"{score.Beatmap.Attributes.Stars:0.00}";
+                x = stringLinker.SetStrings("Stars:", drawableString2)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
 
-                x += wordSpacing + _paint.MeasureText(drawableString);
                 drawableString = "★";
-                _paint.SetTypeface(_starTypeface).SetSize(16);
+                _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
                 canvas.DrawText(drawableString, x, y, _paint);
+
+                x += columnSpacing;
+
+                canvas.DrawImage();
                 #endregion
 
                 #region Score line 1
@@ -751,37 +748,50 @@ namespace osu_bot.Modules
         //    return result;
         //}
 
-        //public static Image CreateScoresCard(IEnumerable<ScoreInfo> scores)
-        //{
-        //    int width = 1120;
-        //    int height = 136 + scores.Count() * 114;
-        //    Image result = new Bitmap(width, height);
-        //    var g = Graphics.FromImage(result);
-        //    g.SmoothingMode = SmoothingMode.AntiAlias;
-        //    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+        public async Task<SKImage> CreateScoresCard(IEnumerable<ScoreInfo> scores)
+        {
+            int width = 1000;
+            int height = 136 + scores.Count() * 114;
 
-        //    var user = scores.First().User;
-        //    using var avatarImgStream = new MemoryStream(WebClient.DownloadData(user.AvatarUrl));
+            SKImageInfo imageInfo = new(width, height);
+            using (SKSurface surface = SKSurface.Create(imageInfo))
+            {
+                SKCanvas canvas = surface.Canvas;
 
-        //    g.FillRectangle(BackgroundSemilightBrush, 0, 0, width, 136);
-        //    g.DrawImage(Image.FromStream(avatarImgStream), 4, 4, 128, 128);
-        //    g.DrawString($"#{user.Name}", Rubik17, WhiteBrush, 136, 30);
-        //    g.DrawString($"#{user.WorldRating}", Rubik17, WhiteBrush, 136, 60);
-        //    g.DrawString($"({user.CountryCode} #{user.CountryRating})", Rubik17, WhiteBrush, 136, 90);
+                User user = scores.First().User;
 
-        //    int i = 0;
-        //    foreach (var score in scores)
-        //    {
-        //        var y = 136 + i * 114;
-        //        var scoreImage = CreateSmallCard(score, false);
-        //        g.DrawImage(scoreImage, 0, y);
-        //        if (i != 0)
-        //            g.DrawLine(LightLinePen, 0, y, width, y);
-        //        i++;
-        //    }
+                byte[] data = await _webClient.DownloadDataTaskAsync(user.AvatarUrl);
 
-        //    return result;
-        //}
+                _paint.SetColor(_backgroundSemilightColor);
+                canvas.DrawRect(0, 0, width, 136, _paint);
+
+                SKImage image = SKImage.FromEncodedData(data);
+                SKRect sourceRect = new(0, 0, image.Width, image.Height);
+                SKRect destRect = new() { Location = new(4, 4), Size = new(128, 128) };
+                canvas.DrawImage(image, sourceRect, destRect, _paint);
+
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                canvas.DrawText($"#{user.Name}", 156, 30, _paint);
+                canvas.DrawText($"#{user.WorldRating}", 156, 60, _paint);
+                canvas.DrawText($"({user.CountryCode} #{user.CountryRating})", 156, 90, _paint);
+
+                int i = 0;
+                foreach (ScoreInfo score in scores)
+                {
+                    float y = 136 + i * 114;
+                    SKImage scoreImage = await CreateSmallCardAsync(score, false);
+                    canvas.DrawImage(scoreImage, 0, y);
+                    if (i != 0)
+                    {
+                        _paint.SetColor(_lightGrayColor);
+                        canvas.DrawLine(0, y, width, y, _paint);
+                    }
+                    i++;
+                }
+
+                return surface.Snapshot();
+            }
+        }
 
         //public static Image CreateTableScoresCard(IEnumerable<ScoreInfo> scores)
         //{

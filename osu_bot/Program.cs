@@ -32,12 +32,19 @@ namespace osu_bot
 
             await OsuAPI.Instance.InitalizeAsync();
             UserScoresQuery query = new();
-            query.Parameters.Parse("+1 +DT Kotovasya");
+            query.Parameters.Parse("+2 +DTHD Kotovasya");
             List<ScoreInfo> scores = await query.ExecuteAsync();
-            SKImage image = await CrossplatformImageGenerator.Instance.CreateFullCardAsync(scores.First());
+            //SKImage imageSmall = await CrossplatformImageGenerator.Instance.CreateScoresCard(scores);
+            SKImage imageFull = await CrossplatformImageGenerator.Instance.CreateFullCardAsync(scores.First());
             var stream = new MemoryStream();
-            image.Encode().SaveTo(stream);
+
+            imageFull.Encode().SaveTo(stream);
             Image.FromStream(stream).Save("TestFullCard.png");
+            //await stream.FlushAsync();
+            //stream.Position = 0;
+
+            //imageSmall.Encode().SaveTo(stream);
+            //Image.FromStream(stream).Save("TestSmallCard.png");
         }
     }
 }

@@ -73,6 +73,16 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ApprovedStatus {
+            get {
+                object obj = ResourceManager.GetObject("ApprovedStatus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap AT {
             get {
                 object obj = ResourceManager.GetObject("AT", resourceCulture);
@@ -113,6 +123,16 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap GraveyardStatus {
+            get {
+                object obj = ResourceManager.GetObject("GraveyardStatus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap HD {
             get {
                 object obj = ResourceManager.GetObject("HD", resourceCulture);
@@ -143,6 +163,16 @@ namespace osu_bot.Assets {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap LovedStatus {
+            get {
+                object obj = ResourceManager.GetObject("LovedStatus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap NC {
             get {
                 object obj = ResourceManager.GetObject("NC", resourceCulture);
@@ -166,6 +196,16 @@ namespace osu_bot.Assets {
         internal static System.Drawing.Bitmap PF {
             get {
                 object obj = ResourceManager.GetObject("PF", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap RatingStatus {
+            get {
+                object obj = ResourceManager.GetObject("RatingStatus", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

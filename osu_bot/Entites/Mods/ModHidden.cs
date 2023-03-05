@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Hidden";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.HD.ToStream());
+        public override SKImage? Image => Resources.HD.ToSKImage();
     }
 }

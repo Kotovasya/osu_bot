@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Perfect";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.PF.ToStream());
+        public override SKImage? Image => Resources.PF.ToSKImage();
     }
 }

@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Flashlight";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.FL.ToStream());
+        public override SKImage? Image => Resources.FL.ToSKImage();
     }
 }

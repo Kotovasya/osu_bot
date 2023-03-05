@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Sudden Death";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.SD.ToStream());
+        public override SKImage? Image => Resources.SD.ToSKImage();
     }
 }

@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Nightcore";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.NC.ToStream());
+        public override SKImage? Image => Resources.NC.ToSKImage();
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

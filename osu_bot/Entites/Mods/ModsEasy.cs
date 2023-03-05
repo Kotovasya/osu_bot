@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Easy";
 
-        public override SKImage? Image => SKImage.FromEncodedData(Resources.EZ.ToStream());
+        public override SKImage? Image => Resources.EZ.ToSKImage();
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {
