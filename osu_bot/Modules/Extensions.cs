@@ -20,7 +20,7 @@ namespace osu_bot.Modules
     {
         public static byte[] ToStream(this Image image)
         {
-            image.
+            return new byte[1];
         }
 
         public static string Separate(this int number, string separator)

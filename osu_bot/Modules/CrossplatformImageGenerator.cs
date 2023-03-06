@@ -141,16 +141,16 @@ namespace osu_bot.Modules
 
         #endregion
 
-        private readonly Dictionary<RankStatus, SKImage> _rankStatus = new()
-        {
-            { RankStatus.Graveyard, Resources.GraveyardStatus.ToSKImage()  },
-            { RankStatus.Wip, Resources.GraveyardStatus.ToSKImage()  },
-            { RankStatus.Pending, Resources.GraveyardStatus.ToSKImage()  },
-            { RankStatus.Ranked, Resources.RatingStatus.ToSKImage()  },
-            { RankStatus.Approved, Resources.ApprovedStatus.ToSKImage()  },
-            { RankStatus.Qualified, Resources.ApprovedStatus.ToSKImage()  },
-            { RankStatus.Loved, Resources.LovedStatus.ToSKImage()  },
-        };
+        //private readonly Dictionary<RankStatus, SKImage> _rankStatus = new()
+        //{
+        //    { RankStatus.Graveyard, Resources.GraveyardStatus.ToSKImage()  },
+        //    { RankStatus.Wip, Resources.GraveyardStatus.ToSKImage()  },
+        //    { RankStatus.Pending, Resources.GraveyardStatus.ToSKImage()  },
+        //    { RankStatus.Ranked, Resources.RatingStatus.ToSKImage()  },
+        //    { RankStatus.Approved, Resources.ApprovedStatus.ToSKImage()  },
+        //    { RankStatus.Qualified, Resources.ApprovedStatus.ToSKImage()  },
+        //    { RankStatus.Loved, Resources.LovedStatus.ToSKImage()  },
+        //};
 
         private readonly WebClient _webClient = new();
 
@@ -481,7 +481,7 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                canvas.DrawImage();
+                //Отрисовать значок статуса карты
                 #endregion
 
                 #region Score line 1

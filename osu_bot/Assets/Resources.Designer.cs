@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace osu_bot.Assets {
+namespace osu_bot.Assets
+{
     using System;
-    
-    
+    using SkiaSharp;
+
+
     /// <summary>
     ///   Класс ресурса со строгой типизацией для поиска локализованных строк и т.д.
     /// </summary>
@@ -22,231 +24,229 @@ namespace osu_bot.Assets {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
-        
+    internal class Resources
+    {
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resources()
+        {
         }
-        
+
         /// <summary>
         ///   Возвращает кэшированный экземпляр ResourceManager, использованный этим классом.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("osu_bot.Assets.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Перезаписывает свойство CurrentUICulture текущего потока для всех
         ///   обращений к ресурсу с помощью этого класса ресурса со строгой типизацией.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
-            get {
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap AP {
-            get {
+
+        internal static SKImage AP
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("AP", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap ApprovedStatus {
-            get {
+
+        internal static SKImage ApprovedStatus
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("ApprovedStatus", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap AT {
-            get {
+
+        internal static SKImage AT
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("AT", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap DT {
-            get {
+
+        internal static SKImage DT
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("DT", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap EZ {
-            get {
+
+        internal static SKImage EZ
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("EZ", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap FL {
-            get {
+
+        internal static SKImage FL
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("FL", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap GraveyardStatus {
-            get {
+
+        internal static SKImage GraveyardStatus
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("GraveyardStatus", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap HD {
-            get {
+
+        internal static SKImage HD
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("HD", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap HR {
-            get {
+
+        internal static SKImage HR
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("HR", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap HT {
-            get {
+
+        internal static SKImage HT
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("HT", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap LovedStatus {
-            get {
+
+        internal static SKImage LovedStatus
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("LovedStatus", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap NC {
-            get {
+
+        internal static SKImage NC
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("NC", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap NF {
-            get {
+
+        internal static SKImage NF
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("NF", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap PF {
-            get {
+
+        internal static SKImage PF
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("PF", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap RatingStatus {
-            get {
+
+        internal static SKImage RatingStatus
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("RatingStatus", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap RL {
-            get {
+
+        internal static SKImage RL
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("RL", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SD {
-            get {
+
+        internal static SKImage SD
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("SD", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Byte[].
-        /// </summary>
-        internal static byte[] SecularOne_Regular {
-            get {
-                object obj = ResourceManager.GetObject("SecularOne_Regular", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap SO {
-            get {
+
+        internal static SKImage SO
+        {
+            get
+            {
                 object obj = ResourceManager.GetObject("SO", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                byte[] data = (byte[])obj;
+                return SKImage.FromEncodedData(data);
             }
         }
     }
