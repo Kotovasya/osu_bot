@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Spun Out";
 
-        public override SKImage? Image => Resources.SO.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.SO;
     }
 }

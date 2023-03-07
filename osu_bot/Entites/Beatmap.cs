@@ -61,10 +61,10 @@ namespace osu_bot.Entites
         public string Title { get; set; }
         public string DifficultyName { get; set; }
         public string CoverUrl { get; set; }
-        public string Status { get; set; }
         public string Artist { get; set; }
         public string Url { get; set; }
         public string MapperName { get; set; }
+        public string Status { get; set; }
         public BeatmapAttributes Attributes { get; set; }
     }
 

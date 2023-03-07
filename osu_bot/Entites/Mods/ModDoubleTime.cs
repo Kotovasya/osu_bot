@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Double Time";
 
-        public override SKImage? Image => Resources.DT.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.DT;
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

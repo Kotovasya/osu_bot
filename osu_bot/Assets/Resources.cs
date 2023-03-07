@@ -12,7 +12,7 @@ using SkiaSharp;
 
 namespace osu_bot.Assets
 {
-    public static class Resources1
+    public static class Resources
     {
         public static ModsManager ModsManager { get; } = new ModsManager();
 

@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Hard Rock";
 
-        public override SKImage? Image => Resources.HR.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.HR;
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

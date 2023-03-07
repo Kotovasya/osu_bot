@@ -18,7 +18,7 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Easy";
 
-        public override SKImage? Image => Resources.EZ.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.EZ;
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {

@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Perfect";
 
-        public override SKImage? Image => Resources.PF.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.PF;
     }
 }

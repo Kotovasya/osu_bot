@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,12 +15,16 @@ namespace osu_bot.Assets
     {
         protected override string ResourcesPath => "Assets\\Images\\Map Status";
 
-        public SKImage? Approved { get; }
+        [AllowNull]
+        public SKImage Approved { get; private set; }
 
-        public SKImage? Graveyard { get; }
+        [AllowNull]
+        public SKImage Graveyard { get; private set; }
 
-        public SKImage? Loved { get; }
+        [AllowNull]
+        public SKImage Loved { get; private set; }
 
-        public SKImage? Rating { get; }
+        [AllowNull]
+        public SKImage Rating { get; private set; }
     }
 }

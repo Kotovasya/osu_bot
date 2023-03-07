@@ -141,16 +141,16 @@ namespace osu_bot.Modules
 
         #endregion
 
-        //private readonly Dictionary<RankStatus, SKImage> _rankStatus = new()
-        //{
-        //    { RankStatus.Graveyard, Resources.GraveyardStatus.ToSKImage()  },
-        //    { RankStatus.Wip, Resources.GraveyardStatus.ToSKImage()  },
-        //    { RankStatus.Pending, Resources.GraveyardStatus.ToSKImage()  },
-        //    { RankStatus.Ranked, Resources.RatingStatus.ToSKImage()  },
-        //    { RankStatus.Approved, Resources.ApprovedStatus.ToSKImage()  },
-        //    { RankStatus.Qualified, Resources.ApprovedStatus.ToSKImage()  },
-        //    { RankStatus.Loved, Resources.LovedStatus.ToSKImage()  },
-        //};
+        private readonly Dictionary<string, SKImage> _rankStatus = new()
+        {
+            { "graveyard", Resources.MapStatusManager.Graveyard },
+            { "wip", Resources.MapStatusManager.Graveyard },
+            { "pending", Resources.MapStatusManager.Graveyard },
+            { "ranked", Resources.MapStatusManager.Rating },
+            { "approved", Resources.MapStatusManager.Approved },
+            { "qualified", Resources.MapStatusManager.Approved },
+            { "loved", Resources.MapStatusManager.Loved },
+        };
 
         private readonly WebClient _webClient = new();
 
@@ -479,9 +479,11 @@ namespace osu_bot.Modules
                 _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
                 canvas.DrawText(drawableString, x, y, _paint);
 
-                x += columnSpacing;
+                string status = "approved";
+                SKImage mapStatusImage = _rankStatus[status];
+                x = x + (width - x) / 2 - (mapStatusImage.Width / 2);
 
-                //Отрисовать значок статуса карты
+                canvas.DrawImage(mapStatusImage, x, y - 36, _paint);
                 #endregion
 
                 #region Score line 1

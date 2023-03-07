@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Auto";
 
-        public override SKImage? Image => Resources.AT.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.AT;
     }
 }

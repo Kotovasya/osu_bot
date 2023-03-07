@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,32 +15,46 @@ namespace osu_bot.Assets
     {
         protected override string ResourcesPath => "Assets\\Images\\Mods";
 
-        public SKImage? AP { get; }
+        [AllowNull]
+        public SKImage AP { get; private set; }
 
-        public SKImage? AT { get; }
+        [AllowNull]
+        public SKImage AT { get; private set; }
 
-        public SKImage? DT { get; }
+        [AllowNull]
+        public SKImage DT { get; private set; }
 
-        public SKImage? EZ { get; }
+        [AllowNull]
+        public SKImage EZ { get; private set; }
 
-        public SKImage? FL { get; }
+        [AllowNull]
+        public SKImage FL { get; private set; }
 
-        public SKImage? HD { get; }
+        [AllowNull]
+        public SKImage HD { get; private set; }
 
-        public SKImage? HR { get; }
+        [AllowNull]
+        public SKImage HR { get; private set; }
 
-        public SKImage? HT { get; }
+        [AllowNull]
+        public SKImage HT { get; private set; }
 
-        public SKImage? NC { get; }
+        [AllowNull]
+        public SKImage NC { get; private set; }
 
-        public SKImage? NF { get; }
+        [AllowNull]
+        public SKImage NF { get; private set; }
 
-        public SKImage? PF { get; }
+        [AllowNull]
+        public SKImage PF { get; private set; }
 
-        public SKImage? RL { get; }
+        [AllowNull]
+        public SKImage RL { get; private set; }
 
-        public SKImage? SD { get; }
+        [AllowNull]
+        public SKImage SD { get; private set; }
 
-        public SKImage? SO { get; }
+        [AllowNull]
+        public SKImage SO { get; private set; }
     }
 }

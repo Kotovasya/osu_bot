@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Autopilot";
 
-        public override SKImage? Image => Resources.AP.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.AP;
     }
 }

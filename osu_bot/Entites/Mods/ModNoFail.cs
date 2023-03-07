@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "No Fail";
 
-        public override SKImage? Image => Resources.NF.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.NF;
     }
 }

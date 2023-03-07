@@ -1,10 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using SkiaSharp;
@@ -17,14 +15,15 @@ namespace osu_bot.Assets
 
         public ResourceManager()
         {
-            Type type = typeof(ResourceManager);
+            Type type = GetType();
             PropertyInfo[] properties = type.GetProperties();
             foreach (PropertyInfo property in properties)
             {
-                FileStream fileStream = File.Open(ResourcesPath, FileMode.Open);
+                string filePath = $"{ResourcesPath}\\{property.Name}.png";
+                FileStream fileStream = File.Open(filePath, FileMode.Open);
                 SKImage image = SKImage.FromEncodedData(fileStream);
                 fileStream.Close();
-                property.SetValue(null, image);
+                property.SetValue(this, image);
             }
         }
     }

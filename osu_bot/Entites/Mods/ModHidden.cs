@@ -18,6 +18,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Hidden";
 
-        public override SKImage? Image => Resources.HD.ToSKImage();
+        public override SKImage? Image => Resources.ModsManager.HD;
     }
 }
