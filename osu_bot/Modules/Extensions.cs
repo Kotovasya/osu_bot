@@ -125,9 +125,16 @@ namespace osu_bot.Modules
             }
         }
 
-        public static SKImage ToSKImage(this Image image)
+        public static void DrawAlignText(this SKCanvas canvas, string drawableString, float centerX, float y, SKTextAlign align, SKPaint paint)
         {
-            return SKImage.FromEncodedData(image.ToStream());
+            float x = align switch
+            {
+                SKTextAlign.Left => centerX,
+                SKTextAlign.Center => centerX - paint.MeasureText(drawableString) / 2,
+                SKTextAlign.Right => centerX + paint.MeasureText(drawableString) / 2,
+                _ => centerX,
+            };
+            canvas.DrawText(drawableString, x, y, paint);
         }
     }
 }
