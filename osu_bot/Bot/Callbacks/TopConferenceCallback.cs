@@ -75,11 +75,14 @@ namespace osu_bot.Bot.Callbacks
                 result.AddRange(scores);
             }
 
+            if (result.Count == 0)
+                throw new Exception($"У игроков отсутствуют скоры на карте {beatmapId}");
+
             SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
 
             _ = await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
-                photo: new InputOnlineFile(image.EncodedData.AsStream()),
+                photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,
                 cancellationToken: cancellationToken);
         }

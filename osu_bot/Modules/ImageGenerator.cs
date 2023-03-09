@@ -87,7 +87,7 @@ namespace osu_bot.Modules
         private readonly SKTypeface _triangleTypeface = SKFontManager.Default.MatchCharacter(TRIANGLE_UNICODE);
 
         private readonly SKImageFilter _imageDarkingFilter = SKImageFilter.CreateColorFilter(
-            SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 128), SKBlendMode.Darken));
+            SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 140), SKBlendMode.Darken));
 
         private readonly SKPaint _paint = new()
         {
@@ -125,17 +125,31 @@ namespace osu_bot.Modules
         #endregion
 
         #region SKTypefaces initialization
+
+
         private readonly SKTypeface _secularOneTypeface =
-            SKTypeface.FromFamilyName("Secular One", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+            SKTypeface.FromFamilyName(Resources.FontsManager.SecularOne_Regular.FamilyName,
+                SKFontStyleWeight.Normal,
+                SKFontStyleWidth.Normal,
+                SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikTypeface =
-            SKTypeface.FromFamilyName("Rubik", SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+                SKFontStyleWeight.Normal,
+                SKFontStyleWidth.Normal,
+                SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikLightTypeface =
-            SKTypeface.FromFamilyName("Rubik", SKFontStyleWeight.Light, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+                SKFontStyleWeight.Light,
+                SKFontStyleWidth.Normal,
+                SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikBoldTypeface =
-            SKTypeface.FromFamilyName("Rubik", SKFontStyleWeight.Medium, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+                SKFontStyleWeight.Medium,
+                SKFontStyleWidth.Normal,
+                SKFontStyleSlant.Upright);
 
         #endregion
 
@@ -268,7 +282,7 @@ namespace osu_bot.Modules
                 if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
                 {
                     float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
-                    drawableString = $"{hits:F2}";
+                    drawableString = $"{hits:F2}%";
                     _ = _paint.SetColor(_whiteColor);
                     x = 50 - (_paint.MeasureText(drawableString) / 2);
                     canvas.DrawText(drawableString, x, y, _paint);
@@ -341,7 +355,12 @@ namespace osu_bot.Modules
                 #endregion
 
                 #region Map info
-                x = 218;
+                x = 209;
+                SKImage mapStatusImage = _rankStatus[score.Beatmap.Status];
+                canvas.DrawImage(mapStatusImage, x, 5, _paint);
+
+                x += mapStatusImage.Width + 5;
+
                 _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 drawableString = $"{score.Beatmap.Title} [{score.Beatmap.DifficultyName}]";
                 canvas.DrawText(drawableString, x, 23, _paint);
@@ -350,6 +369,7 @@ namespace osu_bot.Modules
                 _ = _paint.SetSize(18);
                 canvas.DrawText(drawableString, x, 48, _paint);
 
+                x = 213;
                 drawableString = $"Mapped by {score.Beatmap.MapperName}";
                 _ = _paint.SetSize(15);
                 canvas.DrawText(drawableString, x, 73, _paint);
@@ -370,13 +390,13 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.CS:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _ = _paint.SetTypeface(_triangleTypeface);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
 
@@ -391,13 +411,13 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.AR:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _ = _paint.SetTypeface(_triangleTypeface);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
 
@@ -412,13 +432,13 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.OD:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
                     _ = _paint.SetTypeface(_triangleTypeface);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
 
@@ -433,7 +453,7 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.HP:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(12);
+                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
@@ -467,11 +487,6 @@ namespace osu_bot.Modules
                 drawableString = "★";
                 _ = _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
                 canvas.DrawText(drawableString, x, y, _paint);
-
-                SKImage mapStatusImage = _rankStatus[score.Beatmap.Status];
-                x = x + ((width - x) / 2) - (mapStatusImage.Width / 2);
-
-                canvas.DrawImage(mapStatusImage, x, y - 36, _paint);
                 #endregion
 
                 #region Score line 1

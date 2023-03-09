@@ -10,6 +10,13 @@ namespace osu_bot.Assets
     {
         protected override string ResourcesPath => "Assets\\Images\\Map Status";
 
+        protected override string FileFormat => "png";
+
+        protected override object ConvertFile(FileStream stream)
+        {
+            return SKImage.FromEncodedData(stream);
+        }
+
         [AllowNull]
         public SKImage Approved { get; private set; }
 

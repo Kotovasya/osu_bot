@@ -58,7 +58,7 @@ namespace osu_bot.Bot.Commands
 
             _ = await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
-                photo: new InputOnlineFile(image.EncodedData.AsStream()),
+                photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.Message.MessageId,
                 cancellationToken: cancellationToken);
         }

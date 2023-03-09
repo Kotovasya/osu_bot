@@ -67,7 +67,7 @@ namespace osu_bot.Bot.Callbacks
 
             _ = await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
-                photo: new InputOnlineFile(image.EncodedData.AsStream()),
+                photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);

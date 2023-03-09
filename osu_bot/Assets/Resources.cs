@@ -8,5 +8,7 @@ namespace osu_bot.Assets
         public static ModsManager ModsManager { get; } = new ModsManager();
 
         public static MapStatusManager MapStatusManager { get; } = new MapStatusManager();
+
+        public static FontsManager FontsManager { get; } = new FontsManager();
     }
 }

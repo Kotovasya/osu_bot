@@ -10,6 +10,10 @@ namespace osu_bot.Assets
     {
         protected abstract string ResourcesPath { get; }
 
+        protected abstract string FileFormat { get; }
+
+        protected abstract object ConvertFile(FileStream stream);
+
         public ResourceManager()
         {
             Type type = GetType();
@@ -18,9 +22,9 @@ namespace osu_bot.Assets
             {
                 string filePath = $"{ResourcesPath}\\{property.Name}.png";
                 FileStream fileStream = File.Open(filePath, FileMode.Open);
-                SKImage image = SKImage.FromEncodedData(fileStream);
+                object result = ConvertFile(fileStream);
                 fileStream.Close();
-                property.SetValue(this, image);
+                property.SetValue(this, result);
             }
         }
     }

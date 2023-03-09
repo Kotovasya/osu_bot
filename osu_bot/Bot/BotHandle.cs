@@ -78,8 +78,6 @@ namespace osu_bot.Bot
             {
                 if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
                 {
-                    ArgumentNullException.ThrowIfNull(update.CallbackQuery);
-                    ArgumentNullException.ThrowIfNull(update.CallbackQuery.Data);
                     message = update.CallbackQuery.Message;
                     string? callback = _callbacks.Keys.FirstOrDefault(s => data.Contains(s));
                     if (callback != null)
