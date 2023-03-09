@@ -20,7 +20,7 @@ namespace osu_bot.Assets
             PropertyInfo[] properties = type.GetProperties();
             foreach (PropertyInfo property in properties)
             {
-                string filePath = $"{ResourcesPath}\\{property.Name}.png";
+                string filePath = $"{ResourcesPath}\\{property.Name}.{FileFormat}";
                 FileStream fileStream = File.Open(filePath, FileMode.Open);
                 object result = ConvertFile(fileStream);
                 fileStream.Close();

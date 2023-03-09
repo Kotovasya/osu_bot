@@ -128,25 +128,25 @@ namespace osu_bot.Modules
 
 
         private readonly SKTypeface _secularOneTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.SecularOne_Regular.FamilyName,
+            SKTypeface.FromFamilyName(Resources.FontsManager.SecularOne.FamilyName,
                 SKFontStyleWeight.Normal,
                 SKFontStyleWidth.Normal,
                 SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
                 SKFontStyleWeight.Normal,
                 SKFontStyleWidth.Normal,
                 SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikLightTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
                 SKFontStyleWeight.Light,
                 SKFontStyleWidth.Normal,
                 SKFontStyleSlant.Upright);
 
         private readonly SKTypeface _rubikBoldTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik_Regular.FamilyName,
+            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
                 SKFontStyleWeight.Medium,
                 SKFontStyleWidth.Normal,
                 SKFontStyleSlant.Upright);

@@ -24,9 +24,9 @@ namespace osu_bot.Assets
         }
 
         [AllowNull]
-        public SKTypeface Rubik_Regular { get; set; }
+        public SKTypeface Rubik { get; set; }
 
         [AllowNull]
-        public SKTypeface SecularOne_Regular { get; set; }
+        public SKTypeface SecularOne { get; set; }
     }
 }
