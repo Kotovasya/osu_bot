@@ -1,10 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using osu_bot.API.Parameters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu_bot.API.Queries
 {
@@ -13,14 +10,13 @@ namespace osu_bot.API.Queries
     {
         protected OsuAPI API = OsuAPI.Instance;
 
-        private T parameters = new();
-        public T Parameters { get => parameters; }
+        public T Parameters { get; private set; } = new();
         public string UrlParameter => Parameters.GetQueryString();
 
         public async Task<U> ExecuteAsync()
         {
-            var result = await RunAsync();
-            parameters = new();
+            U? result = await RunAsync();
+            Parameters = new();
             return result;
         }
 

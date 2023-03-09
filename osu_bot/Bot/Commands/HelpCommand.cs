@@ -1,21 +1,24 @@
-﻿using osu_bot.Bot.Callbacks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.Bot.Callbacks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Commands
 {
-    public class HelpCommand : Command
+    public class HelpCommand : ICommand
     {
-        public override string CommandText => "/help";
+        public string CommandText => "/help";
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
+            if (update.Message == null)
+            {
+                return;
+            }
+
             InlineKeyboardMarkup inlineKeyboard = new(
                 new[]
                 {
@@ -23,7 +26,7 @@ namespace osu_bot.Bot.Commands
                     InlineKeyboardButton.WithCallbackData(text: "🗺Карты", callbackData: MapsCallback.DATA)
                 });
 
-            await botClient.SendTextMessageAsync(
+            _ = await botClient.SendTextMessageAsync(
                 chatId: update.Message.Chat,
                 text: "Информация о каких командах тебя интересует?",
                 replyMarkup: inlineKeyboard,

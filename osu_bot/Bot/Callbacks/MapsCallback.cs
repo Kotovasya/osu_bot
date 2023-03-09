@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -28,7 +25,12 @@ namespace osu_bot.Bot.Callbacks
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            await botClient.SendTextMessageAsync(
+            if (update.CallbackQuery?.Message == null)
+            {
+                return;
+            }
+
+            _ = await botClient.SendTextMessageAsync(
                 chatId: update.CallbackQuery.Message.Chat,
                 text: text,
                 cancellationToken: cancellationToken);

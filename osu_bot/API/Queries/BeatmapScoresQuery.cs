@@ -1,10 +1,8 @@
-﻿using osu_bot.API.Parameters;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.API.Parameters;
 using osu_bot.Entites;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu_bot.API.Queries
 {
@@ -12,19 +10,25 @@ namespace osu_bot.API.Queries
     {
         protected override async Task<List<ScoreInfo>> RunAsync()
         {
-            var userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
+            ArgumentNullException.ThrowIfNull(Parameters.Username);
+            User userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
+            {
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
+            }
+
             Parameters.UserId = userInfo.Id;
 
-            var result = new List<ScoreInfo>();
-            var queryResult = await API.GetJsonAsync(UrlParameter);
+            List<ScoreInfo> result = new();
+            Newtonsoft.Json.Linq.JToken queryResult = await API.GetJsonAsync(UrlParameter);
             if (queryResult["error"] != null)
-                return result;
-
-            foreach (var jsonScore in queryResult["scores"])
             {
-                var score = new ScoreInfo();
+                return result;
+            }
+
+            foreach (Newtonsoft.Json.Linq.JToken? jsonScore in queryResult["scores"])
+            {
+                ScoreInfo score = new();
                 score.ParseScoreJson(jsonScore);
                 score.User = userInfo;
                 result.Add(score);

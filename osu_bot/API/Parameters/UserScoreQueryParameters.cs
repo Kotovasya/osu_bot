@@ -1,18 +1,13 @@
-﻿using osu_bot.Entites;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace osu_bot.API.Parameters
 {
-    public class UserScoreQueryParameters 
+    public class UserScoreQueryParameters
         : IQueryParameters, IParseParameters
     {
         public UserScoreQueryParameters()
@@ -35,13 +30,9 @@ namespace osu_bot.API.Parameters
 
         public bool IncludeFails { get; set; }
 
-        public string GetQueryString()
-        {
-            if (IsRecent)
-                return $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/recent?include_fails={(IncludeFails ? 1 : 0)}&limit=100";
-
-            return $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/best?limit=100";
-        }
+        public string GetQueryString() => IsRecent
+                ? $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/recent?include_fails={(IncludeFails ? 1 : 0)}&limit=100"
+                : $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/best?limit=100";
 
         public void Parse(string input)
         {
@@ -53,7 +44,9 @@ namespace osu_bot.API.Parameters
                 {
                     int startIndex = i;
                     while (input.Length > i && char.IsDigit(input[i]))
+                    {
                         i++;
+                    }
 
                     string result = input[startIndex..i];
                     Offset = 0;
@@ -65,7 +58,9 @@ namespace osu_bot.API.Parameters
                 {
                     int startIndex = ++i;
                     while (input.Length > i && char.IsLetterOrDigit(input[i]))
+                    {
                         i++;
+                    }
 
                     string result = input[startIndex..i];
                     endIndex = i;
@@ -76,23 +71,31 @@ namespace osu_bot.API.Parameters
                         Limit = 1;
                     }
                     else if (result == "pass")
+                    {
                         IncludeFails = false;
+                    }
                     else
                     {
-                        var parameterMods = new HashSet<Mod>();
+                        HashSet<Mod> parameterMods = new();
                         Mods = parameterMods;
 
                         if (result.Length < 2 || result.Length % 2 != 0)
+                        {
                             throw new ModsArgumentException();
+                        }
 
-                        var modsStrings = result.ToUpper().Split(2);
-                        foreach (var modString in modsStrings)
-                            parameterMods.Add(ModsConverter.ToMod(modString));
+                        IEnumerable<string> modsStrings = result.ToUpper().Split(2);
+                        foreach (string modString in modsStrings)
+                        {
+                            _ = parameterMods.Add(ModsConverter.ToMod(modString));
+                        }
                     }
                 }
             }
             if (input.Length > endIndex)
+            {
                 Username = input.Substring(endIndex + 1, input.Length - endIndex - 1);
+            }
         }
     }
 }

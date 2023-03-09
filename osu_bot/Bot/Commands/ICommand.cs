@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using Telegram.Bot;
-using osu_bot.API;
-using LiteDB;
-using osu_bot.Entites.Database;
+using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Commands
 {
-    public abstract class Command
+    public interface ICommand
     {
         public abstract string CommandText { get; }
 

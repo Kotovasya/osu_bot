@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Text;
-using System.Threading.Tasks;
-using osu_bot.Assets;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using SkiaSharp;
@@ -53,7 +48,7 @@ namespace osu_bot.Modules
 
     public static class ModsConverter
     {
-        private static readonly List<Mod> Mods = new()
+        private static readonly List<Mod> s_mods = new()
         {
             new ModAuto(),
             new ModAutopilot(),
@@ -73,35 +68,31 @@ namespace osu_bot.Modules
             new NoMod(),
         };
 
-        private static readonly Dictionary<string, Mod> StringModsDictionary = new();
+        private static readonly Dictionary<string, Mod> s_stringModsDictionary = new();
 
         static ModsConverter()
         {
-            foreach (var mod in Mods)
-                StringModsDictionary.Add(mod.Name, mod);
+            foreach (Mod mod in s_mods)
+            {
+                s_stringModsDictionary.Add(mod.Name, mod);
+            }
         }
 
-        public static Mod ToMod(string str)
-        {
-            if (StringModsDictionary.ContainsKey(str))
-                return StringModsDictionary[str];
-            else
-                throw new ModsArgumentException(str);
-        }
+        public static Mod ToMod(string str) => s_stringModsDictionary.ContainsKey(str) ? s_stringModsDictionary[str] : throw new ModsArgumentException(str);
 
         public static IEnumerable<Mod> ToMods(IEnumerable<string> mods)
         {
             HashSet<Mod> result = new();
-            
+
             if (!mods.Any())
             {
-                result.Add(ToMod("NM"));
+                _ = result.Add(ToMod("NM"));
                 return result;
             }
 
-            foreach(var modString in mods)
+            foreach (string modString in mods)
             {
-                result.Add(ToMod(modString));
+                _ = result.Add(ToMod(modString));
             }
             return result;
         }
@@ -110,8 +101,10 @@ namespace osu_bot.Modules
         {
             StringBuilder sb = new();
 
-            foreach (var mod in mods)
-                sb.Append($"{mod.Name},");
+            foreach (Mod mod in mods)
+            {
+                _ = sb.Append($"{mod.Name},");
+            }
 
             return sb.Remove(sb.Length - 1, 1).ToString();
         }
@@ -119,12 +112,14 @@ namespace osu_bot.Modules
         public static SKImage? ToImage(IEnumerable<Mod>? mods)
         {
             if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
+            {
                 return null;
+            }
 
             using SKSurface surface = SKSurface.Create(new SKImageInfo(45 * mods.Count(), 32));
-            var canvas = surface.Canvas;
+            SKCanvas canvas = surface.Canvas;
             int i = 0;
-            foreach (var mod in mods)
+            foreach (Mod mod in mods)
             {
                 canvas.DrawImage(mod.Image, 45 * i, 0);
                 i++;

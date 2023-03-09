@@ -1,50 +1,59 @@
-﻿using osu_bot.API;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.API;
 using osu_bot.Entites.Database;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Commands
 {
-    public class RegCommand : Command
+    public class RegCommand : ICommand
     {
-        public override string CommandText => "/reg";
+        public string CommandText => "/reg";
 
-        private readonly DatabaseContext Database = DatabaseContext.Instance;
-        private readonly OsuAPI API = OsuAPI.Instance;
+        private readonly DatabaseContext _database = DatabaseContext.Instance;
+        private readonly OsuAPI _api = OsuAPI.Instance;
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message?.Text == null)
+            {
                 return;
+            }
 
-            var message = update.Message;
+            if (update.Message.From == null)
+            {
+                return;
+            }
+
+            Message message = update.Message;
             string text = message.Text;
             int startIndex = text.IndexOf(' ') + 1;
             string name = text[startIndex..].ToLower();
 
-            var users = Database.TelegramUsers.FindAll().ToArray();
+            TelegramUser[] users = _database.TelegramUsers.FindAll().ToArray();
 
-            if (Database.TelegramUsers.Exists(u => u.OsuName == name))
+            if (_database.TelegramUsers.Exists(u => u.OsuName == name))
+            {
                 throw new ArgumentException($"Аккаунт {name} уже привязан к другому пользователю");
+            }
 
-            var osuUser = await API.GetUserInfoByUsernameAsync(name);
+            Entites.User osuUser = await _api.GetUserInfoByUsernameAsync(name);
 
-            var telegramUser = Database.TelegramUsers.FindById(message.From.Id);
+            TelegramUser telegramUser = _database.TelegramUsers.FindById(message.From.Id);
             if (telegramUser != null)
             {
                 telegramUser.OsuName = name;
                 telegramUser.OsuId = osuUser.Id;
-                Database.TelegramUsers.Update(telegramUser);
+                _ = _database.TelegramUsers.Update(telegramUser);
             }
             else
-                Database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
+            {
+                _ = _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
+            }
 
-            await botClient.SendTextMessageAsync(
+            _ = await botClient.SendTextMessageAsync(
                     chatId: update.Message.Chat,
                     text: $"Аккаунт {name} успешно привязан к Вашему аккаунту",
                     replyToMessageId: update.Message.MessageId,

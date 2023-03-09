@@ -1,26 +1,21 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using LiteDB;
+using osu_bot.API;
+using osu_bot.Bot.Callbacks;
+using osu_bot.Bot.Commands;
 using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
-using osu_bot.Bot.Commands;
-using osu_bot.Bot.Callbacks;
-using osu_bot.API;
-using System.Linq.Expressions;
-using LiteDB;
-using osu_bot.Entites.Database;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace osu_bot.Bot
 {
     public class BotHandle
     {
-        private readonly Command[] commands =
+        private static readonly ICommand[] s_commands =
         {
             new HelpCommand(),
             new TopCommand(),
@@ -28,7 +23,7 @@ namespace osu_bot.Bot
             new RegCommand(),
             new StatsCommand()
         };
-        private readonly Callback[] callbacks =
+        private static readonly Callback[] s_callbacks =
         {
             new HelpCallback(),
             new MapsCallback(),
@@ -36,19 +31,22 @@ namespace osu_bot.Bot
             new TopConferenceCallback(),
         };
 
-        private readonly ITelegramBotClient botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
+        private readonly ITelegramBotClient _botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
 
-        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Commands = new();
-        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> Callbacks = new();
+        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _commands = new();
+        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _callbacks = new();
 
-        public BotHandle() 
+        public BotHandle()
         {
-            foreach (var command in commands)
-                Commands.Add(command.CommandText, command.ActionAsync);
-            
+            foreach (ICommand command in s_commands)
+            {
+                _commands.Add(command.CommandText, command.ActionAsync);
+            }
 
-            foreach (var callback in callbacks)
-                Callbacks.Add(callback.Data, callback.ActionAsync);           
+            foreach (Callback callback in s_callbacks)
+            {
+                _callbacks.Add(callback.Data, callback.ActionAsync);
+            }
         }
 
         public async Task Run()
@@ -60,7 +58,7 @@ namespace osu_bot.Bot
                 AllowedUpdates = Array.Empty<UpdateType>() // receive all update types
             };
 
-            botClient.StartReceiving(
+            _botClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
                 receiverOptions: receiverOptions,
@@ -68,7 +66,7 @@ namespace osu_bot.Bot
             );
 
             Console.WriteLine($"Start listening...");
-            Console.ReadLine();
+            _ = Console.ReadLine();
 
             cts.Cancel();
         }
@@ -80,37 +78,44 @@ namespace osu_bot.Bot
             {
                 if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
                 {
-                    message = update.CallbackQuery?.Message;
-                    var callback = Callbacks.Keys.FirstOrDefault(s => data.Contains(s));
+                    ArgumentNullException.ThrowIfNull(update.CallbackQuery);
+                    ArgumentNullException.ThrowIfNull(update.CallbackQuery.Data);
+                    message = update.CallbackQuery.Message;
+                    string? callback = _callbacks.Keys.FirstOrDefault(s => data.Contains(s));
                     if (callback != null)
-                        await Callbacks[callback].Invoke(botClient, update, cancellationToken);
+                    {
+                        await _callbacks[callback].Invoke(botClient, update, cancellationToken);
+                    }
                 }
                 else if (update.Message != null && update.Message.Text is { } messageText)
                 {
                     message = update.Message;
-                    messageText = messageText.IndexOf(' ') != -1 
+                    messageText = messageText.IndexOf(' ') != -1
                         ? messageText[..messageText.IndexOf(' ')]
                         : messageText;
-                    if (Commands.ContainsKey(messageText))
+                    if (_commands.ContainsKey(messageText))
                     {
-                        await Commands[messageText].Invoke(botClient, update, cancellationToken);
+                        await _commands[messageText].Invoke(botClient, update, cancellationToken);
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                await botClient.SendTextMessageAsync(
-                    chatId: message.Chat,
-                    text: ex.Message,
-                    replyToMessageId: message.MessageId,
-                    cancellationToken: cancellationToken);
+                if (message != null)
+                {
+                    _ = await botClient.SendTextMessageAsync(
+                        chatId: message.Chat,
+                        text: ex.Message,
+                        replyToMessageId: message.MessageId,
+                        cancellationToken: cancellationToken);
+                }
             }
-            return; 
+            return;
         }
 
-        public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        public static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            var ErrorMessage = exception switch
+            string ErrorMessage = exception switch
             {
                 ApiRequestException apiRequestException
                     => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",

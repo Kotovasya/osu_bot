@@ -1,12 +1,8 @@
-﻿using osu_bot.Assets;
-using osu_bot.Modules;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.Assets;
 using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu_bot.Entites.Mods
 {
@@ -22,9 +18,9 @@ namespace osu_bot.Entites.Mods
 
         public void ApplyToAttributes(BeatmapAttributes attributes)
         {
-            attributes.AR = Math.Min((attributes.AR * 2 + 13) / 3, 11.0f);
-            attributes.OD = Math.Min((attributes.OD * 2 + 13) / 3, 11.0f);
-            attributes.HP = Math.Min((attributes.HP * 2 + 13) / 3, 11.0f);
+            attributes.AR = Math.Min(((attributes.AR * 2) + 13) / 3, 11.0f);
+            attributes.OD = Math.Min(((attributes.OD * 2) + 13) / 3, 11.0f);
+            attributes.HP = Math.Min(((attributes.HP * 2) + 13) / 3, 11.0f);
             attributes.Length = (int)Math.Round(attributes.Length * 0.5f);
             attributes.BPM = (int)Math.Round(attributes.BPM * 1.5f);
         }

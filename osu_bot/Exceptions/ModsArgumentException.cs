@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace osu_bot.Exceptions
 {
@@ -14,9 +11,9 @@ namespace osu_bot.Exceptions
 
         }
 
-        public override string Message => 
-            ParamName != null 
-            ? $"Неизвестный мод {ParamName}" 
+        public override string Message =>
+            ParamName != null
+            ? $"Неизвестный мод {ParamName}"
             : "Неправильно указаны моды, пример: +DTHD, +PFTDFL, +HR";
     }
 }

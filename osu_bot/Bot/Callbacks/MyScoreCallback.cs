@@ -1,20 +1,17 @@
-﻿using osu_bot.API;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Text.RegularExpressions;
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Modules;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -23,34 +20,42 @@ namespace osu_bot.Bot.Callbacks
         public const string DATA = "My score";
         public override string Data => DATA;
 
-        public BeatmapBestScoreQuery beatmapBestScoreQuery = new();
+        private readonly BeatmapBestScoreQuery _beatmapBestScoreQuery = new();
 
-        private readonly DatabaseContext Database = DatabaseContext.Instance;
+        private readonly DatabaseContext _database = DatabaseContext.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery.Data == null)
+            if (update.CallbackQuery?.Data == null)
+            {
                 return;
+            }
 
-            var parameters = beatmapBestScoreQuery.Parameters;
+            if (update.CallbackQuery.Message == null)
+            {
+                return;
+            }
 
-            var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == update.CallbackQuery.From.Id);
-            if (telegramUser != null)
-                parameters.Username = telegramUser.OsuName;
-            else
-                throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+            BeatmapBestScoresQueryParameters parameters = _beatmapBestScoreQuery.Parameters;
 
-            var data = update.CallbackQuery.Data;
+            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == update.CallbackQuery.From.Id);
+            parameters.Username = telegramUser != null
+                ? telegramUser.OsuName
+                : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
 
-            var beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
+            string data = update.CallbackQuery.Data;
+
+            Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
             if (!beatmapIdMatch.Success)
+            {
                 throw new Exception("При обработке запроса \"Мой скор\" произошла ошибка считывания ID карты");
+            }
+
             parameters.BeatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            var score = await beatmapBestScoreQuery.ExecuteAsync();
+            ScoreInfo score = await _beatmapBestScoreQuery.ExecuteAsync();
 
-            var image = ImageGenerator.CreateFullCard(score);
-            var imageStream = image.ToStream();
+            SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
             InlineKeyboardMarkup inlineKeyboard = new(
                 new[]
@@ -60,9 +65,9 @@ namespace osu_bot.Bot.Callbacks
                 });
 
 
-            await botClient.SendPhotoAsync(
+            _ = await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
-                photo: new InputOnlineFile(new MemoryStream(imageStream)),
+                photo: new InputOnlineFile(image.EncodedData.AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);

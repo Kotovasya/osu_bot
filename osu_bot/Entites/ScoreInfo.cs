@@ -1,39 +1,44 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Globalization;
+using Newtonsoft.Json.Linq;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace osu_bot.Entites
 {
     public class ScoreInfo
     {
+#pragma warning disable CS8618
         public ScoreInfo()
         {
             Beatmap = new Beatmap();
             User = new User();
         }
+#pragma warning restore CS8618
 
         public void ParseScoreJson(JToken json)
         {
             if (json == null)
+            {
                 return;
+            }
 
             if (json["id"] != null)
+            {
                 Id = json["id"].Value<long>();
+            }
 
             if (json["score"] != null)
+            {
                 Score = json["score"].Value<int>();
+            }
 
             if (json["accuracy"] != null)
+            {
                 Accuracy = json["accuracy"].Value<float>() * 100;
+            }
 
             if (json["created_at"] != null)
             {
@@ -42,28 +47,44 @@ namespace osu_bot.Entites
             }
 
             if (json["max_combo"] != null)
+            {
                 MaxCombo = json["max_combo"].Value<int>();
+            }
 
             if (json["pp"] != null)
+            {
                 PP = json["pp"].Value<float?>();
-           
+            }
+
             if (json["statistics"] != null)
+            {
                 ParseScoreStatisticsJson(json["statistics"]);
+            }
 
             if (json["rank"] != null)
+            {
                 Rank = json["rank"].Value<string>();
+            }
 
             if (json["mods"] != null)
+            {
                 Mods = ModsConverter.ToMods(json["mods"].Values<string>());
+            }
 
             if (json["beatmap"] != null)
+            {
                 Beatmap.ParseBeatmapJson(json["beatmap"]);
+            }
 
             if (json["beatmapset"] != null)
+            {
                 Beatmap.ParseBeatmapsetJson(json["beatmapset"]);
+            }
 
             if (json["user"] != null)
+            {
                 User.ParseUserJson(json["user"]);
+            }
         }
 
         private void ParseScoreStatisticsJson(JToken json)

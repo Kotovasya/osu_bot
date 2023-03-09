@@ -1,9 +1,7 @@
-﻿using osu_bot.Entites.Mods;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.Entites.Mods;
 
 namespace osu_bot.API.Parameters
 {
@@ -13,13 +11,10 @@ namespace osu_bot.API.Parameters
 
         public int UserId { get; set; }
 
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         public IEnumerable<Mod>? Mods { get; set; }
 
-        public string GetQueryString()
-        {
-            return $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/all";
-        }
+        public string GetQueryString() => $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/all";
     }
 }

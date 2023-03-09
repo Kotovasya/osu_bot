@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -12,7 +10,7 @@ namespace osu_bot.Bot.Callbacks
 {
     public class HelpCallback : Callback
     {
-        private readonly string[] Descriptions =
+        private readonly string[] _descriptions =
         {
 @"ГЛАВНОЕ
 
@@ -97,48 +95,60 @@ SO - Spin Out",
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery.Data == null)
+            if (update.CallbackQuery?.Data == null)
+            {
                 return;
+            }
 
-            var data = update.CallbackQuery.Data;
-            var pageMatch = new Regex(@"p(\d+)").Match(data);
+            if (update.CallbackQuery.Message == null)
+            {
+                return;
+            }
+
+            string data = update.CallbackQuery.Data;
+            Match pageMatch = new Regex(@"p(\d+)").Match(data);
 
             if (pageMatch.Success)
+            {
                 currentPage = int.Parse(pageMatch.Groups[1].Value);
+            }
 
             List<InlineKeyboardButton> buttons = new();
 
             if (currentPage != 0)
+            {
                 buttons.Add(InlineKeyboardButton.WithCallbackData(text: "◀️Назад", callbackData: $"{Data} p{currentPage - 1}"));
+            }
             else
+            {
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️Назад"));
+            }
 
-            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {currentPage + 1}/{Descriptions.Length}"));
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {currentPage + 1}/{_descriptions.Length}"));
 
-            if (currentPage != Descriptions.Length - 1)
+            if (currentPage != _descriptions.Length - 1)
+            {
                 buttons.Add(InlineKeyboardButton.WithCallbackData(text: "Вперед▶️", callbackData: $"{Data} p{currentPage + 1}"));
+            }
             else
+            {
                 buttons.Add(InlineKeyboardButton.WithCallbackData("Вперед▶️"));
+            }
 
             InlineKeyboardMarkup inlineKeyboard = new(buttons);
 
-            if (data == Data)
-            {
-                await botClient.SendTextMessageAsync(
+            _ = data == Data
+                ? await botClient.SendTextMessageAsync(
                     chatId: update.CallbackQuery.Message.Chat,
-                    text: Descriptions[currentPage],
+                    text: _descriptions[currentPage],
                     replyMarkup: inlineKeyboard,
-                    cancellationToken: cancellationToken);
-            }
-            else
-            {
-                await botClient.EditMessageTextAsync(
+                    cancellationToken: cancellationToken)
+                : await botClient.EditMessageTextAsync(
                     chatId: update.CallbackQuery.Message.Chat,
                     messageId: update.CallbackQuery.Message.MessageId,
-                    text: Descriptions[currentPage],
+                    text: _descriptions[currentPage],
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
-            }
         }
     }
 }

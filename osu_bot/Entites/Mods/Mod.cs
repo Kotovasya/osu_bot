@@ -1,12 +1,8 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using SkiaSharp;
 
 namespace osu_bot.Entites.Mods
 {
@@ -20,19 +16,10 @@ namespace osu_bot.Entites.Mods
 
         public abstract SKImage? Image { get; }
 
-        public bool Equals(Mod? other)
-        {
-            return Number == other.Number;
-        }
+        public bool Equals(Mod? other) => other != null && Number == other.Number;
 
-        public bool Equals(Mod? x, Mod? y)
-        {
-            return x.Equals(y);
-        }
+        public bool Equals(Mod? x, Mod? y) => x != null && x.Equals(y);
 
-        public int GetHashCode([DisallowNull] Mod obj)
-        {
-            return obj.Number;
-        }
+        public int GetHashCode([DisallowNull] Mod obj) => obj.Number;
     }
 }

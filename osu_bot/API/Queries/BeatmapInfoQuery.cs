@@ -1,10 +1,8 @@
-﻿using osu_bot.API.Parameters;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using osu_bot.API.Parameters;
 using osu_bot.Entites;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu_bot.API.Queries
 {
@@ -12,8 +10,8 @@ namespace osu_bot.API.Queries
     {
         protected override async Task<Beatmap> RunAsync()
         {
-            var queryResult = await API.GetJsonAsync(UrlParameter);
-            var result = new Beatmap();
+            Newtonsoft.Json.Linq.JToken queryResult = await API.GetJsonAsync(UrlParameter);
+            Beatmap result = new();
             result.ParseBeatmapJson(queryResult);
             result.ParseBeatmapsetJson(queryResult["beatmapset"]);
 

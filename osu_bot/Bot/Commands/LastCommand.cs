@@ -1,21 +1,13 @@
-﻿using osu_bot.API;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
-using osu_bot.Entites.Mods;
-using osu_bot.Exceptions;
 using osu_bot.Modules;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
@@ -23,57 +15,71 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Commands
 {
-    internal class LastCommand : Command
+    internal class LastCommand : ICommand
     {
-        private readonly UserScoresQuery userScoresQuery = new();
+        private readonly UserScoresQuery _userScoresQuery = new();
 
-        private readonly DatabaseContext Database = DatabaseContext.Instance;
+        private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public override string CommandText => "/last";
+        public string CommandText => "/last";
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message?.Text == null)
+            {
                 return;
+            }
 
-            var parameters = userScoresQuery.Parameters;
+            if (update.Message.From == null)
+            {
+                return;
+            }
+
+            UserScoreQueryParameters parameters = _userScoresQuery.Parameters;
             parameters.IsRecent = true;
 
-            var message = update.Message;
-            var args = message.Text.Trim()[CommandText.Length..];
+            Message message = update.Message;
+            string args = message.Text.Trim()[CommandText.Length..];
             parameters.Parse(args);
 
             if (parameters.Username == null)
             {
                 if (message.Text == CommandText)
+                {
                     parameters.Limit = 1;
+                }
 
-                var telegramUser = Database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
-                if (telegramUser != null)
-                    parameters.Username = telegramUser.OsuName;
-                else
-                    throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+                TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
+                parameters.Username = telegramUser != null
+                    ? telegramUser.OsuName
+                    : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
             }
 
-            List<ScoreInfo> scores = await userScoresQuery.ExecuteAsync();
+            List<ScoreInfo> scores = await _userScoresQuery.ExecuteAsync();
             if (scores.Count == 0)
             {
                 if (parameters.Mods == null)
+                {
                     throw new Exception($"У пользователя {parameters.Username} отсутствуют скоры за последние 24 часа");
+                }
                 else
+                {
                     throw new Exception
                         ($"У пользователя {parameters.Username} отсутствуют скоры {ModsConverter.ToString(parameters.Mods)} за последние 24 часа");
+                }
             }
 
-            byte[]? imageStream;
+            SKImage image;
             string? caption = null;
             InlineKeyboardMarkup? inlineKeyboard = null;
             if (scores.Count > 1)
-                imageStream = ImageGenerator.CreateScoresCard(scores).ToStream();
+            {
+                image = await ImageGenerator.Instance.CreateScoresCardAsync(scores);
+            }
             else
             {
-                var score = scores.First();
-                imageStream = ImageGenerator.CreateFullCard(score).ToStream();
+                ScoreInfo score = scores.First();
+                image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
                 inlineKeyboard = new(
                     new[]
@@ -82,11 +88,10 @@ namespace osu_bot.Bot.Commands
                         InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{score.Beatmap.Id})")
                     });
             }
-
-            await botClient.SendPhotoAsync(
+            _ = await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
                 caption: caption,
-                photo: new InputOnlineFile(new MemoryStream(imageStream)),
+                photo: new InputOnlineFile(image.EncodedData.AsStream()),
                 replyToMessageId: update.Message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);

@@ -1,9 +1,7 @@
-﻿using LiteDB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using LiteDB;
 
 namespace osu_bot.Entites.Database
 {
@@ -11,16 +9,11 @@ namespace osu_bot.Entites.Database
     {
         private static readonly string connectionString = @"Database.db";
 
-        private static readonly DatabaseContext instance = new(connectionString);
-        
-        public static DatabaseContext Instance { get => instance; }
+        public static DatabaseContext Instance { get; } = new(connectionString);
 
         private readonly LiteDatabase db;
 
-        private DatabaseContext(string connectionString)
-        {
-            db = new LiteDatabase(connectionString);
-        }
+        private DatabaseContext(string connectionString) => db = new LiteDatabase(connectionString);
 
         public ILiteCollection<TelegramUser> TelegramUsers => db.GetCollection<TelegramUser>();
     }

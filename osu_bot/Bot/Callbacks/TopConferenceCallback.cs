@@ -1,23 +1,17 @@
-﻿using LiteDB;
-using osu_bot.API.Parameters;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Text.RegularExpressions;
+using LiteDB;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
+using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using static System.Formats.Asn1.AsnWriter;
 using Telegram.Bot.Types.InputFiles;
-using Telegram.Bot.Requests;
-using osu_bot.API;
-using osu_bot.Entites.Database;
-using System.Collections;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -26,55 +20,66 @@ namespace osu_bot.Bot.Callbacks
         public const string DATA = "Top conf";
         public override string Data => DATA;
 
-        private readonly BeatmapScoresQuery beatmapScoresQuery = new();
-        private readonly BeatmapInfoQuery beatmapInfoQuery = new();
-        private readonly BeatmapAttributesJsonQuery beatmapAttributesQuery = new();
+        private readonly BeatmapScoresQuery _beatmapScoresQuery = new();
+        private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
+        private readonly BeatmapAttributesJsonQuery _beatmapAttributesQuery = new();
 
-        private readonly DatabaseContext Database = DatabaseContext.Instance;
+        private readonly DatabaseContext _database = DatabaseContext.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery.Data == null)
+            if (update.CallbackQuery?.Data == null)
+            {
                 return;
+            }
 
-            var data = update.CallbackQuery.Data;
-            var beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
+            if (update.CallbackQuery.Message == null)
+            {
+                return;
+            }
+
+            string data = update.CallbackQuery.Data;
+            Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
 
             if (!beatmapIdMatch.Success)
+            {
                 throw new Exception("При обработке запроса \"Топ конфы\" произошла ошибка считывания ID карты");
-            var beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
+            }
 
-            beatmapInfoQuery.Parameters.BeatmapId = beatmapId;
-            var beatmap = await beatmapInfoQuery.ExecuteAsync();
-            var mods = ModsConverter.ToMods(Array.Empty<string>());
+            int beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            beatmapAttributesQuery.Parameters.BeatmapId = beatmapId;
-            beatmapAttributesQuery.Parameters.Mods = mods;
-            beatmap.Attributes.ParseDifficultyAttributesJson(await beatmapAttributesQuery.ExecuteAsync());
+            _beatmapInfoQuery.Parameters.BeatmapId = beatmapId;
+            Beatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
+            IEnumerable<Mod> mods = ModsConverter.ToMods(Array.Empty<string>());
+
+            _beatmapAttributesQuery.Parameters.BeatmapId = beatmapId;
+            _beatmapAttributesQuery.Parameters.Mods = mods;
+            beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesQuery.ExecuteAsync());
 
             List<ScoreInfo> result = new();
-            var telegramUsers = Database.TelegramUsers.FindAll().ToList();
+            List<TelegramUser> telegramUsers = _database.TelegramUsers.FindAll().ToList();
 
-            foreach (var telegramUser in telegramUsers)
+            foreach (TelegramUser telegramUser in telegramUsers)
             {
                 //После выполнения ExecuteAsync beatmapScoreQuery.Parameters = new()
-                beatmapScoresQuery.Parameters.Mods = mods;
-                beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
-                beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
-                var scores = await beatmapScoresQuery.ExecuteAsync();
+                _beatmapScoresQuery.Parameters.Mods = mods;
+                _beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
+                _beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
+                List<ScoreInfo> scores = await _beatmapScoresQuery.ExecuteAsync();
 
-                foreach (var score in scores)
+                foreach (ScoreInfo score in scores)
+                {
                     score.Beatmap = beatmap;
+                }
 
                 result.AddRange(scores);
             }
 
-            var image = ImageGenerator.CreateTableScoresCard(result);
-            var imageStream = image.ToStream();
+            SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
 
-            await botClient.SendPhotoAsync(
+            _ = await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
-                photo: new InputOnlineFile(new MemoryStream(imageStream)),
+                photo: new InputOnlineFile(image.EncodedData.AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,
                 cancellationToken: cancellationToken);
         }
