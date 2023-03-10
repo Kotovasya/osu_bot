@@ -55,7 +55,7 @@ namespace osu_bot.API
             return JToken.Parse(content);
         }
 
-        public async Task<User> GetUserInfoByUsernameAsync(string username)
+        public async Task<OsuUser> GetUserInfoByUsernameAsync(string username)
         {
             JToken json = await GetJsonAsync($"https://osu.ppy.sh/api/v2/users/{username}");
             if (json.Contains("error"))
@@ -63,7 +63,7 @@ namespace osu_bot.API
                 throw new ArgumentException($"Пользователь с именем {username} не зарегистрировано");
             }
 
-            User user = new();
+            OsuUser user = new();
             user.ParseUserJson(json);
             return user;
         }

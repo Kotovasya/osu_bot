@@ -55,7 +55,7 @@ namespace osu_bot.Bot.Commands
                     : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
             }
 
-            List<ScoreInfo> scores = await _userScoresQuery.ExecuteAsync();
+            List<OsuScoreInfo> scores = await _userScoresQuery.ExecuteAsync();
             if (scores.Count == 0)
             {
                 if (parameters.Mods == null)
@@ -78,7 +78,7 @@ namespace osu_bot.Bot.Commands
             }
             else
             {
-                ScoreInfo score = scores.First();
+                OsuScoreInfo score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
                 inlineKeyboard = new(
@@ -88,7 +88,7 @@ namespace osu_bot.Bot.Commands
                         InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{score.Beatmap.Id})")
                     });
             }
-            _ = await botClient.SendPhotoAsync(
+            await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
                 caption: caption,
                 photo: new InputOnlineFile(image.Encode().AsStream()),

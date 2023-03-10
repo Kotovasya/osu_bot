@@ -4,18 +4,15 @@
 using System.Diagnostics.CodeAnalysis;
 using SkiaSharp;
 
-namespace osu_bot.Assets
+namespace osu_bot.Resources
 {
-    public class MapStatusManager : ResourceManager
+    public class MapStatusManager : ResourceManager<SKImage>
     {
-        protected override string ResourcesPath => "Assets\\Images\\Map Status";
+        protected override string ResourcesPath => @"Assets/Images/Map Status";
 
         protected override string FileFormat => "png";
 
-        protected override object ConvertFile(FileStream stream)
-        {
-            return SKImage.FromEncodedData(stream);
-        }
+        protected override SKImage ConvertFile(FileStream stream) => SKImage.FromEncodedData(stream);
 
         [AllowNull]
         public SKImage Approved { get; private set; }

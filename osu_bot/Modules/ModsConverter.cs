@@ -86,13 +86,13 @@ namespace osu_bot.Modules
 
             if (!mods.Any())
             {
-                _ = result.Add(ToMod("NM"));
+                result.Add(ToMod("NM"));
                 return result;
             }
 
             foreach (string modString in mods)
             {
-                _ = result.Add(ToMod(modString));
+                result.Add(ToMod(modString));
             }
             return result;
         }
@@ -103,7 +103,7 @@ namespace osu_bot.Modules
 
             foreach (Mod mod in mods)
             {
-                _ = sb.Append($"{mod.Name},");
+                sb.Append($"{mod.Name},");
             }
 
             return sb.Remove(sb.Length - 1, 1).ToString();
@@ -126,6 +126,16 @@ namespace osu_bot.Modules
             }
 
             return surface.Snapshot();
+        }
+
+        public static int ToInt(IEnumerable<Mod>? mods)
+        {
+            if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
+            {
+                return s_stringModsDictionary["NM"].Number;
+            }
+
+            return mods.Sum(m => m.Number);
         }
     }
 }

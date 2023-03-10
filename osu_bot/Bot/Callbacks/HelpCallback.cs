@@ -137,13 +137,14 @@ SO - Spin Out",
 
             InlineKeyboardMarkup inlineKeyboard = new(buttons);
 
-            _ = data == Data
-                ? await botClient.SendTextMessageAsync(
+            if (data == DATA)
+                await botClient.SendTextMessageAsync(
                     chatId: update.CallbackQuery.Message.Chat,
                     text: _descriptions[currentPage],
                     replyMarkup: inlineKeyboard,
-                    cancellationToken: cancellationToken)
-                : await botClient.EditMessageTextAsync(
+                    cancellationToken: cancellationToken);
+            else
+                await botClient.EditMessageTextAsync(
                     chatId: update.CallbackQuery.Message.Chat,
                     messageId: update.CallbackQuery.Message.MessageId,
                     text: _descriptions[currentPage],

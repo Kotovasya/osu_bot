@@ -20,7 +20,7 @@ namespace osu_bot.Modules
 
         private static int totalHits => s_countGreat + s_countOk + s_countMeh + s_countMiss;
 
-        public static int Calculate(ScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
+        public static int Calculate(OsuScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
         {
             if (isFullCombo)
             {
@@ -64,7 +64,7 @@ namespace osu_bot.Modules
 
             s_effectiveMissCount = CalculateEffectiveMissCount(score.Beatmap.Attributes);
 
-            BeatmapAttributes attributes = score.Beatmap.Attributes;
+            OsuBeatmapAttributes attributes = score.Beatmap.Attributes;
 
             double multiplier = PERFORMANCE_BASE_MULTIPLIER;
 
@@ -100,9 +100,9 @@ namespace osu_bot.Modules
             return (int)Math.Round(totalValue, 2, MidpointRounding.ToEven);
         }
 
-        private static double getComboScalingFactor(BeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);
+        private static double getComboScalingFactor(OsuBeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);
 
-        private static double computeAimValue(ScoreInfo score, BeatmapAttributes attributes)
+        private static double computeAimValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
         {
             double aimValue = Math.Pow((5.0 * Math.Max(1.0, attributes.AimDifficulty / 0.0675)) - 4.0, 3.0) / 100000.0;
 
@@ -154,7 +154,7 @@ namespace osu_bot.Modules
             return aimValue;
         }
 
-        private static double computeSpeedValue(ScoreInfo score, BeatmapAttributes attributes)
+        private static double computeSpeedValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
         {
             if (score.Mods.Any(m => m.Name == "RL"))
             {
@@ -200,7 +200,7 @@ namespace osu_bot.Modules
             return speedValue;
         }
 
-        private static double computeAccuracyValue(ScoreInfo score, BeatmapAttributes attributes)
+        private static double computeAccuracyValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
         {
             if (score.Mods.Any(m => m.Name == "RL"))
             {
@@ -236,7 +236,7 @@ namespace osu_bot.Modules
             return accuracyValue;
         }
 
-        private static double computeFlashlightValue(ScoreInfo score, BeatmapAttributes attributes)
+        private static double computeFlashlightValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
         {
             if (!score.Mods.Any(m => m.Name == "FL"))
             {
@@ -261,7 +261,7 @@ namespace osu_bot.Modules
             return flashlightValue;
         }
 
-        private static double CalculateEffectiveMissCount(BeatmapAttributes attributes)
+        private static double CalculateEffectiveMissCount(OsuBeatmapAttributes attributes)
         {
             double comboBasedMissCount = 0.0;
 

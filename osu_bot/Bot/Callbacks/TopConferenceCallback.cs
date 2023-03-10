@@ -49,14 +49,14 @@ namespace osu_bot.Bot.Callbacks
             int beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
             _beatmapInfoQuery.Parameters.BeatmapId = beatmapId;
-            Beatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
+            OsuBeatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
             IEnumerable<Mod> mods = ModsConverter.ToMods(Array.Empty<string>());
 
             _beatmapAttributesQuery.Parameters.BeatmapId = beatmapId;
             _beatmapAttributesQuery.Parameters.Mods = mods;
             beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesQuery.ExecuteAsync());
 
-            List<ScoreInfo> result = new();
+            List<OsuScoreInfo> result = new();
             List<TelegramUser> telegramUsers = _database.TelegramUsers.FindAll().ToList();
 
             foreach (TelegramUser telegramUser in telegramUsers)
@@ -65,9 +65,9 @@ namespace osu_bot.Bot.Callbacks
                 _beatmapScoresQuery.Parameters.Mods = mods;
                 _beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
                 _beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
-                List<ScoreInfo> scores = await _beatmapScoresQuery.ExecuteAsync();
+                List<OsuScoreInfo> scores = await _beatmapScoresQuery.ExecuteAsync();
 
-                foreach (ScoreInfo score in scores)
+                foreach (OsuScoreInfo score in scores)
                 {
                     score.Beatmap = beatmap;
                 }
@@ -80,7 +80,7 @@ namespace osu_bot.Bot.Callbacks
 
             SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
 
-            _ = await botClient.SendPhotoAsync(
+            await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,

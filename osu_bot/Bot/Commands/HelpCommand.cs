@@ -26,7 +26,7 @@ namespace osu_bot.Bot.Commands
                     InlineKeyboardButton.WithCallbackData(text: "🗺Карты", callbackData: MapsCallback.DATA)
                 });
 
-            _ = await botClient.SendTextMessageAsync(
+            await botClient.SendTextMessageAsync(
                 chatId: update.Message.Chat,
                 text: "Информация о каких командах тебя интересует?",
                 replyMarkup: inlineKeyboard,

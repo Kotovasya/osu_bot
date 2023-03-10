@@ -16,5 +16,7 @@ namespace osu_bot.Entites.Database
         private DatabaseContext(string connectionString) => db = new LiteDatabase(connectionString);
 
         public ILiteCollection<TelegramUser> TelegramUsers => db.GetCollection<TelegramUser>();
+
+        public ILiteCollection<ScoreInfo> Scores => db.GetCollection<ScoreInfo>();
     }
 }

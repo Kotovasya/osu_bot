@@ -8,14 +8,14 @@ using osu_bot.Entites.Mods;
 
 namespace osu_bot.API.Queries
 {
-    public class UserScoresQuery : Query<UserScoreQueryParameters, List<ScoreInfo>>
+    public class UserScoresQuery : Query<UserScoreQueryParameters, List<OsuScoreInfo>>
     {
         private readonly BeatmapAttributesJsonQuery _beatmapAttributesJsonQuery = new();
 
-        protected override async Task<List<ScoreInfo>> RunAsync()
+        protected override async Task<List<OsuScoreInfo>> RunAsync()
         {
             ArgumentNullException.ThrowIfNull(Parameters.Username);
-            User userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
+            OsuUser userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
             {
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
@@ -23,13 +23,13 @@ namespace osu_bot.API.Queries
 
             Parameters.UserId = userInfo.Id;
 
-            List<ScoreInfo> resultScores = new();
+            List<OsuScoreInfo> resultScores = new();
 
             JArray jsonScores = await API.GetJsonArrayAsync(UrlParameter);
 
             foreach (JToken? jsonScore in jsonScores)
             {
-                ScoreInfo score = new();
+                OsuScoreInfo score = new();
                 score.ParseScoreJson(jsonScore);
                 resultScores.Add(score);
             }
@@ -41,7 +41,7 @@ namespace osu_bot.API.Queries
                 .Take(Parameters.Limit)
                 .ToList();
 
-            foreach (ScoreInfo score in resultScores)
+            foreach (OsuScoreInfo score in resultScores)
             {
                 _beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
                 _beatmapAttributesJsonQuery.Parameters.BeatmapId = score.Beatmap.Id;

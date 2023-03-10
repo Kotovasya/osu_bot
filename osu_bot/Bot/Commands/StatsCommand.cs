@@ -48,7 +48,7 @@ namespace osu_bot.Bot.Commands
                     : throw new Exception("Неверно указано имя пользователя Osu! в команде, синтаксис /stats <username>");
             }
 
-            Entites.User userInfo = await _api.GetUserInfoByUsernameAsync(name);
+            Entites.OsuUser userInfo = await _api.GetUserInfoByUsernameAsync(name);
             if (userInfo.Id == 0)
             {
                 throw new ArgumentException($"Пользователь с именем {name} не найден");
@@ -56,7 +56,7 @@ namespace osu_bot.Bot.Commands
 
             SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(userInfo);
 
-            _ = await botClient.SendPhotoAsync(
+            await botClient.SendPhotoAsync(
                 chatId: update.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.Message.MessageId,

@@ -30,7 +30,7 @@ namespace osu_bot.Bot.Callbacks
                 return;
             }
 
-            _ = await botClient.SendTextMessageAsync(
+            await botClient.SendTextMessageAsync(
                 chatId: update.CallbackQuery.Message.Chat,
                 text: text,
                 cancellationToken: cancellationToken);

@@ -12,7 +12,6 @@ namespace osu_bot.API.Parameters
     {
         public UserScoreQueryParameters()
         {
-            Limit = 5;
             IncludeFails = true;
         }
 
@@ -36,6 +35,11 @@ namespace osu_bot.API.Parameters
 
         public void Parse(string input)
         {
+            if (IsRecent)
+                Limit = 1;
+            else
+                Limit = 5;
+
             int endIndex = 0;
 
             for (int i = 0; i < input.Length; i++)
@@ -87,7 +91,7 @@ namespace osu_bot.API.Parameters
                         IEnumerable<string> modsStrings = result.ToUpper().Split(2);
                         foreach (string modString in modsStrings)
                         {
-                            _ = parameterMods.Add(ModsConverter.ToMod(modString));
+                            parameterMods.Add(ModsConverter.ToMod(modString));
                         }
                     }
                 }

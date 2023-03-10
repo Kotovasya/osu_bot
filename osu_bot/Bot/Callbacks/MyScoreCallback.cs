@@ -53,7 +53,7 @@ namespace osu_bot.Bot.Callbacks
 
             parameters.BeatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            ScoreInfo score = await _beatmapBestScoreQuery.ExecuteAsync();
+            OsuScoreInfo score = await _beatmapBestScoreQuery.ExecuteAsync();
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
@@ -65,7 +65,7 @@ namespace osu_bot.Bot.Callbacks
                 });
 
 
-            _ = await botClient.SendPhotoAsync(
+            await botClient.SendPhotoAsync(
                 chatId: update.CallbackQuery.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: update.CallbackQuery.Message.MessageId,

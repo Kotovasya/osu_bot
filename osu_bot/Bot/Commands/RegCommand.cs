@@ -39,21 +39,21 @@ namespace osu_bot.Bot.Commands
                 throw new ArgumentException($"Аккаунт {name} уже привязан к другому пользователю");
             }
 
-            Entites.User osuUser = await _api.GetUserInfoByUsernameAsync(name);
+            Entites.OsuUser osuUser = await _api.GetUserInfoByUsernameAsync(name);
 
             TelegramUser telegramUser = _database.TelegramUsers.FindById(message.From.Id);
             if (telegramUser != null)
             {
                 telegramUser.OsuName = name;
                 telegramUser.OsuId = osuUser.Id;
-                _ = _database.TelegramUsers.Update(telegramUser);
+                _database.TelegramUsers.Update(telegramUser);
             }
             else
             {
-                _ = _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
+                _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
             }
 
-            _ = await botClient.SendTextMessageAsync(
+            await botClient.SendTextMessageAsync(
                     chatId: update.Message.Chat,
                     text: $"Аккаунт {name} успешно привязан к Вашему аккаунту",
                     replyToMessageId: update.Message.MessageId,

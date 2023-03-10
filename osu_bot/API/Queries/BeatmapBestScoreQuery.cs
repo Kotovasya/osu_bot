@@ -6,16 +6,16 @@ using osu_bot.Entites;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapBestScoreQuery : Query<BeatmapBestScoresQueryParameters, ScoreInfo>
+    public class BeatmapBestScoreQuery : Query<BeatmapBestScoresQueryParameters, OsuScoreInfo>
     {
 
         private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
         private readonly BeatmapAttributesJsonQuery _beatmapAttributesJsonQuery = new();
 
-        protected override async Task<ScoreInfo> RunAsync()
+        protected override async Task<OsuScoreInfo> RunAsync()
         {
             ArgumentNullException.ThrowIfNull(Parameters.Username);
-            User userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
+            OsuUser userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
             {
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
@@ -29,7 +29,7 @@ namespace osu_bot.API.Queries
                 throw new Exception($"У пользователя {Parameters.Username} отсутствуют скоры на карте {Parameters.BeatmapId}");
             }
 
-            ScoreInfo score = new();
+            OsuScoreInfo score = new();
             score.ParseScoreJson(jsonScore["score"]);
             score.User = userInfo;
 

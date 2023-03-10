@@ -6,12 +6,12 @@ using osu_bot.Entites;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapInfoQuery : Query<BeatmapInfoQueryParameters, Beatmap>
+    public class BeatmapInfoQuery : Query<BeatmapInfoQueryParameters, OsuBeatmap>
     {
-        protected override async Task<Beatmap> RunAsync()
+        protected override async Task<OsuBeatmap> RunAsync()
         {
             Newtonsoft.Json.Linq.JToken queryResult = await API.GetJsonAsync(UrlParameter);
-            Beatmap result = new();
+            OsuBeatmap result = new();
             result.ParseBeatmapJson(queryResult);
             result.ParseBeatmapsetJson(queryResult["beatmapset"]);
 

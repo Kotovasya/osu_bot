@@ -5,6 +5,7 @@ using LiteDB;
 using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Bot.Commands;
+using osu_bot.Resources;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -31,7 +32,13 @@ namespace osu_bot.Bot
             new TopConferenceCallback(),
         };
 
+#if DEBUG
+        private readonly ChatId _chatId = new(-1001888790264);
+        private readonly ITelegramBotClient _botClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
+#else
+        private readonly ChatId _chatId = new();
         private readonly ITelegramBotClient _botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
+#endif
 
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _commands = new();
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _callbacks = new();
@@ -46,7 +53,7 @@ namespace osu_bot.Bot
             foreach (Callback callback in s_callbacks)
             {
                 _callbacks.Add(callback.Data, callback.ActionAsync);
-            }
+            }        
         }
 
         public async Task Run()
@@ -55,19 +62,27 @@ namespace osu_bot.Bot
             using CancellationTokenSource cts = new();
             ReceiverOptions receiverOptions = new()
             {
-                AllowedUpdates = Array.Empty<UpdateType>() // receive all update types
+                AllowedUpdates = Array.Empty<UpdateType>()
             };
+
+            Console.WriteLine("Update chat photo...");
+
+            Stream botStatusStream = ResourcesManager.BotStatusManager.Online.Encode().AsStream();
+            await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
+
+            Console.WriteLine("Start listening...");
 
             _botClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
                 receiverOptions: receiverOptions,
                 cancellationToken: cts.Token
-            );
+            );           
+            Console.ReadLine();
 
-            Console.WriteLine($"Start listening...");
-            _ = Console.ReadLine();
-
+            Console.WriteLine("Update chat photo...");
+            botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
+            await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
             cts.Cancel();
         }
 
@@ -101,7 +116,7 @@ namespace osu_bot.Bot
             {
                 if (message != null)
                 {
-                    _ = await botClient.SendTextMessageAsync(
+                    await botClient.SendTextMessageAsync(
                         chatId: message.Chat,
                         text: ex.Message,
                         replyToMessageId: message.MessageId,

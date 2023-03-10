@@ -8,13 +8,13 @@ using osu_bot.Modules;
 
 namespace osu_bot.Entites
 {
-    public class ScoreInfo
+    public class OsuScoreInfo
     {
 #pragma warning disable CS8618
-        public ScoreInfo()
+        public OsuScoreInfo()
         {
-            Beatmap = new Beatmap();
-            User = new User();
+            Beatmap = new OsuBeatmap();
+            User = new OsuUser();
         }
 #pragma warning restore CS8618
 
@@ -107,8 +107,8 @@ namespace osu_bot.Entites
         public int CountMisses { get; set; }
         public string Rank { get; set; }
         public IEnumerable<Mod> Mods { get; set; }
-        public Beatmap Beatmap { get; set; }
-        public User User { get; set; }
+        public OsuBeatmap Beatmap { get; set; }
+        public OsuUser User { get; set; }
 
         public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
     }

@@ -6,10 +6,10 @@ using Newtonsoft.Json.Linq;
 
 namespace osu_bot.Entites
 {
-    public class User
+    public class OsuUser
     {
 #pragma warning disable CS8618
-        public User()
+        public OsuUser()
         {
 
         }

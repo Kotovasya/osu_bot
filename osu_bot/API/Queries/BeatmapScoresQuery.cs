@@ -6,12 +6,12 @@ using osu_bot.Entites;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapScoresQuery : Query<BeatmapScoresQueryParameters, List<ScoreInfo>>
+    public class BeatmapScoresQuery : Query<BeatmapScoresQueryParameters, List<OsuScoreInfo>>
     {
-        protected override async Task<List<ScoreInfo>> RunAsync()
+        protected override async Task<List<OsuScoreInfo>> RunAsync()
         {
             ArgumentNullException.ThrowIfNull(Parameters.Username);
-            User userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
+            OsuUser userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
             if (userInfo.Id == 0)
             {
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
@@ -19,7 +19,7 @@ namespace osu_bot.API.Queries
 
             Parameters.UserId = userInfo.Id;
 
-            List<ScoreInfo> result = new();
+            List<OsuScoreInfo> result = new();
             Newtonsoft.Json.Linq.JToken queryResult = await API.GetJsonAsync(UrlParameter);
             if (queryResult["error"] != null)
             {
@@ -28,7 +28,7 @@ namespace osu_bot.API.Queries
 
             foreach (Newtonsoft.Json.Linq.JToken? jsonScore in queryResult["scores"])
             {
-                ScoreInfo score = new();
+                OsuScoreInfo score = new();
                 score.ParseScoreJson(jsonScore);
                 score.User = userInfo;
                 result.Add(score);

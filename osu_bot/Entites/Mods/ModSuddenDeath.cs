@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using osu_bot.Assets;
+using osu_bot.Resources;
 using SkiaSharp;
 
 namespace osu_bot.Entites.Mods
@@ -14,6 +14,6 @@ namespace osu_bot.Entites.Mods
 
         public override string Fullname => "Sudden Death";
 
-        public override SKImage? Image => Resources.ModsManager.SD;
+        public override SKImage? Image => ResourcesManager.ModsManager.SD;
     }
 }

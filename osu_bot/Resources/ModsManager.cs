@@ -4,19 +4,16 @@
 using System.Diagnostics.CodeAnalysis;
 using SkiaSharp;
 
-namespace osu_bot.Assets
+namespace osu_bot.Resources
 {
-    public class ModsManager : ResourceManager
+    public class ModsManager : ResourceManager<SKImage>
     {
-        protected override string ResourcesPath => "Assets\\Images\\Mods";
+        protected override string ResourcesPath => @"Assets/Images/Mods";
 
         protected override string FileFormat => "png";
 
-        protected override object ConvertFile(FileStream stream)
-        {
-            return SKImage.FromEncodedData(stream);
-        }
-
+        protected override SKImage ConvertFile(FileStream stream) => SKImage.FromEncodedData(stream);
+        
         [AllowNull]
         public SKImage AP { get; private set; }
 

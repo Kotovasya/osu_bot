@@ -3,7 +3,7 @@
 
 using System.Net;
 using LiteDB;
-using osu_bot.Assets;
+using osu_bot.Resources;
 using osu_bot.Entites;
 using SkiaSharp;
 
@@ -40,8 +40,8 @@ namespace osu_bot.Modules
 
             private void CopyFonts(SKPaint paint1, SKPaint paint2)
             {
-                _ = FirstPaint.SetColor(paint1.Color).SetTypeface(paint1.Typeface).SetSize(paint1.TextSize);
-                _ = SecondPaint.SetColor(paint2.Color).SetTypeface(paint2.Typeface).SetSize(paint2.TextSize);
+                FirstPaint.SetColor(paint1.Color).SetTypeface(paint1.Typeface).SetSize(paint1.TextSize);
+                SecondPaint.SetColor(paint2.Color).SetTypeface(paint2.Typeface).SetSize(paint2.TextSize);
             }
 
             public StringsLinker SetPositions(float x, float y1, float y2)
@@ -127,41 +127,25 @@ namespace osu_bot.Modules
         #region SKTypefaces initialization
 
 
-        private readonly SKTypeface _secularOneTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.SecularOne.FamilyName,
-                SKFontStyleWeight.Normal,
-                SKFontStyleWidth.Normal,
-                SKFontStyleSlant.Upright);
+        private readonly SKTypeface _secularOneTypeface = ResourcesManager.FontsManager.SecularOne;
 
-        private readonly SKTypeface _rubikTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
-                SKFontStyleWeight.Normal,
-                SKFontStyleWidth.Normal,
-                SKFontStyleSlant.Upright);
+        private readonly SKTypeface _rubikTypeface = ResourcesManager.FontsManager.Rubik;
 
-        private readonly SKTypeface _rubikLightTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
-                SKFontStyleWeight.Light,
-                SKFontStyleWidth.Normal,
-                SKFontStyleSlant.Upright);
+        private readonly SKTypeface _rubikLightTypeface = ResourcesManager.FontsManager.RubikLight;
 
-        private readonly SKTypeface _rubikBoldTypeface =
-            SKTypeface.FromFamilyName(Resources.FontsManager.Rubik.FamilyName,
-                SKFontStyleWeight.Medium,
-                SKFontStyleWidth.Normal,
-                SKFontStyleSlant.Upright);
+        private readonly SKTypeface _rubikMediumTypeface = ResourcesManager.FontsManager.RubikMedium;
 
         #endregion
 
         private readonly Dictionary<string, SKImage> _rankStatus = new()
         {
-            { "graveyard", Resources.MapStatusManager.Graveyard },
-            { "wip", Resources.MapStatusManager.Graveyard },
-            { "pending", Resources.MapStatusManager.Graveyard },
-            { "ranked", Resources.MapStatusManager.Rating },
-            { "approved", Resources.MapStatusManager.Approved },
-            { "qualified", Resources.MapStatusManager.Approved },
-            { "loved", Resources.MapStatusManager.Loved },
+            { "graveyard", ResourcesManager.MapStatusManager.Graveyard },
+            { "wip", ResourcesManager.MapStatusManager.Graveyard },
+            { "pending", ResourcesManager.MapStatusManager.Graveyard },
+            { "ranked", ResourcesManager.MapStatusManager.Rating },
+            { "approved", ResourcesManager.MapStatusManager.Approved },
+            { "qualified", ResourcesManager.MapStatusManager.Approved },
+            { "loved", ResourcesManager.MapStatusManager.Loved },
         };
 
         private readonly HttpClient _httpClient = new();
@@ -184,7 +168,7 @@ namespace osu_bot.Modules
                 : diff.Seconds > 30 ? $"{diff.Seconds} seconds ago" : "few seconds ago";
         }
 
-        public async Task<SKImage> CreateSmallCardAsync(ScoreInfo score, bool showNick)
+        public async Task<SKImage> CreateSmallCardAsync(OsuScoreInfo score, bool showNick)
         {
             int width = 1000;
             int height = 114;
@@ -209,18 +193,18 @@ namespace osu_bot.Modules
 
                 string drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
 
-                _ = _paint.SetColor(_rankColors[score.Rank]).SetTypeface(_secularOneTypeface).SetSize(64);
+                _paint.SetColor(_rankColors[score.Rank]).SetTypeface(_secularOneTypeface).SetSize(64);
 
                 x = (x / 2) - (_paint.MeasureText(drawableString) / 2);
                 canvas.DrawText(drawableString, x, 78, _paint);
 
                 x = 260;
 
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawText(score.Beatmap.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
 
                 drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
-                _ = _paint.SetColor(_lightGrayColor).SetSize(15);
+                _paint.SetColor(_lightGrayColor).SetSize(15);
                 canvas.DrawText(drawableString, x, 55, _paint);
 
                 drawableString = $"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars:0.00}";
@@ -228,7 +212,7 @@ namespace osu_bot.Modules
 
                 x += _paint.MeasureText(drawableString);
 
-                _ = _paint.SetTypeface(_starTypeface).SetSize(22);
+                _paint.SetTypeface(_starTypeface).SetSize(22);
                 canvas.DrawText("★", x, 76, _paint);
                 #endregion
 
@@ -237,7 +221,7 @@ namespace osu_bot.Modules
                 float y = 101f;
 
                 drawableString = $"{score.Accuracy:0.00}%";
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(16);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(16);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 20 + _paint.MeasureText(drawableString);
 
@@ -246,51 +230,51 @@ namespace osu_bot.Modules
                 x += 20 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count300.ToString();
-                _ = _paint.SetColor(_color300);
+                _paint.SetColor(_color300);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                _ = _paint.SetColor(_whiteColor);
+                _paint.SetColor(_whiteColor);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count100.ToString();
-                _ = _paint.SetColor(_color100);
+                _paint.SetColor(_color100);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                _ = _paint.SetColor(_whiteColor);
+                _paint.SetColor(_whiteColor);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.Count50.ToString();
-                _ = _paint.SetColor(_color50);
+                _paint.SetColor(_color50);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = "/";
-                _ = _paint.SetColor(_whiteColor);
+                _paint.SetColor(_whiteColor);
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 5 + _paint.MeasureText(drawableString);
 
                 drawableString = score.CountMisses.ToString();
-                _ = _paint.SetColor(_colorMisses);
+                _paint.SetColor(_colorMisses);
                 canvas.DrawText(drawableString, x, y, _paint);
 
                 if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
                 {
                     float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
                     drawableString = $"{hits:F2}%";
-                    _ = _paint.SetColor(_whiteColor);
+                    _paint.SetColor(_whiteColor);
                     x = 50 - (_paint.MeasureText(drawableString) / 2);
                     canvas.DrawText(drawableString, x, y, _paint);
                 }
 
                 int pp = score.PP != null ? (int)score.PP : PerfomanceCalculator.Calculate(score);
                 drawableString = $"{pp} PP";
-                _ = _paint.SetColor(_whiteColor).SetSize(30);
+                _paint.SetColor(_whiteColor).SetSize(30);
                 x = width - 15 - _paint.MeasureText(drawableString);
                 canvas.DrawText(drawableString, x, 40, _paint);
 
@@ -305,7 +289,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateFullCardAsync(ScoreInfo score)
+        public async Task<SKImage> CreateFullCardAsync(OsuScoreInfo score)
         {
             int width = 1080;
             int height = 376;
@@ -342,14 +326,14 @@ namespace osu_bot.Modules
                 string drawableString = $"({score.User.CountryCode} #{score.User.CountryRating})";
                 float x = 102 - (paint1.MeasureText($"#{score.User.WorldRating}") / 2);
 
-                _ = stringLinker.SetStrings($"#{score.User.WorldRating}", drawableString)
+                stringLinker.SetStrings($"#{score.User.WorldRating}", drawableString)
                     .SetPositions(x, 23, 48)
                     .Draw(canvas);
 
                 drawableString = $"{score.User.PP.Separate(".")}pp";
                 x = 102 - (paint1.MeasureText(score.User.Name) / 2);
 
-                _ = stringLinker.SetStrings(score.User.Name, drawableString)
+                stringLinker.SetStrings(score.User.Name, drawableString)
                     .SetPositions(x, 173, 198)
                     .Draw(canvas);
                 #endregion
@@ -361,17 +345,17 @@ namespace osu_bot.Modules
 
                 x += mapStatusImage.Width + 5;
 
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 drawableString = $"{score.Beatmap.Title} [{score.Beatmap.DifficultyName}]";
                 canvas.DrawText(drawableString, x, 23, _paint);
 
                 drawableString = $"{score.Beatmap.Artist}";
-                _ = _paint.SetSize(18);
+                _paint.SetSize(18);
                 canvas.DrawText(drawableString, x, 48, _paint);
 
                 x = 213;
                 drawableString = $"Mapped by {score.Beatmap.MapperName}";
-                _ = _paint.SetSize(15);
+                _paint.SetSize(15);
                 canvas.DrawText(drawableString, x, 73, _paint);
 
                 float y = 195;
@@ -390,12 +374,12 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.CS:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
-                    _ = _paint.SetTypeface(_triangleTypeface);
+                    _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -411,12 +395,12 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.AR:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
-                    _ = _paint.SetTypeface(_triangleTypeface);
+                    _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -432,12 +416,12 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.OD:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
-                    _ = _paint.SetTypeface(_triangleTypeface);
+                    _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -453,12 +437,12 @@ namespace osu_bot.Modules
                 {
                     x += 2;
                     drawableString = $"{score.Beatmap.Attributes.HP:0.0}";
-                    _ = _paint.SetColor(_colorMisses).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
                     x += _paint.MeasureText(drawableString);
                     drawableString = "▲";
-                    _ = _paint.SetTypeface(_triangleTypeface);
+                    _paint.SetTypeface(_triangleTypeface);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -485,7 +469,7 @@ namespace osu_bot.Modules
                     .Draw(canvas);
 
                 drawableString = "★";
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
                 canvas.DrawText(drawableString, x, y, _paint);
                 #endregion
 
@@ -495,18 +479,18 @@ namespace osu_bot.Modules
                 columnSpacing = 130;
 
                 drawableString = "Rank";
-                _ = _paint.SetColor(_lightGrayColor).SetTypeface(_rubikBoldTypeface).SetSize(18);
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikMediumTypeface).SetSize(18);
                 canvas.DrawText(drawableString, x, y, _paint);
                 float stringLength = _paint.MeasureText(drawableString);
 
                 drawableString = score.Rank.Last() == 'H' ? score.Rank[..^1] : score.Rank;
-                _ = _paint.SetColor(_rankColors[score.Rank]).SetTypeface(_secularOneTypeface).SetSize(42);
+                _paint.SetColor(_rankColors[score.Rank]).SetTypeface(_secularOneTypeface).SetSize(42);
                 float centerX = x + (stringLength / 2) - (_paint.MeasureText(drawableString) / 2);
                 canvas.DrawText(drawableString, centerX, y + 40, _paint);
 
                 x += columnSpacing + stringLength;
 
-                paint1 = new SKPaint().SetColor(_lightGrayColor).SetTypeface(_rubikBoldTypeface).SetSize(18);
+                paint1 = new SKPaint().SetColor(_lightGrayColor).SetTypeface(_rubikMediumTypeface).SetSize(18);
                 paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(28);
                 stringLinker = new StringsLinker(paint1, paint2);
 
@@ -530,7 +514,7 @@ namespace osu_bot.Modules
                 x += columnSpacing;
 
                 drawableString = "Mods";
-                _ = _paint.SetColor(_lightGrayColor).SetTypeface(_rubikBoldTypeface).SetSize(18);
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikMediumTypeface).SetSize(18);
                 canvas.DrawText(drawableString, x, y, _paint);
                 stringLength = _paint.MeasureText(drawableString);
 
@@ -554,7 +538,7 @@ namespace osu_bot.Modules
                 y = 335;
                 columnSpacing = 60;
 
-                paint1 = new SKPaint().SetColor(_lightGrayColor).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                paint1 = new SKPaint().SetColor(_lightGrayColor).SetTypeface(_rubikMediumTypeface).SetSize(16);
                 paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(16);
                 stringLinker = new StringsLinker(paint1, paint2);
 
@@ -585,37 +569,37 @@ namespace osu_bot.Modules
 
                 columnSpacing = 20;
 
-                _ = stringLinker.SecondPaint.SetColor(_color300);
+                stringLinker.SecondPaint.SetColor(_color300);
                 drawableString = score.Count300.ToString();
                 x = stringLinker.SetStrings("300", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
                 x += columnSpacing;
 
-                _ = stringLinker.SecondPaint.SetColor(_color100);
+                stringLinker.SecondPaint.SetColor(_color100);
                 drawableString = score.Count100.ToString();
                 x = stringLinker.SetStrings("100", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
                 x += columnSpacing;
 
-                _ = stringLinker.SecondPaint.SetColor(_color50);
+                stringLinker.SecondPaint.SetColor(_color50);
                 drawableString = score.Count50.ToString();
                 x = stringLinker.SetStrings("50", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
                 x += columnSpacing;
 
-                _ = stringLinker.SecondPaint.SetColor(_colorMisses);
+                stringLinker.SecondPaint.SetColor(_colorMisses);
                 drawableString = score.CountMisses.ToString();
-                _ = stringLinker.SetStrings("X", drawableString)
+                stringLinker.SetStrings("X", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
 
                 x = width - 200;
-                _ = stringLinker.SecondPaint.SetColor(_whiteColor);
+                stringLinker.SecondPaint.SetColor(_whiteColor);
                 drawableString = GetPlayedTimeString(score.Date);
-                _ = stringLinker.SetStrings("Played", drawableString)
+                stringLinker.SetStrings("Played", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
                 #endregion
@@ -624,7 +608,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateProfileCardAsync(User user)
+        public async Task<SKImage> CreateProfileCardAsync(OsuUser user)
         {
             int width = 600;
             int height = 530;
@@ -638,11 +622,11 @@ namespace osu_bot.Modules
                 SKCanvas canvas = surface.Canvas;
 
                 SKRect rect = new(0, 0, width, avatarHeight);
-                _ = _paint.SetColor(_backgroundColor);
+                _paint.SetColor(_backgroundColor);
                 canvas.DrawRect(rect, _paint);
 
                 rect = new(0, avatarHeight, width, height);
-                _ = _paint.SetColor(_backgroundSemilightColor);
+                _paint.SetColor(_backgroundSemilightColor);
                 canvas.DrawRect(rect, _paint);
 
                 #region Avatar
@@ -652,7 +636,7 @@ namespace osu_bot.Modules
                 SKRect destRect = new() { Location = new SKPoint(15, 35), Size = new SKSize(256, 256) };
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
                 string drawableString = user.Name;
                 canvas.DrawAlignText(drawableString, avatarWidth / 2, 28, SKTextAlign.Center, _paint);
                 #endregion
@@ -664,7 +648,7 @@ namespace osu_bot.Modules
                 int wordSpacing = 5;
 
                 drawableString = $"#{user.WorldRating.Separate(".")}";
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
                 canvas.DrawText(drawableString, x, y, _paint);
                 y += rowSpacing;
 
@@ -678,44 +662,44 @@ namespace osu_bot.Modules
 
                 y = 115;
                 drawableString = $"{user.PP.Separate(".")}pp";
-                _ = stringLinker.SetStrings("Perfomance:", drawableString)
+                stringLinker.SetStrings("Perfomance:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
                 drawableString = $"{user.Accuracy:0.00}%";
-                _ = stringLinker.SetStrings("Accuracy:", drawableString)
+                stringLinker.SetStrings("Accuracy:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
                 drawableString = user.PlayCount.Separate(".");
-                _ = stringLinker.SetStrings("Playcount:", drawableString)
+                stringLinker.SetStrings("Playcount:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
                 drawableString = $"{user.PlayTime.Days}d {user.PlayTime.Hours}h {user.PlayTime.Minutes}m {user.PlayTime.Seconds}s";
-                _ = stringLinker.SetStrings("Playtime:", drawableString)
+                stringLinker.SetStrings("Playtime:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
                 drawableString = user.LastOnline != null ? GetPlayedTimeString(user.LastOnline.Value) : "скрыто";
-                _ = stringLinker.SetStrings("Online:", drawableString)
+                stringLinker.SetStrings("Online:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
                 drawableString = user.DateRegistration.ToString("dd MM yyyy г.");
-                _ = stringLinker.SetStrings("Registration:", drawableString)
+                stringLinker.SetStrings("Registration:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 #endregion
 
                 #region Rank history
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(24);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(24);
                 drawableString = "GLOBAL RANK HISTORY";
                 canvas.DrawAlignText(drawableString, width / 2, 330, SKTextAlign.Center, _paint);
 
@@ -755,7 +739,7 @@ namespace osu_bot.Modules
                         linePaint.SetColor(_lightGrayColor)
                             .StrokeWidth = 0.4f;
                         canvas.DrawLine(x, y, x, startY + graphHeight, linePaint);
-                        _ = _paint.SetColor(_lightGrayColor).SetTypeface(_rubikLightTypeface).SetSize(15);
+                        _paint.SetColor(_lightGrayColor).SetTypeface(_rubikLightTypeface).SetSize(15);
                         int day = user.RankHistory.Length - i;
                         drawableString = day == 0 ? "now" : $"{day} d ago";
 
@@ -778,7 +762,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<ScoreInfo> scores)
+        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<OsuScoreInfo> scores)
         {
             int width = 1000;
             int height = 136 + (scores.Count() * 114);
@@ -788,11 +772,11 @@ namespace osu_bot.Modules
             {
                 SKCanvas canvas = surface.Canvas;
 
-                User user = scores.First().User;
+                OsuUser user = scores.First().User;
 
                 byte[] data = await _httpClient.GetByteArrayAsync(user.AvatarUrl);
 
-                _ = _paint.SetColor(_backgroundSemilightColor);
+                _paint.SetColor(_backgroundSemilightColor);
                 canvas.DrawRect(0, 0, width, 136, _paint);
 
                 SKImage image = SKImage.FromEncodedData(data);
@@ -800,20 +784,20 @@ namespace osu_bot.Modules
                 SKRect destRect = new() { Location = new(4, 4), Size = new(128, 128) };
                 canvas.DrawImage(image, sourceRect, destRect, _paint);
 
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawText($"#{user.Name}", 156, 30, _paint);
                 canvas.DrawText($"#{user.WorldRating}", 156, 60, _paint);
                 canvas.DrawText($"({user.CountryCode} #{user.CountryRating})", 156, 90, _paint);
 
                 int i = 0;
-                foreach (ScoreInfo score in scores)
+                foreach (OsuScoreInfo score in scores)
                 {
                     float y = 136 + (i * 114);
                     SKImage scoreImage = await CreateSmallCardAsync(score, false);
                     canvas.DrawImage(scoreImage, 0, y);
                     if (i != 0)
                     {
-                        _ = _paint.SetColor(_lightGrayColor);
+                        _paint.SetColor(_lightGrayColor);
                         canvas.DrawLine(0, y, width, y, _paint);
                     }
                     i++;
@@ -823,7 +807,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateTableScoresCardAsync(IEnumerable<ScoreInfo> scores)
+        public async Task<SKImage> CreateTableScoresCardAsync(IEnumerable<OsuScoreInfo> scores)
         {
             scores = scores.OrderByDescending(score => score.Score).Take(15);
 
@@ -837,7 +821,7 @@ namespace osu_bot.Modules
                 canvas.Clear(_backgroundSemilightColor);
 
                 #region Map info
-                Beatmap beatmap = scores.First().Beatmap;
+                OsuBeatmap beatmap = scores.First().Beatmap;
                 byte[] data = await _httpClient.GetByteArrayAsync(beatmap.CoverUrl);
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRectI imageSize = new(0, 0, image.Width, image.Height);
@@ -846,11 +830,11 @@ namespace osu_bot.Modules
                 canvas.DrawImage(image, dest, _paint);
 
                 string drawableString = $"{beatmap.Title} - {beatmap.Artist} [{beatmap.DifficultyName}]";
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawAlignText(drawableString, width / 2, 25, SKTextAlign.Center, _paint);
 
                 drawableString = $"Mapped by {beatmap.MapperName}";
-                _ = _paint.SetSize(16);
+                _paint.SetSize(16);
                 canvas.DrawAlignText(drawableString, width / 2, 45, SKTextAlign.Center, _paint);
 
                 float x = 200;
@@ -909,14 +893,14 @@ namespace osu_bot.Modules
                     .Draw(canvas);
 
                 drawableString = "★";
-                _ = _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
+                _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
                 canvas.DrawText(drawableString, x, y, _paint);
                 #endregion
 
                 #region Header row
                 float centerX = 40;
                 y = 336;
-                _ = _paint.SetColor(_lightGrayColor).SetTypeface(_rubikBoldTypeface).SetSize(16);
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikMediumTypeface).SetSize(16);
 
                 drawableString = "Rank";
                 canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
@@ -970,12 +954,12 @@ namespace osu_bot.Modules
 
                 #region Score rows
                 int i = 0;
-                foreach (ScoreInfo score in scores)
+                foreach (OsuScoreInfo score in scores)
                 {
                     centerX = 40;
                     y = 380 + (35 * i);
                     i++;
-                    _ = _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(15);
+                    _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(15);
                     drawableString = $"# {i}";
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
@@ -994,11 +978,11 @@ namespace osu_bot.Modules
                     canvas.DrawText($"{score.Accuracy:0.00}% (", x, y, _paint);
                     x += _paint.MeasureText($"{score.Accuracy:0.00}% (") + 1;
 
-                    _ = _paint.SetColor(_rankColors[rankString]);
+                    _paint.SetColor(_rankColors[rankString]);
                     canvas.DrawText(rankString, x, y, _paint);
                     x += _paint.MeasureText(rankString) + 1;
 
-                    _ = _paint.SetColor(_whiteColor);
+                    _paint.SetColor(_whiteColor);
                     canvas.DrawText(")", x, y, _paint);
 
                     drawableString = $"{score.MaxCombo}/{score.Beatmap.Attributes.MaxCombo}x";
@@ -1026,22 +1010,22 @@ namespace osu_bot.Modules
 
                     drawableString = score.Count300.ToString();
                     centerX += 100;
-                    _ = _paint.SetColor(_color300);
+                    _paint.SetColor(_color300);
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
                     drawableString = score.Count100.ToString();
                     centerX += 50;
-                    _ = _paint.SetColor(_color100);
+                    _paint.SetColor(_color100);
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
                     drawableString = score.Count50.ToString();
                     centerX += 50;
-                    _ = _paint.SetColor(_color50);
+                    _paint.SetColor(_color50);
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
                     drawableString = score.CountMisses.ToString();
                     centerX += 50;
-                    _ = _paint.SetColor(_colorMisses);
+                    _paint.SetColor(_colorMisses);
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
                 }
                 #endregion

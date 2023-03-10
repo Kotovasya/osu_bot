@@ -4,15 +4,15 @@
 using System.Reflection;
 using SkiaSharp;
 
-namespace osu_bot.Assets
+namespace osu_bot.Resources
 {
-    public abstract class ResourceManager
+    public abstract class ResourceManager<T>
     {
         protected abstract string ResourcesPath { get; }
 
         protected abstract string FileFormat { get; }
 
-        protected abstract object ConvertFile(FileStream stream);
+        protected abstract T ConvertFile(FileStream stream);
 
         public ResourceManager()
         {
@@ -20,9 +20,9 @@ namespace osu_bot.Assets
             PropertyInfo[] properties = type.GetProperties();
             foreach (PropertyInfo property in properties)
             {
-                string filePath = $"{ResourcesPath}\\{property.Name}.{FileFormat}";
+                string filePath = @$"{ResourcesPath}/{property.Name}.{FileFormat}";
                 FileStream fileStream = File.Open(filePath, FileMode.Open);
-                object result = ConvertFile(fileStream);
+                T result = ConvertFile(fileStream);
                 fileStream.Close();
                 property.SetValue(this, result);
             }

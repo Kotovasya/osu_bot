@@ -5,6 +5,6 @@ namespace osu_bot.Entites.Mods
 {
     public interface IApplicableMod
     {
-        void ApplyToAttributes(BeatmapAttributes attributes);
+        void ApplyToAttributes(OsuBeatmapAttributes attributes);
     }
 }
