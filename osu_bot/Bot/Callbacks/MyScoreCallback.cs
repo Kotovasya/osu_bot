@@ -6,6 +6,7 @@ using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
 using osu_bot.Modules;
 using SkiaSharp;
 using Telegram.Bot;
@@ -21,20 +22,19 @@ namespace osu_bot.Bot.Callbacks
         public override string Data => DATA;
 
         private readonly BeatmapBestScoreQuery _beatmapBestScoreQuery = new();
+        private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
+        private readonly BeatmapAttributesJsonQuery _beatmapAttributesJsonQuery = new();
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.CallbackQuery?.Data == null)
-            {
                 return;
-            }
 
             if (update.CallbackQuery.Message == null)
-            {
                 return;
-            }
+            
 
             BeatmapBestScoresQueryParameters parameters = _beatmapBestScoreQuery.Parameters;
 
@@ -53,7 +53,34 @@ namespace osu_bot.Bot.Callbacks
 
             parameters.BeatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            OsuScoreInfo score = await _beatmapBestScoreQuery.ExecuteAsync();
+            _beatmapInfoQuery.Parameters.BeatmapId = parameters.BeatmapId;
+            OsuBeatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
+
+            OsuScoreInfo? score;
+
+            if (beatmap.ScoresTable)
+                score = await _beatmapBestScoreQuery.ExecuteAsync();
+            else
+            {
+                ScoreInfo? scoreInfo = _database.Scores
+                    .Find(s => s.BeatmapId == parameters.BeatmapId)
+                    .Where(s => s.User.Id == parameters.UserId)
+                    .MaxBy(s => s.Score);
+
+                if (scoreInfo == null)
+                    throw new UserScoreNotFoundException(parameters.Username, parameters.BeatmapId);
+
+                score = new OsuScoreInfo(scoreInfo);
+            }
+
+#pragma warning disable CS8602
+            score.Beatmap = beatmap;
+#pragma warning restore CS8602
+
+            _beatmapAttributesJsonQuery.Parameters.BeatmapId = beatmap.Id;
+            _beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
+            score.Beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesJsonQuery.ExecuteAsync());
+            score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 

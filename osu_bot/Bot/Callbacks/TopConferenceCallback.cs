@@ -60,17 +60,27 @@ namespace osu_bot.Bot.Callbacks
             List<TelegramUser> telegramUsers = _database.TelegramUsers.FindAll().ToList();
 
             foreach (TelegramUser telegramUser in telegramUsers)
-            {
-                //После выполнения ExecuteAsync beatmapScoreQuery.Parameters = new()
-                _beatmapScoresQuery.Parameters.Mods = mods;
-                _beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
-                _beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
-                List<OsuScoreInfo> scores = await _beatmapScoresQuery.ExecuteAsync();
+            { 
+                IEnumerable<OsuScoreInfo> scores;
+
+                if (beatmap.ScoresTable)
+                {
+                    //После выполнения ExecuteAsync beatmapScoreQuery.Parameters = new()
+                    _beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
+                    _beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
+                    scores = await _beatmapScoresQuery.ExecuteAsync();
+                }
+                else
+                {
+                    scores = _database.Scores
+                        .Find(s => s.BeatmapId == beatmapId)
+                        .Where(s => s.User.Id == telegramUser.OsuId)
+                        .Select(s => new OsuScoreInfo(s))
+                        .ToList();   
+                }
 
                 foreach (OsuScoreInfo score in scores)
-                {
                     score.Beatmap = beatmap;
-                }
 
                 result.AddRange(scores);
             }

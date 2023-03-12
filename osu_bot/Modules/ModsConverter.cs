@@ -68,6 +68,7 @@ namespace osu_bot.Modules
             new NoMod(),
         };
 
+        private static readonly Dictionary<int, Mod> s_intModsDictionary = new();
         private static readonly Dictionary<string, Mod> s_stringModsDictionary = new();
 
         static ModsConverter()
@@ -75,6 +76,7 @@ namespace osu_bot.Modules
             foreach (Mod mod in s_mods)
             {
                 s_stringModsDictionary.Add(mod.Name, mod);
+                s_intModsDictionary.Add(mod.Number, mod);
             }
         }
 
@@ -93,6 +95,23 @@ namespace osu_bot.Modules
             foreach (string modString in mods)
             {
                 result.Add(ToMod(modString));
+            }
+            return result;
+        }
+
+        public static IEnumerable<Mod> ToMods(int number)
+        {
+            HashSet<Mod> result = new();
+            int i = 0;
+            while (number > 0)
+            {
+                if ((number & 1) == 1)
+                {
+                    int modNumber = (int)Math.Pow(2, i);
+                    result.Add(s_intModsDictionary[modNumber]);
+                }
+                number >>= 1;
+                i++;
             }
             return result;
         }

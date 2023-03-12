@@ -75,5 +75,7 @@ namespace osu_bot.Entites
         public string MapperName { get; set; }
         public string Status { get; set; }
         public OsuBeatmapAttributes Attributes { get; set; }
+
+        public bool ScoresTable => Status != "graveyard" && Status != "wip" && Status != "pending";
     }
 }

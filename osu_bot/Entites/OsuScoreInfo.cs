@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Newtonsoft.Json.Linq;
+using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
 
@@ -15,6 +16,24 @@ namespace osu_bot.Entites
         {
             Beatmap = new OsuBeatmap();
             User = new OsuUser();
+        }
+
+        public OsuScoreInfo(ScoreInfo score)
+        {
+            Beatmap = new OsuBeatmap();
+            User = new OsuUser();
+            Id = score.Id;
+            Score = score.Score;
+            Accuracy = score.Accuracy;
+            Date = score.Date;
+            MaxCombo = score.MaxCombo;
+            Count50 = score.Count50;
+            Count100 = score.Count100;
+            Count300 = score.Count300;
+            CountMisses = score.CountMisses;
+            Rank = score.Rank;
+            Beatmap.Id = score.BeatmapId;
+            Mods = ModsConverter.ToMods(score.Mods);
         }
 #pragma warning restore CS8618
 

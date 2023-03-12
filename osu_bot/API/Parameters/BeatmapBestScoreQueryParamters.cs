@@ -8,7 +8,7 @@ namespace osu_bot.API.Parameters
         public int UserId { get; set; }
         public string? Username { get; set; }
 
-        public int BeatmapId { get; set; }
+        public long BeatmapId { get; set; }
         public string GetQueryString() => $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/";
     }
 }

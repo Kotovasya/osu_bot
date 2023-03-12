@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using osu_bot.Entites.Mods;
+using osu_bot.Modules;
 
 namespace osu_bot.Entites.Database
 {
@@ -18,7 +19,6 @@ namespace osu_bot.Entites.Database
         public float Accuracy { get; set; }
         public DateTime Date { get; set; }
         public int MaxCombo { get; set; }
-        public float? PP { get; set; }
         public int Count50 { get; set; }
         public int Count100 { get; set; }
         public int Count300 { get; set; }
@@ -37,13 +37,13 @@ namespace osu_bot.Entites.Database
             Accuracy = score.Accuracy;
             Date = score.Date;
             MaxCombo = score.MaxCombo;
-            PP = score.PP;
             Count50 = score.Count50;
             Count100 = score.Count100;
             Count300 = score.Count300;
             CountMisses = score.CountMisses;
             Rank = score.Rank;
             BeatmapId = score.Beatmap.Id;
+            Mods = ModsConverter.ToInt(score.Mods);
         }
     }
 }

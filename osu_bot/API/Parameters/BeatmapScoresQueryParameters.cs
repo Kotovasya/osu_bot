@@ -7,13 +7,11 @@ namespace osu_bot.API.Parameters
 {
     public class BeatmapScoresQueryParameters : IQueryParameters
     {
-        public int BeatmapId { get; set; }
+        public long BeatmapId { get; set; }
 
-        public int UserId { get; set; }
+        public long UserId { get; set; }
 
         public string? Username { get; set; }
-
-        public IEnumerable<Mod>? Mods { get; set; }
 
         public string GetQueryString() => $"https://osu.ppy.sh/api/v2/beatmaps/{BeatmapId}/scores/users/{UserId}/all";
     }

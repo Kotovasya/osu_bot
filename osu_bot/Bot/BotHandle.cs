@@ -5,6 +5,7 @@ using LiteDB;
 using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Bot.Commands;
+using osu_bot.Bot.Parsers;
 using osu_bot.Resources;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -42,24 +43,28 @@ namespace osu_bot.Bot
 
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _commands = new();
         private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _callbacks = new();
+        private readonly List<Parser> _parsers = new()
+        {
+            new PlaysParser(),
+        };
 
         public BotHandle()
         {
             foreach (ICommand command in s_commands)
-            {
                 _commands.Add(command.CommandText, command.ActionAsync);
-            }
 
             foreach (Callback callback in s_callbacks)
-            {
                 _callbacks.Add(callback.Data, callback.ActionAsync);
-            }        
         }
 
         public async Task Run()
         {
             await OsuAPI.Instance.InitalizeAsync();
             using CancellationTokenSource cts = new();
+
+            foreach (Parser parser in _parsers)
+                await parser.RunAsync();
+
             ReceiverOptions receiverOptions = new()
             {
                 AllowedUpdates = Array.Empty<UpdateType>()

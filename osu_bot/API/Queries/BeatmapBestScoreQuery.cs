@@ -3,16 +3,13 @@
 
 using osu_bot.API.Parameters;
 using osu_bot.Entites;
+using osu_bot.Exceptions;
 
 namespace osu_bot.API.Queries
 {
-    public class BeatmapBestScoreQuery : Query<BeatmapBestScoresQueryParameters, OsuScoreInfo>
+    public class BeatmapBestScoreQuery : Query<BeatmapBestScoresQueryParameters, OsuScoreInfo?>
     {
-
-        private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
-        private readonly BeatmapAttributesJsonQuery _beatmapAttributesJsonQuery = new();
-
-        protected override async Task<OsuScoreInfo> RunAsync()
+        protected override async Task<OsuScoreInfo?> RunAsync()
         {
             ArgumentNullException.ThrowIfNull(Parameters.Username);
             OsuUser userInfo = await API.GetUserInfoByUsernameAsync(Parameters.Username);
@@ -24,22 +21,20 @@ namespace osu_bot.API.Queries
             Parameters.UserId = userInfo.Id;
 
             Newtonsoft.Json.Linq.JToken jsonScore = await API.GetJsonAsync(UrlParameter);
+
+            OsuScoreInfo score = new()
+            {
+                User = userInfo
+            };
+
             if (jsonScore["error"] != null)
             {
-                throw new Exception($"У пользователя {Parameters.Username} отсутствуют скоры на карте {Parameters.BeatmapId}");
+                return null;
             }
-
-            OsuScoreInfo score = new();
-            score.ParseScoreJson(jsonScore["score"]);
-            score.User = userInfo;
-
-            _beatmapInfoQuery.Parameters.BeatmapId = Parameters.BeatmapId;
-            score.Beatmap = await _beatmapInfoQuery.ExecuteAsync();
-
-            _beatmapAttributesJsonQuery.Parameters.BeatmapId = Parameters.BeatmapId;
-            _beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
-            score.Beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesJsonQuery.ExecuteAsync());
-            score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
+            else
+            {
+                score.ParseScoreJson(jsonScore["score"]);
+            }
 
             return score;
         }
