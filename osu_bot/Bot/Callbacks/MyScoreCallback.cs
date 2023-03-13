@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.RegularExpressions;
+using osu_bot.API;
 using osu_bot.API.Parameters;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
@@ -25,6 +26,7 @@ namespace osu_bot.Bot.Callbacks
         private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
         private readonly BeatmapAttributesJsonQuery _beatmapAttributesJsonQuery = new();
 
+        private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -39,9 +41,10 @@ namespace osu_bot.Bot.Callbacks
             BeatmapBestScoresQueryParameters parameters = _beatmapBestScoreQuery.Parameters;
 
             TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == update.CallbackQuery.From.Id);
-            parameters.Username = telegramUser != null
-                ? telegramUser.OsuName
-                : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+            if (telegramUser == null)
+                throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+
+            parameters.Username = telegramUser.OsuName;
 
             string data = update.CallbackQuery.Data;
 
@@ -64,13 +67,14 @@ namespace osu_bot.Bot.Callbacks
             {
                 ScoreInfo? scoreInfo = _database.Scores
                     .Find(s => s.BeatmapId == parameters.BeatmapId)
-                    .Where(s => s.User.Id == parameters.UserId)
+                    .Where(s => s.User.Id == telegramUser.Id)
                     .MaxBy(s => s.Score);
 
                 if (scoreInfo == null)
                     throw new UserScoreNotFoundException(parameters.Username, parameters.BeatmapId);
 
                 score = new OsuScoreInfo(scoreInfo);
+                score.User = await _api.GetUserInfoByUsernameAsync(telegramUser.OsuName);
             }
 
 #pragma warning disable CS8602
@@ -80,7 +84,7 @@ namespace osu_bot.Bot.Callbacks
             _beatmapAttributesJsonQuery.Parameters.BeatmapId = beatmap.Id;
             _beatmapAttributesJsonQuery.Parameters.Mods = score.Mods;
             score.Beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesJsonQuery.ExecuteAsync());
-            score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);
+            score.Beatmap.Attributes.CalculateAttributesWithMods(score.Mods);           
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
@@ -88,7 +92,7 @@ namespace osu_bot.Bot.Callbacks
                 new[]
                 {
                     InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{DATA} beatmapId{score.Beatmap.Id})"),
-                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: MapsCallback.DATA)
+                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{score.Beatmap.Id})")
                 });
 
 

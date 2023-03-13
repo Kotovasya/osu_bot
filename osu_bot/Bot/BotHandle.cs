@@ -37,7 +37,7 @@ namespace osu_bot.Bot
         private readonly ChatId _chatId = new(-1001888790264);
         private readonly ITelegramBotClient _botClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
 #else
-        private readonly ChatId _chatId = new();
+        private readonly ChatId _chatId = new(-1001238663722);
         private readonly ITelegramBotClient _botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
 #endif
 
@@ -63,7 +63,7 @@ namespace osu_bot.Bot
             using CancellationTokenSource cts = new();
 
             foreach (Parser parser in _parsers)
-                await parser.RunAsync();
+                parser.Run();
 
             ReceiverOptions receiverOptions = new()
             {
@@ -88,6 +88,7 @@ namespace osu_bot.Bot
             Console.WriteLine("Update chat photo...");
             botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
             await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
+
             cts.Cancel();
         }
 

@@ -5,6 +5,10 @@ namespace osu_bot.Entites.Database
 {
     public class TelegramUser
     {
+        public TelegramUser()
+        {
+        }
+
         public TelegramUser(long id, int osuId, string osuName)
         {
             Id = id;

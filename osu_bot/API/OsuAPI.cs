@@ -29,13 +29,22 @@ namespace osu_bot.API
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse["access_token"].ToString());
         }
 
+        private async Task<bool> CheckValidTokenAsync(string content)
+        {
+            bool valid = !content.Contains("authentication");
+            if (!valid)
+                await SetTokenAsync();
+            return valid;
+        }
+
         public async Task InitalizeAsync() => await SetTokenAsync();
 
-        //Здесь нужно начать различать массив и обычные объекты
         public async Task<JToken> GetJsonAsync(string url)
         {
-            using HttpResponseMessage response = await httpClient.GetAsync(url);
+            using HttpResponseMessage response = await httpClient.GetAsync(url);            
             string str = await response.Content.ReadAsStringAsync();
+            if (!await CheckValidTokenAsync(str))
+                return await GetJsonAsync(url);
             return JToken.Parse(str);
         }
 
@@ -43,6 +52,8 @@ namespace osu_bot.API
         {
             using HttpResponseMessage response = await httpClient.GetAsync(url);
             string str = await response.Content.ReadAsStringAsync();
+            if (!await CheckValidTokenAsync(str))
+                return await GetJsonArrayAsync(url);
             return JArray.Parse(str);
         }
 
@@ -50,17 +61,20 @@ namespace osu_bot.API
         {
             string str = json.ToString();
             using HttpResponseMessage response = await httpClient.PostAsync(url, new StringContent(str, Encoding.UTF8, "application/json"));
-            //using var response = await httpClient.PostAsJsonAsync(url, str);
             string content = await response.Content.ReadAsStringAsync();
+            if (!await CheckValidTokenAsync(content))
+                return await PostJsonAsync(url, json);
             return JToken.Parse(content);
         }
 
         public async Task<OsuUser> GetUserInfoByUsernameAsync(string username)
         {
             JToken json = await GetJsonAsync($"https://osu.ppy.sh/api/v2/users/{username}");
+            if (!await CheckValidTokenAsync(json.ToString()))
+                return await GetUserInfoByUsernameAsync(username);
             if (json.Contains("error"))
             {
-                throw new ArgumentException($"Пользователь с именем {username} не зарегистрировано");
+                throw new ArgumentException($"Пользователь с именем {username} не зарегистрирован");
             }
 
             OsuUser user = new();

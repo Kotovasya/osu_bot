@@ -3,6 +3,7 @@
 
 using System.Text.RegularExpressions;
 using LiteDB;
+using osu_bot.API;
 using osu_bot.API.Queries;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
@@ -24,6 +25,7 @@ namespace osu_bot.Bot.Callbacks
         private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
         private readonly BeatmapAttributesJsonQuery _beatmapAttributesQuery = new();
 
+        private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
         public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -74,9 +76,13 @@ namespace osu_bot.Bot.Callbacks
                 {
                     scores = _database.Scores
                         .Find(s => s.BeatmapId == beatmapId)
-                        .Where(s => s.User.Id == telegramUser.OsuId)
+                        .Where(s => s.User.Id == telegramUser.Id)
                         .Select(s => new OsuScoreInfo(s))
-                        .ToList();   
+                        .ToList();
+
+                    OsuUser user = await _api.GetUserInfoByUsernameAsync(telegramUser.OsuName);
+                    foreach (OsuScoreInfo score in scores)
+                        score.User = user;
                 }
 
                 foreach (OsuScoreInfo score in scores)

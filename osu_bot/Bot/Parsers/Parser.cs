@@ -16,13 +16,16 @@ namespace osu_bot.Bot.Parsers
 
         protected abstract Task ActionAsync();
 
-        public async Task RunAsync()
+        public void Run()
         {
-            while (true)
+            Task.Run(async () =>
             {
-                await ActionAsync();
-                Task.Delay(Delay).Wait();
-            }
+                while (true)
+                {
+                    await ActionAsync();
+                    Task.Delay(Delay).Wait();
+                }
+            });            
         }
     }
 }

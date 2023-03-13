@@ -30,6 +30,11 @@ namespace osu_bot.Entites.Database
         [BsonRef("TelegramUser")]
         public TelegramUser User { get; set; }
 
+        public ScoreInfo()
+        {
+            User = new TelegramUser();
+        }
+
         public ScoreInfo(OsuScoreInfo score)
         {
             Id = score.Id;
