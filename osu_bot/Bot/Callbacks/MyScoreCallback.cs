@@ -62,7 +62,11 @@ namespace osu_bot.Bot.Callbacks
             OsuScoreInfo? score;
 
             if (beatmap.ScoresTable)
+            {
                 score = await _beatmapBestScoreQuery.ExecuteAsync();
+                if (score == null)
+                    throw new UserScoreNotFoundException(parameters.Username, parameters.BeatmapId);
+            }
             else
             {
                 ScoreInfo? scoreInfo = _database.Scores
@@ -73,8 +77,10 @@ namespace osu_bot.Bot.Callbacks
                 if (scoreInfo == null)
                     throw new UserScoreNotFoundException(parameters.Username, parameters.BeatmapId);
 
-                score = new OsuScoreInfo(scoreInfo);
-                score.User = await _api.GetUserInfoByUsernameAsync(telegramUser.OsuName);
+                score = new OsuScoreInfo(scoreInfo)
+                {
+                    User = await _api.GetUserInfoByUsernameAsync(telegramUser.OsuName)
+                };
             }
 
 #pragma warning disable CS8602

@@ -18,6 +18,7 @@ namespace osu_bot.API.Queries
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             }
 
+            Parameters.Username = userInfo.Name;
             Parameters.UserId = userInfo.Id;
 
             Newtonsoft.Json.Linq.JToken jsonScore = await API.GetJsonAsync(UrlParameter);

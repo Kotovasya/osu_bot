@@ -263,7 +263,7 @@ namespace osu_bot.Modules
                 _paint.SetColor(_colorMisses);
                 canvas.DrawText(drawableString, x, y, _paint);
 
-                if (score.HitObjects != score.Beatmap.Attributes.TotalObjects)
+                if (score.Rank ==  "F")
                 {
                     float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
                     drawableString = $"{hits:F2}%";

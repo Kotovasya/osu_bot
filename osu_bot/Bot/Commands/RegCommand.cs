@@ -32,19 +32,18 @@ namespace osu_bot.Bot.Commands
             int startIndex = text.IndexOf(' ') + 1;
             string name = text[startIndex..].ToLower();
 
-            TelegramUser[] users = _database.TelegramUsers.FindAll().ToArray();
-
-            if (_database.TelegramUsers.Exists(u => u.OsuName == name))
+            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.OsuName.ToLower() == name);
+            if (telegramUser != null)
             {
-                throw new ArgumentException($"Аккаунт {name} уже привязан к другому пользователю");
+                throw new ArgumentException($"Аккаунт {telegramUser.OsuName} уже привязан к другому пользователю");
             }
 
             Entites.OsuUser osuUser = await _api.GetUserInfoByUsernameAsync(name);
 
-            TelegramUser telegramUser = _database.TelegramUsers.FindById(message.From.Id);
+            telegramUser = _database.TelegramUsers.FindById(message.From.Id);
             if (telegramUser != null)
             {
-                telegramUser.OsuName = name;
+                telegramUser.OsuName = osuUser.Name;
                 telegramUser.OsuId = osuUser.Id;
                 _database.TelegramUsers.Update(telegramUser);
             }
@@ -55,7 +54,7 @@ namespace osu_bot.Bot.Commands
 
             await botClient.SendTextMessageAsync(
                     chatId: update.Message.Chat,
-                    text: $"Аккаунт {name} успешно привязан к Вашему аккаунту",
+                    text: $"Аккаунт {osuUser.Name} успешно привязан к Вашему аккаунту",
                     replyToMessageId: update.Message.MessageId,
                     cancellationToken: cancellationToken);
         }
