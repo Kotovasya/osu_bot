@@ -35,6 +35,9 @@ namespace osu_bot.Bot
         {
             if (message.Text is { } messageText)
             {
+                int spaceIndex = messageText.IndexOf(' ');
+                if (spaceIndex != -1)
+                    messageText = messageText[..spaceIndex];
                 if (_commands.ContainsKey(messageText))
                 {
                     await _commands[messageText].Invoke(botClient, message, cancellationToken);

@@ -13,16 +13,40 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class CreateRequestCallback : ICallback
+    public enum RequestActions
     {
-        public const string DATA = "Create request";
+        Create,
+        Edit,
+        Delete,
+        Save,
+
+    }
+
+    public class RequestCallback : ICallback
+    {
+        public const string DATA = "Request";
 
         public string Data => DATA;
 
-        private readonly Dictionary<long, Request> Requests = new Dictionary<long, Request>()
-        {
+        private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        };
+        private readonly Dictionary<long, Request> _editableRequests = new();
+
+        private readonly Dictionary<RequestActions, Action<Request>> _actions;
+
+        public RequestCallback()
+        {
+            _actions = new()
+            {
+                { RequestActions.Create, (request) =>  },
+                { RequestActions.Delete, (request) =>
+                    {
+                        if (_database.Requests.Delete(request.Id))
+                            return null;
+                    }
+                },
+            };
+        }
 
         public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {

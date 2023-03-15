@@ -18,5 +18,7 @@ namespace osu_bot.Entites.Database
         public ILiteCollection<TelegramUser> TelegramUsers => db.GetCollection<TelegramUser>();
 
         public ILiteCollection<ScoreInfo> Scores => db.GetCollection<ScoreInfo>();
+
+        public ILiteCollection<Request> Requests => db.GetCollection<Request>();
     }
 }
