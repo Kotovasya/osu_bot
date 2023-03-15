@@ -10,6 +10,6 @@ namespace osu_bot.Bot.Commands
     {
         public abstract string CommandText { get; }
 
-        public abstract Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);
+        public abstract Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken);
     }
 }

@@ -6,9 +6,9 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class MapsCallback : Callback
+    public class MapsCallback : ICallback
     {
-        private static readonly string text =
+        private static readonly string _text =
 @"В сообщении с командами ниже ОБЯЗАНА быть ссылка на карту (либо в пересланном сообщении)
 /best <pp|score|combo|acc> <username> <+MODS>
 Найти свой, или указанного игрока лучший скор на карте
@@ -21,18 +21,18 @@ namespace osu_bot.Bot.Callbacks
 
         public const string DATA = "Maps callback";
 
-        public override string Data => DATA;
+        public string Data => DATA;
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery?.Message == null)
+            if (callbackQuery.Message == null)
             {
                 return;
             }
 
             await botClient.SendTextMessageAsync(
-                chatId: update.CallbackQuery.Message.Chat,
-                text: text,
+                chatId: callbackQuery.Message.Chat,
+                text: _text,
                 cancellationToken: cancellationToken);
         }
     }

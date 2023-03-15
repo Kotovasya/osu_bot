@@ -17,10 +17,10 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class MyScoreCallback : Callback
+    public class MyScoreCallback : ICallback
     {
         public const string DATA = "My score";
-        public override string Data => DATA;
+        public string Data => DATA;
 
         private readonly BeatmapBestScoreQuery _beatmapBestScoreQuery = new();
         private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
@@ -29,24 +29,24 @@ namespace osu_bot.Bot.Callbacks
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery?.Data == null)
+            if (callbackQuery.Data == null)
                 return;
 
-            if (update.CallbackQuery.Message == null)
+            if (callbackQuery.Message == null)
                 return;
             
 
             BeatmapBestScoresQueryParameters parameters = _beatmapBestScoreQuery.Parameters;
 
-            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == update.CallbackQuery.From.Id);
+            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == callbackQuery.From.Id);
             if (telegramUser == null)
                 throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
 
             parameters.Username = telegramUser.OsuName;
 
-            string data = update.CallbackQuery.Data;
+            string data = callbackQuery.Data;
 
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
             if (!beatmapIdMatch.Success)
@@ -103,9 +103,9 @@ namespace osu_bot.Bot.Callbacks
 
 
             await botClient.SendPhotoAsync(
-                chatId: update.CallbackQuery.Message.Chat,
+                chatId: callbackQuery.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
-                replyToMessageId: update.CallbackQuery.Message.MessageId,
+                replyToMessageId: callbackQuery.Message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
         }

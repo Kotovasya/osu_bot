@@ -23,14 +23,14 @@ namespace osu_bot.Bot.Commands
 
         public string CommandText => "/last";
 
-        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
-            if (update.Message?.Text == null)
+            if (message.Text == null)
             {
                 return;
             }
 
-            if (update.Message.From == null)
+            if (message.From == null)
             {
                 return;
             }
@@ -38,7 +38,6 @@ namespace osu_bot.Bot.Commands
             UserScoreQueryParameters parameters = _userScoresQuery.Parameters;
             parameters.IsRecent = true;
 
-            Message message = update.Message;
             string args = message.Text.Trim()[CommandText.Length..];
             parameters.Parse(args);
 
@@ -89,10 +88,10 @@ namespace osu_bot.Bot.Commands
                     });
             }
             await botClient.SendPhotoAsync(
-                chatId: update.Message.Chat,
+                chatId: message.Chat,
                 caption: caption,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
-                replyToMessageId: update.Message.MessageId,
+                replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
         }

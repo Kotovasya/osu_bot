@@ -17,22 +17,8 @@ namespace osu_bot.Bot
 {
     public class BotHandle
     {
-        private static readonly ICommand[] s_commands =
-        {
-            new HelpCommand(),
-            new TopCommand(),
-            new LastCommand(),
-            new RegCommand(),
-            new StatsCommand()
-        };
-        private static readonly Callback[] s_callbacks =
-        {
-            new HelpCallback(),
-            new MapsCallback(),
-            new MyScoreCallback(),
-            new TopConferenceCallback(),
-        };
 
+        #region Chats settings
 #if DEBUG
         private readonly ChatId _chatId = new(-1001888790264);
         private readonly ITelegramBotClient _botClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
@@ -40,22 +26,15 @@ namespace osu_bot.Bot
         private readonly ChatId _chatId = new(-1001238663722);
         private readonly ITelegramBotClient _botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
 #endif
+        #endregion
 
-        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _commands = new();
-        private readonly Dictionary<string, Func<ITelegramBotClient, Update, CancellationToken, Task>> _callbacks = new();
         private readonly List<Parser> _parsers = new()
         {
             new PlaysParser(),
         };
 
-        public BotHandle()
-        {
-            foreach (ICommand command in s_commands)
-                _commands.Add(command.CommandText, command.ActionAsync);
-
-            foreach (Callback callback in s_callbacks)
-                _callbacks.Add(callback.Data, callback.ActionAsync);
-        }
+        private readonly CallbacksManager _callbacksManager = new();
+        private readonly CommandsManager _commandsManager = new();
 
         public async Task Run()
         {
@@ -97,37 +76,26 @@ namespace osu_bot.Bot
             Message? message = null;
             try
             {
-                if (update.CallbackQuery != null && update.CallbackQuery.Data is { } data)
+                if (update.CallbackQuery != null)
                 {
+                    await _callbacksManager.HandlingAsync(botClient, update.CallbackQuery, cancellationToken);
                     message = update.CallbackQuery.Message;
-                    string? callback = _callbacks.Keys.FirstOrDefault(s => data.Contains(s));
-                    if (callback != null)
-                    {
-                        await _callbacks[callback].Invoke(botClient, update, cancellationToken);
-                    }
                 }
-                else if (update.Message != null && update.Message.Text is { } messageText)
+
+                else if (update.Message != null)
                 {
+                    await _commandsManager.HandlingAsync(botClient, update.Message, cancellationToken);
                     message = update.Message;
-                    messageText = messageText.IndexOf(' ') != -1
-                        ? messageText[..messageText.IndexOf(' ')]
-                        : messageText;
-                    if (_commands.ContainsKey(messageText))
-                    {
-                        await _commands[messageText].Invoke(botClient, update, cancellationToken);
-                    }
                 }
             }
             catch (Exception ex)
             {
-                if (message != null)
-                {
+                if (message is not null)
                     await botClient.SendTextMessageAsync(
                         chatId: message.Chat,
                         text: ex.Message,
                         replyToMessageId: message.MessageId,
                         cancellationToken: cancellationToken);
-                }
             }
             return;
         }

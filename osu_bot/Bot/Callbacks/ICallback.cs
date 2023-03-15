@@ -6,10 +6,10 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public abstract class Callback
+    public interface ICallback
     {
         public abstract string Data { get; }
 
-        public abstract Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken);
+        public abstract Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken);
     }
 }

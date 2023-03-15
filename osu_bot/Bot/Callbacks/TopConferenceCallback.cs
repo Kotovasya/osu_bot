@@ -16,10 +16,10 @@ using Telegram.Bot.Types.InputFiles;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class TopConferenceCallback : Callback
+    public class TopConferenceCallback : ICallback
     {
         public const string DATA = "Top conf";
-        public override string Data => DATA;
+        public string Data => DATA;
 
         private readonly BeatmapScoresQuery _beatmapScoresQuery = new();
         private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
@@ -28,19 +28,19 @@ namespace osu_bot.Bot.Callbacks
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery?.Data == null)
+            if (callbackQuery.Data == null)
             {
                 return;
             }
 
-            if (update.CallbackQuery.Message == null)
+            if (callbackQuery.Message == null)
             {
                 return;
             }
 
-            string data = update.CallbackQuery.Data;
+            string data = callbackQuery.Data;
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
 
             if (!beatmapIdMatch.Success)
@@ -97,9 +97,9 @@ namespace osu_bot.Bot.Callbacks
             SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
 
             await botClient.SendPhotoAsync(
-                chatId: update.CallbackQuery.Message.Chat,
+                chatId: callbackQuery.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
-                replyToMessageId: update.CallbackQuery.Message.MessageId,
+                replyToMessageId: callbackQuery.Message.MessageId,
                 cancellationToken: cancellationToken);
         }
     }

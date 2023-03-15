@@ -15,19 +15,18 @@ namespace osu_bot.Bot.Commands
         private readonly DatabaseContext _database = DatabaseContext.Instance;
         private readonly OsuAPI _api = OsuAPI.Instance;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
-            if (update.Message?.Text == null)
+            if (message.Text == null)
             {
                 return;
             }
 
-            if (update.Message.From == null)
+            if (message.From == null)
             {
                 return;
             }
 
-            Message message = update.Message;
             string text = message.Text;
             int startIndex = text.IndexOf(' ') + 1;
             string name = text[startIndex..].ToLower();
@@ -53,9 +52,9 @@ namespace osu_bot.Bot.Commands
             }
 
             await botClient.SendTextMessageAsync(
-                    chatId: update.Message.Chat,
+                    chatId: message.Chat,
                     text: $"Аккаунт {osuUser.Name} успешно привязан к Вашему аккаунту",
-                    replyToMessageId: update.Message.MessageId,
+                    replyToMessageId: message.MessageId,
                     cancellationToken: cancellationToken);
         }
     }

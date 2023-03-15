@@ -12,13 +12,8 @@ namespace osu_bot.Bot.Commands
     {
         public string CommandText => "/help";
 
-        public async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
-            if (update.Message == null)
-            {
-                return;
-            }
-
             InlineKeyboardMarkup inlineKeyboard = new(
                 new[]
                 {
@@ -27,7 +22,7 @@ namespace osu_bot.Bot.Commands
                 });
 
             await botClient.SendTextMessageAsync(
-                chatId: update.Message.Chat,
+                chatId: message.Chat,
                 text: "Информация о каких командах тебя интересует?",
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);

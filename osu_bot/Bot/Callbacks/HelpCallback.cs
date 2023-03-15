@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class HelpCallback : Callback
+    public class HelpCallback : ICallback
     {
         private readonly string[] _descriptions =
         {
@@ -87,48 +87,48 @@ SO - Spin Out",
 /last 7 +NM +pass Soorek - показать 7 последних пасснутых скоров без модов игрока Soorek",
         };
 
-        private int currentPage = 0;
+        private int _currentPage = 0;
 
         public const string DATA = "Help callback";
 
-        public override string Data => DATA;
+        public string Data => DATA;
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery?.Data == null)
+            if (callbackQuery.Data == null)
             {
                 return;
             }
 
-            if (update.CallbackQuery.Message == null)
+            if (callbackQuery.Message == null)
             {
                 return;
             }
 
-            string data = update.CallbackQuery.Data;
+            string data = callbackQuery.Data;
             Match pageMatch = new Regex(@"p(\d+)").Match(data);
 
             if (pageMatch.Success)
             {
-                currentPage = int.Parse(pageMatch.Groups[1].Value);
+                _currentPage = int.Parse(pageMatch.Groups[1].Value);
             }
 
             List<InlineKeyboardButton> buttons = new();
 
-            if (currentPage != 0)
+            if (_currentPage != 0)
             {
-                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "◀️Назад", callbackData: $"{Data} p{currentPage - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "◀️Назад", callbackData: $"{Data} p{_currentPage - 1}"));
             }
             else
             {
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️Назад"));
             }
 
-            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {currentPage + 1}/{_descriptions.Length}"));
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {_currentPage + 1}/{_descriptions.Length}"));
 
-            if (currentPage != _descriptions.Length - 1)
+            if (_currentPage != _descriptions.Length - 1)
             {
-                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "Вперед▶️", callbackData: $"{Data} p{currentPage + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData(text: "Вперед▶️", callbackData: $"{Data} p{_currentPage + 1}"));
             }
             else
             {
@@ -139,15 +139,15 @@ SO - Spin Out",
 
             if (data == DATA)
                 await botClient.SendTextMessageAsync(
-                    chatId: update.CallbackQuery.Message.Chat,
-                    text: _descriptions[currentPage],
+                    chatId: callbackQuery.Message.Chat,
+                    text: _descriptions[_currentPage],
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
             else
                 await botClient.EditMessageTextAsync(
-                    chatId: update.CallbackQuery.Message.Chat,
-                    messageId: update.CallbackQuery.Message.MessageId,
-                    text: _descriptions[currentPage],
+                    chatId: callbackQuery.Message.Chat,
+                    messageId: callbackQuery.Message.MessageId,
+                    text: _descriptions[_currentPage],
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
         }

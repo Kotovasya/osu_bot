@@ -13,26 +13,26 @@ using Telegram.Bot.Types;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public class CreateRequestCallback : Callback
+    public class CreateRequestCallback : ICallback
     {
         public const string DATA = "Create request";
 
-        public override string Data => DATA;
+        public string Data => DATA;
 
         private readonly Dictionary<long, Request> Requests = new Dictionary<long, Request>()
         {
 
         };
 
-        public override async Task ActionAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (update.CallbackQuery?.Data == null)
+            if (callbackQuery.Data == null)
                 return;
 
-            if (update.CallbackQuery.Message == null)
+            if (callbackQuery.Message == null)
                 return;
 
-            string data = update.CallbackQuery.Data;
+            string data = callbackQuery.Data;
 
             Match scoreIdMatch = new Regex(@"scoreId(\d+)").Match(data);
             if (!scoreIdMatch.Success)
