@@ -10,16 +10,18 @@ using System.Threading.Tasks;
 using osu_bot.Entites.Database;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public enum RequestActions
+    public enum RequestAction
     {
         Create,
         Edit,
+        Cancel,
         Delete,
         Save,
-
+        RequireChange
     }
 
     public class RequestCallback : ICallback
@@ -32,19 +34,17 @@ namespace osu_bot.Bot.Callbacks
 
         private readonly Dictionary<long, Request> _editableRequests = new();
 
-        private readonly Dictionary<RequestActions, Action<Request>> _actions;
+        private readonly Dictionary<RequestAction, Action<Request>> _actions;
 
         public RequestCallback()
         {
             _actions = new()
             {
-                { RequestActions.Create, (request) =>  },
-                { RequestActions.Delete, (request) =>
-                    {
-                        if (_database.Requests.Delete(request.Id))
-                            return null;
-                    }
-                },
+                { RequestAction.Create, (request) => _editableRequests.Add(request.Id, request) },
+                { RequestAction.Edit, (request) => _editableRequests.Add(request.Id, request) },
+                { RequestAction.Cancel, (request) => _editableRequests.Remove(request.Id) },
+                { RequestAction.Delete, (request) => _database.Requests.Delete(request.Id) },
+                { RequestAction.Save, (request) => _database.Requests.Upsert(request) }
             };
         }
 
@@ -58,11 +58,34 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
-            Match scoreIdMatch = new Regex(@"scoreId(\d+)").Match(data);
-            if (!scoreIdMatch.Success)
+            Match requestMatch = new Regex(@"Request id(\d+) action(\d+)").Match(data);
+            if (!requestMatch.Success)
+                throw new Exception("При обработке запроса на реквест произошла ошибка");
+
+            RequestAction actionRequest = (RequestAction)int.Parse(requestMatch.Groups[0].Value);
+            long requestId = long.Parse(requestMatch.Groups[1].Value);
+
+            Request request = actionRequest switch
             {
-                throw new Exception("При обработке запроса \"Создание реквеста\" произошла ошибка считывания ID скора");
+                RequestAction.Create => new Request(_editableRequests.Count),
+                RequestAction.Edit => _database.Requests.FindById(requestId),
+                _ => _editableRequests[requestId]
+            };
+
+            if (_actions.TryGetValue(actionRequest, out Action<Request>? action))
+            {
+                action.Invoke(request);
             }
+        }
+
+        private InlineKeyboardMarkup CreateEditMarkup(Request request)
+        {
+            return new InlineKeyboardMarkup(
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(request.RequirePass ? "Pass ✅" : "Pass ❌", $"Request id{request.Id} action{RequestAction.RequireChange}")
+                }
+            );
         }
     }
 }

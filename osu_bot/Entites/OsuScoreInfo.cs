@@ -130,5 +130,9 @@ namespace osu_bot.Entites
         public OsuUser User { get; set; }
 
         public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
+
+        public bool IsFullCombo => MaxCombo / Beatmap.Attributes.TotalObjects >= 0.99;
+
+        public float Compilation => HitObjects / Beatmap.Attributes.TotalObjects;
     }
 }
