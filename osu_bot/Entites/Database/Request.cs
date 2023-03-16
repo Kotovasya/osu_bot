@@ -71,7 +71,6 @@ namespace osu_bot.Entites.Database
         public DateTime DateCreate { get; set; }
         public DateTime DateComplete { get; set; }
 
-        public long BeatmapId { get; set; }
         public bool IsComplete { get; set; }
 
         public TelegramUser FromUser { get; set; }
@@ -96,7 +95,6 @@ namespace osu_bot.Entites.Database
             FromUser = fromUser;
             ToUser = toUser;
             ScoreInfo = score;
-            BeatmapId = score.BeatmapId;
         }
     }
 }

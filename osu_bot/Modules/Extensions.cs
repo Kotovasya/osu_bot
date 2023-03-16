@@ -102,9 +102,9 @@ namespace osu_bot.Modules
             return new InlineKeyboardMarkup(
                 new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId})"),
-                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId})"),
-                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{TopConferenceCallback.DATA} beatmapId{scoreId})")
+                    InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
+                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
+                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA} id: {scoreId}")
                 });
         }
     }
