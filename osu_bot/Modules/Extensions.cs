@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
+using osu_bot.Bot.Callbacks;
+using osu_bot.Entites;
 using SkiaSharp;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Modules
 {
@@ -92,6 +95,17 @@ namespace osu_bot.Modules
                 _ => centerX,
             };
             canvas.DrawText(drawableString, x, y, paint);
+        }
+
+        public static InlineKeyboardMarkup KeyboardMarkupForMap(long scoreId, long beatmapId)
+        {
+            return new InlineKeyboardMarkup(
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId})"),
+                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId})"),
+                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{TopConferenceCallback.DATA} beatmapId{scoreId})")
+                });
         }
     }
 }
