@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -26,12 +27,8 @@ namespace osu_bot.Bot.Callbacks
         Cancel,
         Delete,
         Save,
-        SelectUser,
-        AddUser,
-        NextPage,
-        PrevPage,
+        PageChange,
         RequireChange,
-        Ok,
     }
 
     public class RequestCallback : ICallback
@@ -97,24 +94,27 @@ namespace osu_bot.Bot.Callbacks
         {
             return action switch
             {
-                RequestAction.Cancel => Extensions.KeyboardMarkupForMap(request.ScoreInfo.Id, request.ScoreInfo.BeatmapId),
-                RequestAction.Save => Extensions.KeyboardMarkupForMap(request.ScoreInfo.Id, request.ScoreInfo.BeatmapId),
                 RequestAction.Edit => CreateEditMarkup(request),
-                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData)
+                RequestAction.RequireChange => CreateEditMarkup(request),
+                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData),
+                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData),
+                _ => Extensions.KeyboardMarkupForMap(request.ScoreInfo.Id, request.ScoreInfo.BeatmapId)
             };
         }
 
         private InlineKeyboardMarkup CreateEditMarkup(Request request)
         {
-            return new InlineKeyboardMarkup(
-                new InlineKeyboardButton[]
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            keyboard.Add(new InlineKeyboardButton[]
+            {
+                
                 {
-                    InlineKeyboardButton.WithCallbackData(
+                        InlineKeyboardButton.WithCallbackData(
                         text: request.RequirePass ? "Pass ✅" : "Pass ❌",
                         callbackData: GetCallbackData(request.Id, nameof(request.RequirePass), !request.RequirePass)),
-
-                }
-            );
+                    }
+            });
+            return new InlineKeyboardMarkup(keyboard);
         }
 
         private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data)
@@ -126,7 +126,41 @@ namespace osu_bot.Bot.Callbacks
             int page = int.Parse(requestMatch.Groups[0].Value);
 
             IEnumerable<TelegramUser> users = _database.TelegramUsers.FindAll();
-            users = users.Skip((page - 1) * 10).Take(10);
+            int pagesCount = users.Count() / 8 + 1;
+            users = users.Skip((page - 1) * 8).Take(8);
+            IEnumerator<TelegramUser> usersEnumerator = users.GetEnumerator();
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            for (int i = 0; i < 4; i++)
+            {
+                List<InlineKeyboardButton> rowButtons = new();
+                int j = 0;
+                while (j < 2 && usersEnumerator.MoveNext())
+                {
+                    TelegramUser user = usersEnumerator.Current;
+                    rowButtons.Add(InlineKeyboardButton.WithCallbackData(
+                        text: user.OsuName,
+                        callbackData: GetCallbackData(request.Id, nameof(request.ToUser), user.Id)));
+                    j++;
+                }
+                keyboard.Add(rowButtons);
+            }
+
+            List<InlineKeyboardButton> buttons = new();
+            if (page != 1)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️", $"Request id: {request.Id} action: {RequestAction.PageChange} page: {page - 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️"));
+
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page + 1}/{pagesCount}"));
+
+            if (page != pagesCount)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"Request id: {request.Id} action: {RequestAction.PageChange} page: {page + 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️"));
+
+            keyboard.Add(buttons);
+
+            return new InlineKeyboardMarkup(keyboard);
         }
 
         public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
