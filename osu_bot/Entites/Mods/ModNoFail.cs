@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModNoFail : Mod
     {
-        public override int Number => 1 << 0;
+        public const int NUMBER = 1 << 0;
+        public const string NAME = "NF";
+        public const string FULLNAME = "No Fail";
 
-        public override string Name => "NF";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "No Fail";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.NF;
     }

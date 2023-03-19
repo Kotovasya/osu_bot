@@ -97,14 +97,14 @@ namespace osu_bot.Modules
             canvas.DrawText(drawableString, x, y, paint);
         }
 
-        public static InlineKeyboardMarkup KeyboardMarkupForMap(long scoreId, long beatmapId)
+        public static InlineKeyboardMarkup KeyboardMarkupForMap(long beatmapId)
         {
             return new InlineKeyboardMarkup(
                 new[]
                 {
                     InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
                     InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA} id: {scoreId}")
+                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA} id: 0 action: {RequestAction.Create} page: 1")
                 });
         }
     }

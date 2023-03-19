@@ -97,7 +97,7 @@ namespace osu_bot.Modules
                     Math.Pow(accuracyValue, 1.1) +
                     Math.Pow(flashlightValue, 1.1), 1.0 / 1.1
                 ) * multiplier;
-            return (int)Math.Round(totalValue, 2, MidpointRounding.ToEven);
+            return (int)Math.Round(totalValue, 2, MidpointRounding.AwayFromZero);
         }
 
         private static double getComboScalingFactor(OsuBeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);

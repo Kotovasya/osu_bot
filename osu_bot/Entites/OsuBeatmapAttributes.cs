@@ -162,7 +162,7 @@ namespace osu_bot.Entites
 #pragma warning disable CS8619
             IEnumerable<IApplicableMod> applicableMods = mods.Where(m => m is IApplicableMod).Select(m => m as IApplicableMod);
 #pragma warning restore CS8619
-            IEnumerable<IApplicableMod> firstApplicableMods = applicableMods.Where(m => m is ModHardRock or ModsEasy);
+            IEnumerable<IApplicableMod> firstApplicableMods = applicableMods.Where(m => m is ModHardRock or ModEasy);
 
             foreach (IApplicableMod mod in firstApplicableMods)
             {

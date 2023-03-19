@@ -11,7 +11,7 @@ namespace osu_bot.Modules
     //[Flags]
     //public enum Mods
     //{
-    //    NM = 0,
+    //    ALL = 0,
     //    NF = 1 << 0,    //No fail
     //    EZ = 1 << 1,    //Easy
     //    TD = 1 << 2,    //TouchDevice
@@ -43,7 +43,7 @@ namespace osu_bot.Modules
     //    K2 = 1 << 28,
     //    V2 = 1 << 29,   //ScoreV2
     //    MR = 1 << 30,
-    //    ALL = 1 << 31
+    //    NM = 1 << 31
     //}
 
     public static class ModsConverter
@@ -62,7 +62,7 @@ namespace osu_bot.Modules
             new ModPerfect(),
             new ModRelax(),
             new ModScoreV2(),
-            new ModsEasy(),
+            new ModEasy(),
             new ModSpunOut(),
             new ModSuddenDeath(),
             new NoMod(),
@@ -102,6 +102,9 @@ namespace osu_bot.Modules
         public static IEnumerable<Mod> ToMods(int number)
         {
             HashSet<Mod> result = new();
+            if (number == 0)
+                return result;
+
             int i = 0;
             while (number > 0)
             {

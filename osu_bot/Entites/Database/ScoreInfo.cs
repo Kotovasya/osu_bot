@@ -26,7 +26,7 @@ namespace osu_bot.Entites.Database
         public string Rank { get; set; }
         public long BeatmapId { get; set; }
         public int Mods { get; set; }
-        public float Compilation { get; set; }
+        public float Completion { get; set; }
         public bool IsFullCombo { get; set; }
 
         [BsonRef("TelegramUser")]
@@ -50,7 +50,7 @@ namespace osu_bot.Entites.Database
             CountMisses = score.CountMisses;
             Rank = score.Rank;
             BeatmapId = score.Beatmap.Id;
-            Compilation = score.Compilation;
+            Completion = score.Compilation;
             IsFullCombo = score.IsFullCombo;
             Mods = ModsConverter.ToInt(score.Mods);
         }

@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModAutopilot : Mod
     {
-        public override int Number => 1 << 13;
+        public const int NUMBER = 1 << 13;
+        public const string NAME = "AP";
+        public const string FULLNAME = "Autopilot";
 
-        public override string Name => "AP";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Autopilot";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.AP;
     }

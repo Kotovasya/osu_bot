@@ -5,16 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using osu_bot.API.Queries;
 using osu_bot.Entites.Database;
+using osu_bot.Entites.Mods;
 using osu_bot.Modules;
 using Telegram.Bot;
-using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -23,12 +21,11 @@ namespace osu_bot.Bot.Callbacks
     public enum RequestAction
     {
         Create,
-        Edit,
         Cancel,
         Delete,
         Save,
         PageChange,
-        RequireChange,
+        RequireChange,     
     }
 
     public class RequestCallback : ICallback
@@ -39,82 +36,27 @@ namespace osu_bot.Bot.Callbacks
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        private readonly Dictionary<long, Request> _editableRequests = new();
-
         private readonly Dictionary<RequestAction, Action<Request>> _actions;
-
-        private readonly ScoreQuery _scoreQury = new();
 
         public RequestCallback()
         {
             _actions = new()
             {
-                { RequestAction.Create, (request) => _editableRequests.Add(request.Id, request) },
-                { RequestAction.Edit, (request) => _editableRequests.Add(request.Id, request) },
-                { RequestAction.Cancel, (request) => _editableRequests.Remove(request.Id) },
-                { RequestAction.Delete, (request) => _database.Requests.Delete(request.Id) },
-                { RequestAction.Save, (request) => _database.Requests.Upsert(request) }
+                { RequestAction.Create, (request) => _database.Requests.Insert(request) },
+                { RequestAction.Cancel, (request) => _database.Requests.Delete(request.Id) },
+                { RequestAction.Delete, (request) => _database.Requests.Delete(request.Id) },  
+                { RequestAction.RequireChange, (request) => _database.Requests.Update(request) },
+                { RequestAction.Save, (request) => {
+                        request.IsTemporary = false;
+                        _database.Requests.Update(request);
+                    }
+                },
             };
         }
 
-        private Request ChangeRequireFromData(Request request, string data)
-        {
-            Match requireMatch = new Regex(@"require: (\S+) value: (\S+)$").Match(data);
-            if (!requireMatch.Success)
-                throw new Exception("При обработке запроса на реквест произошла ошибка");
-
-            string propertyName = requireMatch.Groups[0].Value;
-            string propertyValue = requireMatch.Groups[1].Value;
-
-            Type requestType = request.GetType();
-            PropertyInfo? propertyInfo = requestType.GetProperty(propertyName);
-            if (propertyInfo == null)
-                throw new Exception("При обработке запроса на реквест произошла ошибка");
-
-            object value = propertyInfo.PropertyType.Name switch
-            {
-                nameof(Single) => float.Parse(propertyValue),
-                nameof(Int32) => int.Parse(propertyValue),
-                nameof(Int64) => long.Parse(propertyValue),
-                nameof(Boolean) => bool.Parse(propertyValue),
-                nameof(TelegramUser) => _database.TelegramUsers.FindById(long.Parse(propertyValue)),
-                _ => throw new Exception("При обработке запроса на реквест произошла ошибка")
-            };
-
-            propertyInfo.SetValue(request, value);
-            return request;
-        }
-
-        private string GetCallbackData(long requestId, string propertyName, object newValue)
+        private string GetRequireCallbackData(long requestId, string propertyName, object? newValue)
         {
             return $"Request id: {requestId} action: {RequestAction.RequireChange} require: {propertyName} value: {newValue}";
-        }
-
-        private InlineKeyboardMarkup CreateMarkup(RequestAction action, Request request, string callbackQueryData)
-        {
-            return action switch
-            {
-                RequestAction.Edit => CreateEditMarkup(request),
-                RequestAction.RequireChange => CreateEditMarkup(request),
-                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData),
-                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData),
-                _ => Extensions.KeyboardMarkupForMap(request.ScoreInfo.Id, request.ScoreInfo.BeatmapId)
-            };
-        }
-
-        private InlineKeyboardMarkup CreateEditMarkup(Request request)
-        {
-            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
-            keyboard.Add(new InlineKeyboardButton[]
-            {
-                
-                {
-                        InlineKeyboardButton.WithCallbackData(
-                        text: request.RequirePass ? "Pass ✅" : "Pass ❌",
-                        callbackData: GetCallbackData(request.Id, nameof(request.RequirePass), !request.RequirePass)),
-                    }
-            });
-            return new InlineKeyboardMarkup(keyboard);
         }
 
         private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data)
@@ -123,7 +65,7 @@ namespace osu_bot.Bot.Callbacks
             if (!requestMatch.Success)
                 throw new Exception("При обработке запроса на реквест произошла ошибка");
 
-            int page = int.Parse(requestMatch.Groups[0].Value);
+            int page = int.Parse(requestMatch.Groups[1].Value);
 
             IEnumerable<TelegramUser> users = _database.TelegramUsers.FindAll();
             int pagesCount = users.Count() / 8 + 1;
@@ -139,10 +81,11 @@ namespace osu_bot.Bot.Callbacks
                     TelegramUser user = usersEnumerator.Current;
                     rowButtons.Add(InlineKeyboardButton.WithCallbackData(
                         text: user.OsuName,
-                        callbackData: GetCallbackData(request.Id, nameof(request.ToUser), user.Id)));
+                        callbackData: GetRequireCallbackData(request.Id, nameof(request.ToUser), user.Id)));
                     j++;
                 }
-                keyboard.Add(rowButtons);
+                if (rowButtons.Any())
+                    keyboard.Add(rowButtons);
             }
 
             List<InlineKeyboardButton> buttons = new();
@@ -163,9 +106,155 @@ namespace osu_bot.Bot.Callbacks
             return new InlineKeyboardMarkup(keyboard);
         }
 
+        private InlineKeyboardMarkup CreateRequireEditMarkup(Request request)
+        {
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            List<InlineKeyboardButton> rowButtons1 = new()
+            {
+                InlineKeyboardButton.WithCallbackData(
+                        text: request.RequirePass ? "Pass ✅" : "Pass ❌",
+                        callbackData: GetRequireCallbackData(request.Id, nameof(request.RequirePass), !request.RequirePass)),
+                InlineKeyboardButton.WithCallbackData(
+                        text: request.RequireFullCombo ? "FC ✅" : "FC ❌",
+                        callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireFullCombo), !request.RequireFullCombo)),
+                InlineKeyboardButton.WithCallbackData(
+                        text: request.RequireSnipe ? "Snipe ✅" : "Snipe ❌",
+                        callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireSnipe), !request.RequireSnipe))
+            };
+            keyboard.Add(rowButtons1);
+
+            List<InlineKeyboardButton> rowButtons2 = new();
+            IEnumerable<Mod> mods = ModsConverter.ToMods(request.RequireMods);
+
+            bool modHave = mods.Any(m => m.Name == NoMod.NAME);
+            rowButtons2.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "NM ✅" : "NM ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - NoMod.NUMBER : request.RequireMods + NoMod.NUMBER))
+            );
+
+            modHave = mods.Any(m => m.Name == ModHardRock.NAME);
+            rowButtons2.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "HR ✅" : "HR ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModHardRock.NUMBER : request.RequireMods + ModHardRock.NUMBER))
+            );
+
+            modHave = mods.Any(m => m.Name == ModDoubleTime.NAME);
+            rowButtons2.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "DT ✅" : "DT ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModDoubleTime.NUMBER : request.RequireMods + ModDoubleTime.NUMBER))
+            );
+
+            modHave = mods.Any(m => m.Name == ModHidden.NAME);
+            rowButtons2.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "HD ✅" : "HD ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModHidden.NUMBER : request.RequireMods + ModHidden.NUMBER))
+            );
+
+            keyboard.Add(rowButtons2);
+
+            List<InlineKeyboardButton> rowButtons3 = new();
+
+            modHave = mods.Any(m => m.Name == ModFlashlight.NAME);
+            rowButtons3.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "FL ✅" : "FL ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModFlashlight.NUMBER : request.RequireMods + ModFlashlight.NUMBER))
+            );
+
+            modHave = mods.Any(m => m.Name == ModEasy.NAME);
+            rowButtons3.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "EZ ✅" : "EZ ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModEasy.NUMBER : request.RequireMods + ModEasy.NUMBER))
+            );
+
+            modHave = mods.Any(m => m.Name == ModHalfTime.NAME);
+            rowButtons3.Add(InlineKeyboardButton.WithCallbackData(
+                text: modHave ? "HT ✅" : "HT ❌",
+                callbackData: GetRequireCallbackData(
+                    requestId: request.Id,
+                    propertyName: nameof(request.RequireMods),
+                    newValue: modHave ? request.RequireMods - ModHalfTime.NUMBER : request.RequireMods + ModHalfTime.NUMBER))
+            );
+
+            rowButtons3.Add(InlineKeyboardButton.WithCallbackData(
+                text: request.IsAllMods ? "All mods" : "Any mod",
+                callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireMods), !request.IsAllMods))
+            );
+
+            List<InlineKeyboardButton> rowButtons4 = new()
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    text: "Send ✅",
+                    callbackData: $"Request id: {request.Id} action: {RequestAction.Cancel}"),
+
+                InlineKeyboardButton.WithCallbackData(
+                    text: "Cancel ❌",
+                    callbackData: $"Request id: {request.Id} action: {RequestAction.Save}")
+            };
+            keyboard.Add(rowButtons4);
+
+            return new InlineKeyboardMarkup(keyboard);
+        }
+
+        private InlineKeyboardMarkup CreateMarkup(RequestAction action, Request request, string callbackQueryData)
+        {
+            return action switch
+            {
+                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData),
+                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData),
+                RequestAction.RequireChange => CreateRequireEditMarkup(request),
+                _ => Extensions.KeyboardMarkupForMap(request.BeatmapId)
+            };
+        }
+
+        private Request ChangeRequireFromData(Request request, string data)
+        {
+            Match requireMatch = new Regex(@"require: (\S+) value: (\S+)$").Match(data);
+            if (!requireMatch.Success)
+                throw new Exception("При обработке запроса на реквест произошла ошибка");
+
+            string propertyName = requireMatch.Groups[1].Value;
+            string propertyValue = requireMatch.Groups[2].Value;
+
+            Type requestType = request.GetType();
+            PropertyInfo? propertyInfo = requestType.GetProperty(propertyName);
+            if (propertyInfo == null)
+                throw new Exception("При обработке запроса на реквест произошла ошибка");
+
+            object value = propertyInfo.PropertyType.Name switch
+            {
+                nameof(Single) => float.Parse(propertyValue),
+                nameof(Int32) => int.Parse(propertyValue),
+                nameof(Int64) => long.Parse(propertyValue),
+                nameof(Boolean) => bool.Parse(propertyValue),
+                nameof(TelegramUser) => _database.TelegramUsers.FindById(long.Parse(propertyValue)),
+                _ => throw new Exception("При обработке запроса на реквест произошла ошибка")
+            };
+
+            propertyInfo.SetValue(request, value);
+            return request;
+        }
+
         public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (callbackQuery.Data == null)
+           if (callbackQuery.Data == null)
                 return;
 
             if (callbackQuery.Message == null)
@@ -173,28 +262,19 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
-            Match requestMatch = new Regex(@"Request id: (\d+) action: (\d+)").Match(data);
+            Match requestMatch = new Regex(@"Request id: (\d+) action: (\w+)").Match(data);
             if (!requestMatch.Success)
                 throw new Exception("При обработке запроса на реквест произошла ошибка");
 
-            RequestAction actionRequest = (RequestAction)int.Parse(requestMatch.Groups[0].Value);
             long requestId = long.Parse(requestMatch.Groups[1].Value);
+            RequestAction actionRequest = (RequestAction)Enum.Parse(typeof(RequestAction), requestMatch.Groups[2].Value);
 
             Request request = actionRequest switch
             {
-                RequestAction.Create => new Request(requestId),                
-                RequestAction.Edit => _database.Requests.FindById(requestId),
-                RequestAction.RequireChange => ChangeRequireFromData(_editableRequests[requestId], data),
-                _ => _editableRequests[requestId]
+                RequestAction.Create => new Request(_database.TelegramUsers.FindById(callbackQuery.From.Id)),
+                RequestAction.RequireChange => ChangeRequireFromData(_database.Requests.FindById(requestId), data),
+                _ => _database.Requests.FindById(requestId),
             };
-
-            if (actionRequest == RequestAction.Create)
-            {
-                TelegramUser requestOwner = _database.TelegramUsers.FindById(callbackQuery.From.Id);
-                _scoreQury.Parameters.Username = requestOwner.OsuName;
-                _scoreQury.Parameters.ScoreId = requestId;
-                request.ScoreInfo = new ScoreInfo(await _scoreQury.ExecuteAsync());
-            }
 
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return;
@@ -204,11 +284,22 @@ namespace osu_bot.Bot.Callbacks
 
             InlineKeyboardMarkup markup = CreateMarkup(actionRequest, request, data);
 
-            await botClient.EditMessageReplyMarkupAsync(
-                chatId: callbackQuery.Message.Chat,
-                messageId: callbackQuery.Message.MessageId,
-                replyMarkup: markup,
+            await botClient.AnswerCallbackQueryAsync(
+                callbackQueryId: callbackQuery.Id,
                 cancellationToken: cancellationToken);
+
+            Task<Message> answer = botClient.EditMessageReplyMarkupAsync(
+                chatId: new ChatId(callbackQuery.Message.Chat.Id),
+                messageId: callbackQuery.Message.MessageId,
+                replyMarkup: markup);
+
+            if (actionRequest == RequestAction.Save)
+            {
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.Message.Chat,
+                    text: $"{request.FromUser.Id} создал реквест для {request.ToUser.Id} на карте osu.ppy.sh/beatmaps/{request.BeatmapId}",
+                    cancellationToken: cancellationToken);
+            }
         }
     }
 }

@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModDoubleTime : Mod, IApplicableMod
     {
-        public override int Number => 1 << 6;
+        public const int NUMBER = 1 << 6;
+        public const string NAME = "DT";
+        public const string FULLNAME = "Double Time";
 
-        public override string Name => "DT";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Double Time";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.DT;
 

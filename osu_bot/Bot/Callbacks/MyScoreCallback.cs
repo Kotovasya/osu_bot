@@ -94,13 +94,7 @@ namespace osu_bot.Bot.Callbacks
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-            InlineKeyboardMarkup inlineKeyboard = new(
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{DATA} beatmapId{score.Beatmap.Id})"),
-                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{score.Beatmap.Id})")
-                });
-
+            InlineKeyboardMarkup inlineKeyboard = Extensions.KeyboardMarkupForMap(score.Beatmap.Id);
 
             await botClient.SendPhotoAsync(
                 chatId: callbackQuery.Message.Chat,

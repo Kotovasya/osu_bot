@@ -75,12 +75,7 @@ namespace osu_bot.Bot.Commands
                 OsuScoreInfo score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
-                inlineKeyboard = new(
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{score.Beatmap.Id})"),
-                        InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{score.Beatmap.Id})")
-                    });
+                inlineKeyboard = Extensions.KeyboardMarkupForMap(score.Beatmap.Id);
             }
 
             await botClient.SendPhotoAsync(

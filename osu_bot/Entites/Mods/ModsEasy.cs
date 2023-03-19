@@ -6,13 +6,17 @@ using SkiaSharp;
 
 namespace osu_bot.Entites.Mods
 {
-    internal class ModsEasy : Mod, IApplicableMod
+    internal class ModEasy : Mod, IApplicableMod
     {
-        public override int Number => 1 << 1;
+        public const int NUMBER = 1 << 1;
+        public const string NAME = "EZ";
+        public const string FULLNAME = "Easy";
 
-        public override string Name => "EZ";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Easy";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.EZ;
 

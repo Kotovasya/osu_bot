@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModHalfTime : Mod, IApplicableMod
     {
-        public override int Number => 1 << 8;
+        public const int NUMBER = 1 << 8;
+        public const string NAME = "HT";
+        public const string FULLNAME = "Half Time";
 
-        public override string Name => "HT";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Half Time";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.HT;
 

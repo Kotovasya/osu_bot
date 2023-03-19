@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModRelax : Mod
     {
-        public override int Number => 1 << 7;
+        public const int NUMBER = 1 << 7;
+        public const string NAME = "RL";
+        public const string FULLNAME = "Relax";
 
-        public override string Name => "RL";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Relax";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.RL;
     }

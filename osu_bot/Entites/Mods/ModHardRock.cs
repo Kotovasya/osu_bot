@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModHardRock : Mod, IApplicableMod
     {
-        public override int Number => 1 << 4;
+        public const int NUMBER = 1 << 4;
+        public const string NAME = "HR";
+        public const string FULLNAME = "HardRock";
 
-        public override string Name => "HR";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Hard Rock";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.HR;
 

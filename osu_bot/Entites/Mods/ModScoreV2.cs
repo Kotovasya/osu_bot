@@ -7,11 +7,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModScoreV2 : Mod
     {
-        public override int Number => 1 << 29;
+        public const int NUMBER = 1 << 29;
+        public const string NAME = "V2";
+        public const string FULLNAME = "Score V2";
 
-        public override string Name => "V2";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Score V2";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => throw new NotImplementedException();
     }

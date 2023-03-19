@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModSuddenDeath : Mod
     {
-        public override int Number => 1 << 5;
+        public const int NUMBER = 1 << 5;
+        public const string NAME = "SD";
+        public const string FULLNAME = "Sudden Death";
 
-        public override string Name => "SD";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Sudden Death";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.SD;
     }

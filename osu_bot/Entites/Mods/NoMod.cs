@@ -7,11 +7,15 @@ namespace osu_bot.Entites.Mods
 {
     public class NoMod : Mod
     {
-        public override int Number => 0;
+        public const int NUMBER = 1 << 31;
+        public const string NAME = "NM";
+        public const string FULLNAME = "NoMod";
 
-        public override string Name => "NM";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "NoMod";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => null;
     }

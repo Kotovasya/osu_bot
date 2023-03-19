@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModSpunOut : Mod
     {
-        public override int Number => 1 << 12;
+        public const int NUMBER = 1 << 12;
+        public const string NAME = "SO";
+        public const string FULLNAME = "Spun Out";
 
-        public override string Name => "SO";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Spun Out";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.SO;
     }

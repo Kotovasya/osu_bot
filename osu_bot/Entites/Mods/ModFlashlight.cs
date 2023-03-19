@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModFlashlight : Mod
     {
-        public override int Number => 1 << 10;
+        public const int NUMBER = 1 << 10;
+        public const string NAME = "FL";
+        public const string FULLNAME = "Flashlight";
 
-        public override string Name => "FL";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Flashlight";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.FL;
     }

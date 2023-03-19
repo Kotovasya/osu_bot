@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     internal class ModNightcore : Mod, IApplicableMod
     {
-        public override int Number => 1 << 9;
+        public const int NUMBER = 1 << 9;
+        public const string NAME = "NC";
+        public const string FULLNAME = "Nightcore";
 
-        public override string Name => "NC";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Nightcore";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.NC;
 

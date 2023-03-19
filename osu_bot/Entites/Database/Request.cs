@@ -6,67 +6,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
+using osu_bot.Entites.Mods;
 
 namespace osu_bot.Entites.Database
 {
     public class Request
     {
-        private bool _requirePass;
-        private bool _requireFullCombo;
-        private float? _requireAccuracy;
-        private int? _requireCombo;
-        private float? _requireCompilation;
-
         public long Id { get; set; }
 
-        public bool RequirePass
-        {
-            get => _requirePass;
-            set => _requirePass = ScoreInfo.Rank != "F" && value;
-        }
+        public long BeatmapId { get; set; }
 
-        public bool RequireFullCombo
-        {
-            get => _requireFullCombo;
-            set => _requireFullCombo = ScoreInfo.IsFullCombo && value;
-        }
+        public bool RequirePass { get; set; }
+        public bool RequireFullCombo { get; set; }
+        public bool RequireSnipe { get; set; }
+        public int RequireMods { get; set; }
+        public bool IsAllMods { get; set; }
 
-        public float? RequireAccuracy
-        {
-            get => _requireAccuracy;
-            set
-            {
-                if (value is null)
-                    _requireAccuracy = null;
-                else if (ScoreInfo.Accuracy >= value)
-                    _requireAccuracy = value;
-            }
-        }
-
-        public int? RequireCombo
-        {
-            get => _requireCombo;
-            set
-            {
-                if (value is null)
-                    _requireCombo = null;
-                else if (ScoreInfo.MaxCombo >= value)
-                    _requireCombo = value;
-            }
-        }
-
-        public float? RequireCompletion
-        {
-            get => _requireCompilation;
-            set
-            {
-                if (value is null)
-                    _requireCompilation = null;
-                else if (ScoreInfo.Compilation >= value)
-                    _requireCompilation = value;
-            }
-        }
+        public bool IsTemporary { get; set; }
 
         public DateTime DateCreate { get; set; }
         public DateTime DateComplete { get; set; }
@@ -75,26 +31,25 @@ namespace osu_bot.Entites.Database
 
         public TelegramUser FromUser { get; set; }
         public TelegramUser ToUser { get; set; }
-        public ScoreInfo ScoreInfo { get; set; }
 
         public Request()
+            : this(new TelegramUser(), new TelegramUser())
         {
-            FromUser = new TelegramUser();
-            ToUser = new TelegramUser();
-            ScoreInfo = new ScoreInfo();
+
         }
 
-        public Request(long tempId)
-            : this()
-        {
-            Id = tempId * -1;
-        }
-
-        public Request(TelegramUser fromUser, TelegramUser toUser, ScoreInfo score)
+        public Request(TelegramUser fromUser, TelegramUser toUser)
         {
             FromUser = fromUser;
             ToUser = toUser;
-            ScoreInfo = score;
+            DateCreate = DateTime.Now;
+            IsTemporary = true;
+        }
+
+        public Request(TelegramUser requestOwner)
+            : this(requestOwner, new TelegramUser())
+        {
+
         }
     }
 }

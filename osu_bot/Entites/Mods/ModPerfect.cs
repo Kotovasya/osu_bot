@@ -8,11 +8,15 @@ namespace osu_bot.Entites.Mods
 {
     public class ModPerfect : Mod
     {
-        public override int Number => 1 << 14;
+        public const int NUMBER = 1 << 14;
+        public const string NAME = "PF";
+        public const string FULLNAME = "Perfect";
 
-        public override string Name => "PF";
+        public override int Number => NUMBER;
 
-        public override string Fullname => "Perfect";
+        public override string Name => NAME;
+
+        public override string Fullname => FULLNAME;
 
         public override SKImage? Image => ResourcesManager.ModsManager.PF;
     }

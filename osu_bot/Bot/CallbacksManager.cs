@@ -20,6 +20,7 @@ namespace osu_bot.Bot
             new MapsCallback(),
             new MyScoreCallback(),
             new TopConferenceCallback(),
+            new RequestCallback(),
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task>> _callbacks = new();
