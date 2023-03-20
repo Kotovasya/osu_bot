@@ -4,6 +4,7 @@
 using System.Globalization;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
+using osu_bot.Entites.Database;
 using SkiaSharp;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -97,7 +98,7 @@ namespace osu_bot.Modules
             canvas.DrawText(drawableString, x, y, paint);
         }
 
-        public static InlineKeyboardMarkup KeyboardMarkupForMap(long beatmapId)
+        public static InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId)
         {
             return new InlineKeyboardMarkup(
                 new[]
@@ -106,6 +107,16 @@ namespace osu_bot.Modules
                     InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
                     InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} P: 1")
                 });
+        }
+
+        public static InlineKeyboardMarkup RequestKeyboardMakrup(long beatmapId)
+        {
+            return new InlineKeyboardMarkup(
+            new[]
+            {
+                    InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"osu.ppy.sh/beatmaps/{beatmapId}"),
+                    InlineKeyboardButton.WithUrl(text: "❤️Osu! Direct", url: $"osu://b/{beatmapId}"),
+            });
         }
     }
 }

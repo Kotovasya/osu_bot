@@ -9,12 +9,15 @@ namespace osu_bot.Entites.Database
         {
         }
 
-        public TelegramUser(long id, int osuId, string osuName)
+        public TelegramUser(long id, int osuId, string osuName, long chatId)
         {
             Id = id;
             OsuId = osuId;
             OsuName = osuName;
+            ChatId = chatId;
         }
+
+        public long ChatId { get; set; }
 
         public long Id { get; set; }
 

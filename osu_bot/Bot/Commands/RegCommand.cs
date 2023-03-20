@@ -44,11 +44,12 @@ namespace osu_bot.Bot.Commands
             {
                 telegramUser.OsuName = osuUser.Name;
                 telegramUser.OsuId = osuUser.Id;
+                telegramUser.ChatId = message.Chat.Id;
                 _database.TelegramUsers.Update(telegramUser);
             }
             else
             {
-                _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name));
+                _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Name, message.Chat.Id));
             }
 
             await botClient.SendTextMessageAsync(

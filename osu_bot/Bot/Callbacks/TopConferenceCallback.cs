@@ -59,7 +59,8 @@ namespace osu_bot.Bot.Callbacks
             beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesQuery.ExecuteAsync());
 
             List<OsuScoreInfo> result = new();
-            List<TelegramUser> telegramUsers = _database.TelegramUsers.FindAll().ToList();
+            IEnumerable<TelegramUser> telegramUsers =
+                _database.TelegramUsers.Find(u => u.ChatId == callbackQuery.Message.Chat.Id);
 
             foreach (TelegramUser telegramUser in telegramUsers)
             { 

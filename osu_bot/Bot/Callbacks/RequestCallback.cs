@@ -59,7 +59,7 @@ namespace osu_bot.Bot.Callbacks
             return $"{DATA}: {requestId} A: {RequestAction.RequireChange} R: {propertyName} V: {newValue}";
         }
 
-        private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data)
+        private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data, long chatId)
         {
             Match requestMatch = new Regex(@"P: (\d+)").Match(data);
             if (!requestMatch.Success)
@@ -67,11 +67,16 @@ namespace osu_bot.Bot.Callbacks
 
             int page = int.Parse(requestMatch.Groups[1].Value);
 
-            IEnumerable<TelegramUser> users = _database.TelegramUsers.FindAll();
+            IEnumerable<TelegramUser> users = _database.TelegramUsers.Find(u => u.ChatId == chatId);
             int pagesCount = users.Count() / 8 + 1;
             users = users.Skip((page - 1) * 8).Take(8);
             IEnumerator<TelegramUser> usersEnumerator = users.GetEnumerator();
             List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            keyboard.Add(new InlineKeyboardButton[]
+            {
+                InlineKeyboardButton.WithCallbackData("Выбери своего бойца:"),
+                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{DATA}: {request.Id} A: {RequestAction.Cancel}")
+            });
             for (int i = 0; i < 4; i++)
             {
                 List<InlineKeyboardButton> rowButtons = new();
@@ -90,16 +95,16 @@ namespace osu_bot.Bot.Callbacks
 
             List<InlineKeyboardButton> buttons = new();
             if (page != 1)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page - 1}"));
             else
-                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
 
             buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
 
             if (page != pagesCount)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page + 1}"));
             else
-                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
 
             keyboard.Add(buttons);
 
@@ -203,11 +208,11 @@ namespace osu_bot.Bot.Callbacks
             List<InlineKeyboardButton> rowButtons4 = new()
             {
                 InlineKeyboardButton.WithCallbackData(
-                    text: "Send ✅",
+                    text: "✅ Send",
                     callbackData: $"{DATA}: {request.Id} A: {RequestAction.Save}"),
 
                 InlineKeyboardButton.WithCallbackData(
-                    text: "Cancel ❌",
+                    text: "❌ Cancel",
                     callbackData: $"{DATA}: {request.Id} A: {RequestAction.Cancel}")
             };
             keyboard.Add(rowButtons4);
@@ -215,14 +220,14 @@ namespace osu_bot.Bot.Callbacks
             return new InlineKeyboardMarkup(keyboard);
         }
 
-        private InlineKeyboardMarkup CreateMarkup(RequestAction action, Request request, string callbackQueryData)
+        private InlineKeyboardMarkup CreateMarkup(RequestAction action, Request request, string callbackQueryData, long chatId)
         {
             return action switch
             {
-                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData),
-                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData),
+                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData, chatId),
+                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData, chatId),
                 RequestAction.RequireChange => CreateRequireEditMarkup(request),
-                _ => Extensions.KeyboardMarkupForMap(request.BeatmapId)
+                _ => Extensions.ScoreKeyboardMarkup(request.BeatmapId)
             };
         }
 
@@ -284,15 +289,11 @@ namespace osu_bot.Bot.Callbacks
             if (_actions.TryGetValue(actionRequest, out Action<Request>? action))
                 action.Invoke(request);
 
-            InlineKeyboardMarkup newReplyMarkup = CreateMarkup(actionRequest, request, data);
-
-            await botClient.AnswerCallbackQueryAsync(
-                callbackQueryId: callbackQuery.Id,
-                cancellationToken: cancellationToken);
+            InlineKeyboardMarkup newReplyMarkup = CreateMarkup(actionRequest, request, data, callbackQuery.Message.Chat.Id);
 
             try
             {
-                Message answer = await botClient.EditMessageReplyMarkupAsync(
+                await botClient.EditMessageReplyMarkupAsync(
                     chatId: callbackQuery.Message.Chat.Id,
                     replyMarkup: newReplyMarkup,
                     messageId: callbackQuery.Message.MessageId,
@@ -301,14 +302,25 @@ namespace osu_bot.Bot.Callbacks
             catch (Exception ex)
             {
                 if (!ex.Message.Contains("message is not modified"))
-                    throw ex;
+                    throw;
             }
 
             if (actionRequest == RequestAction.Save)
             {
+                ChatMember fromMember = await botClient.GetChatMemberAsync(
+                    chatId: callbackQuery.Message.Chat,
+                    userId: request.FromUser.Id,
+                    cancellationToken: cancellationToken);
+
+                ChatMember toMember = await botClient.GetChatMemberAsync(
+                    chatId: callbackQuery.Message.Chat,
+                    userId: request.ToUser.Id,
+                    cancellationToken: cancellationToken);
+
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.Message.Chat,
-                    text: $"{request.FromUser.Id} создал реквест для {request.ToUser.Id} на карте osu.ppy.sh/beatmaps/{request.BeatmapId}",
+                    text: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте osu.ppy.sh/beatmaps/{request.BeatmapId}",
+                    replyMarkup: Extensions.RequestKeyboardMakrup(request.BeatmapId),
                     cancellationToken: cancellationToken);
             }
         }
