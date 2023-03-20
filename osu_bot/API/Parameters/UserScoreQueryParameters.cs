@@ -91,7 +91,11 @@ namespace osu_bot.API.Parameters
                         IEnumerable<string> modsStrings = result.ToUpper().Split(2);
                         foreach (string modString in modsStrings)
                         {
-                            parameterMods.Add(ModsConverter.ToMod(modString));
+                            Mod? mod = ModsConverter.ToMod(modString);
+                            if (mod is null)
+                                throw new ModsArgumentException(modString);
+
+                            parameterMods.Add(mod);
                         }
                     }
                 }

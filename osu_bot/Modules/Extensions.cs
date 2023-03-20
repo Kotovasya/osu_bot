@@ -104,7 +104,7 @@ namespace osu_bot.Modules
                 {
                     InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
                     InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA} id: 0 action: {RequestAction.Create} page: 1")
+                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} P: 1")
                 });
         }
     }

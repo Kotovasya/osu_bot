@@ -30,7 +30,7 @@ namespace osu_bot.Bot.Callbacks
 
     public class RequestCallback : ICallback
     {
-        public const string DATA = "Request";
+        public const string DATA = "RID";
 
         public string Data => DATA;
 
@@ -56,12 +56,12 @@ namespace osu_bot.Bot.Callbacks
 
         private string GetRequireCallbackData(long requestId, string propertyName, object? newValue)
         {
-            return $"Request id: {requestId} action: {RequestAction.RequireChange} require: {propertyName} value: {newValue}";
+            return $"{DATA}: {requestId} A: {RequestAction.RequireChange} R: {propertyName} V: {newValue}";
         }
 
         private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data)
         {
-            Match requestMatch = new Regex(@"page: (\d+)").Match(data);
+            Match requestMatch = new Regex(@"P: (\d+)").Match(data);
             if (!requestMatch.Success)
                 throw new Exception("При обработке запроса на реквест произошла ошибка");
 
@@ -90,14 +90,14 @@ namespace osu_bot.Bot.Callbacks
 
             List<InlineKeyboardButton> buttons = new();
             if (page != 1)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️", $"Request id: {request.Id} action: {RequestAction.PageChange} page: {page - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page - 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️"));
 
-            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page + 1}/{pagesCount}"));
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
 
             if (page != pagesCount)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"Request id: {request.Id} action: {RequestAction.PageChange} page: {page + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("▶️", $"{DATA}: {request.Id} A: {RequestAction.PageChange} P: {page + 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("▶️"));
 
@@ -112,13 +112,13 @@ namespace osu_bot.Bot.Callbacks
             List<InlineKeyboardButton> rowButtons1 = new()
             {
                 InlineKeyboardButton.WithCallbackData(
-                        text: request.RequirePass ? "Pass ✅" : "Pass ❌",
+                        text: request.RequirePass ? "🍀 Pass 🟢" : "🍀 Pass 🔴",
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.RequirePass), !request.RequirePass)),
                 InlineKeyboardButton.WithCallbackData(
-                        text: request.RequireFullCombo ? "FC ✅" : "FC ❌",
+                        text: request.RequireFullCombo ? "🔥 FC 🟢" : "🔥 FC 🔴",
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireFullCombo), !request.RequireFullCombo)),
                 InlineKeyboardButton.WithCallbackData(
-                        text: request.RequireSnipe ? "Snipe ✅" : "Snipe ❌",
+                        text: request.RequireSnipe ? "🎯 Snipe 🟢" : "🎯 Snipe 🔴",
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireSnipe), !request.RequireSnipe))
             };
             keyboard.Add(rowButtons1);
@@ -195,18 +195,20 @@ namespace osu_bot.Bot.Callbacks
 
             rowButtons3.Add(InlineKeyboardButton.WithCallbackData(
                 text: request.IsAllMods ? "All mods" : "Any mod",
-                callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireMods), !request.IsAllMods))
+                callbackData: GetRequireCallbackData(request.Id, nameof(request.IsAllMods), !request.IsAllMods))
             );
+
+            keyboard.Add(rowButtons3);
 
             List<InlineKeyboardButton> rowButtons4 = new()
             {
                 InlineKeyboardButton.WithCallbackData(
                     text: "Send ✅",
-                    callbackData: $"Request id: {request.Id} action: {RequestAction.Cancel}"),
+                    callbackData: $"{DATA}: {request.Id} A: {RequestAction.Save}"),
 
                 InlineKeyboardButton.WithCallbackData(
                     text: "Cancel ❌",
-                    callbackData: $"Request id: {request.Id} action: {RequestAction.Save}")
+                    callbackData: $"{DATA}: {request.Id} A: {RequestAction.Cancel}")
             };
             keyboard.Add(rowButtons4);
 
@@ -226,7 +228,7 @@ namespace osu_bot.Bot.Callbacks
 
         private Request ChangeRequireFromData(Request request, string data)
         {
-            Match requireMatch = new Regex(@"require: (\S+) value: (\S+)$").Match(data);
+            Match requireMatch = new Regex(@"R: (\S+) V: (\S+)$").Match(data);
             if (!requireMatch.Success)
                 throw new Exception("При обработке запроса на реквест произошла ошибка");
 
@@ -262,7 +264,7 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
-            Match requestMatch = new Regex(@"Request id: (\d+) action: (\w+)").Match(data);
+            Match requestMatch = new Regex(@"RID: (\d+) A: (\w+)").Match(data);
             if (!requestMatch.Success)
                 throw new Exception("При обработке запроса на реквест произошла ошибка");
 
@@ -271,7 +273,7 @@ namespace osu_bot.Bot.Callbacks
 
             Request request = actionRequest switch
             {
-                RequestAction.Create => new Request(_database.TelegramUsers.FindById(callbackQuery.From.Id)),
+                RequestAction.Create => new Request(_database.TelegramUsers.FindById(callbackQuery.From.Id), requestId),
                 RequestAction.RequireChange => ChangeRequireFromData(_database.Requests.FindById(requestId), data),
                 _ => _database.Requests.FindById(requestId),
             };
@@ -282,16 +284,25 @@ namespace osu_bot.Bot.Callbacks
             if (_actions.TryGetValue(actionRequest, out Action<Request>? action))
                 action.Invoke(request);
 
-            InlineKeyboardMarkup markup = CreateMarkup(actionRequest, request, data);
+            InlineKeyboardMarkup newReplyMarkup = CreateMarkup(actionRequest, request, data);
 
             await botClient.AnswerCallbackQueryAsync(
                 callbackQueryId: callbackQuery.Id,
                 cancellationToken: cancellationToken);
 
-            Task<Message> answer = botClient.EditMessageReplyMarkupAsync(
-                chatId: new ChatId(callbackQuery.Message.Chat.Id),
-                messageId: callbackQuery.Message.MessageId,
-                replyMarkup: markup);
+            try
+            {
+                Message answer = await botClient.EditMessageReplyMarkupAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    replyMarkup: newReplyMarkup,
+                    messageId: callbackQuery.Message.MessageId,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                if (!ex.Message.Contains("message is not modified"))
+                    throw ex;
+            }
 
             if (actionRequest == RequestAction.Save)
             {

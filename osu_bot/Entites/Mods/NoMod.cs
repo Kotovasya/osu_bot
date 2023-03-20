@@ -7,7 +7,7 @@ namespace osu_bot.Entites.Mods
 {
     public class NoMod : Mod
     {
-        public const int NUMBER = 1 << 31;
+        public const int NUMBER = 1 << 30;
         public const string NAME = "NM";
         public const string FULLNAME = "NoMod";
 

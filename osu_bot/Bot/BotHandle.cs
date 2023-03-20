@@ -78,14 +78,14 @@ namespace osu_bot.Bot
             {
                 if (update.CallbackQuery != null)
                 {
-                    await _callbacksManager.HandlingAsync(botClient, update.CallbackQuery, cancellationToken);
                     message = update.CallbackQuery.Message;
+                    await _callbacksManager.HandlingAsync(botClient, update.CallbackQuery, cancellationToken);                 
                 }
 
                 else if (update.Message != null)
                 {
-                    await _commandsManager.HandlingAsync(botClient, update.Message, cancellationToken);
                     message = update.Message;
+                    await _commandsManager.HandlingAsync(botClient, update.Message, cancellationToken);        
                 }
             }
             catch (Exception ex)

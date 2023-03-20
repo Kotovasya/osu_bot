@@ -52,7 +52,7 @@ namespace osu_bot.Bot.Callbacks
 
             _beatmapInfoQuery.Parameters.BeatmapId = beatmapId;
             OsuBeatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
-            IEnumerable<Mod> mods = ModsConverter.ToMods(Array.Empty<string>());
+            IEnumerable<Mod>? mods = ModsConverter.ToMods(new string[] { NoMod.NAME } );
 
             _beatmapAttributesQuery.Parameters.BeatmapId = beatmapId;
             _beatmapAttributesQuery.Parameters.Mods = mods;

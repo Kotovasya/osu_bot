@@ -5,6 +5,7 @@ using System.Text;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using SkiaSharp;
+using Telegram.Bot.Types.Enums;
 
 namespace osu_bot.Modules
 {
@@ -43,7 +44,7 @@ namespace osu_bot.Modules
     //    K2 = 1 << 28,
     //    V2 = 1 << 29,   //ScoreV2
     //    MR = 1 << 30,
-    //    NM = 1 << 31
+    //    NM = 1 << 30 ??
     //}
 
     public static class ModsConverter
@@ -80,21 +81,26 @@ namespace osu_bot.Modules
             }
         }
 
-        public static Mod ToMod(string str) => s_stringModsDictionary.ContainsKey(str) ? s_stringModsDictionary[str] : throw new ModsArgumentException(str);
+        public static Mod? ToMod(string str) => s_stringModsDictionary.ContainsKey(str) ? s_stringModsDictionary[str] : null;
 
-        public static IEnumerable<Mod> ToMods(IEnumerable<string> mods)
+        public static Mod? ToMod(int number) => s_intModsDictionary.ContainsKey(number) ? s_intModsDictionary[number] : null;
+
+        public static IEnumerable<Mod>? ToMods(IEnumerable<string> mods)
         {
             HashSet<Mod> result = new();
 
             if (!mods.Any())
             {
-                result.Add(ToMod("NM"));
-                return result;
+                return null;
             }
 
             foreach (string modString in mods)
             {
-                result.Add(ToMod(modString));
+                Mod? mod = ToMod(modString);
+                if (mod is null)
+                    throw new ModsArgumentException(modString);
+
+                result.Add(mod);
             }
             return result;
         }
@@ -104,7 +110,7 @@ namespace osu_bot.Modules
             HashSet<Mod> result = new();
             if (number == 0)
                 return result;
-
+ 
             int i = 0;
             while (number > 0)
             {
@@ -152,9 +158,9 @@ namespace osu_bot.Modules
 
         public static int ToInt(IEnumerable<Mod>? mods)
         {
-            if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
+            if (mods == null || !mods.Any())
             {
-                return s_stringModsDictionary["NM"].Number;
+                return 0;
             }
 
             return mods.Sum(m => m.Number);

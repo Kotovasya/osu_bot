@@ -87,7 +87,8 @@ namespace osu_bot.Entites
 
             if (json["mods"] != null)
             {
-                Mods = ModsConverter.ToMods(json["mods"].Values<string>());
+                IEnumerable<Mod>? mods = ModsConverter.ToMods(json["mods"].Values<string>());
+                Mods = mods ?? new Mod[] { ModsConverter.ToMod(NoMod.NUMBER) };
             }
 
             if (json["beatmap"] != null)
