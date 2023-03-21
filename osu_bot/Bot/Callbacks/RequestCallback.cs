@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using osu_bot.API;
 using osu_bot.API.Queries;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -227,7 +228,7 @@ namespace osu_bot.Bot.Callbacks
                 RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData, chatId),
                 RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData, chatId),
                 RequestAction.RequireChange => CreateRequireEditMarkup(request),
-                _ => Extensions.ScoreKeyboardMarkup(request.BeatmapId)
+                _ => Extensions.ScoreKeyboardMarkup(request.BeatmapId, request.BeatmapsetId)
             };
         }
 
@@ -283,6 +284,13 @@ namespace osu_bot.Bot.Callbacks
                 _ => _database.Requests.FindById(requestId),
             };
 
+            Match beatmapsetIdMatch = new Regex(@"BS: (\d+)").Match(data);
+            if (beatmapsetIdMatch.Success)
+            {
+                request.BeatmapsetId = long.Parse(beatmapsetIdMatch.Groups[1].Value);
+                byte[] array = await OsuAPI.Instance.BeatmapsetDownload(request.BeatmapsetId);
+            }
+
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return;
 
@@ -320,7 +328,7 @@ namespace osu_bot.Bot.Callbacks
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.Message.Chat,
                     text: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте osu.ppy.sh/beatmaps/{request.BeatmapId}",
-                    replyMarkup: Extensions.RequestKeyboardMakrup(request.BeatmapId),
+                    replyMarkup: Extensions.RequestKeyboardMakrup(request.BeatmapId, request.BeatmapId),
                     cancellationToken: cancellationToken);
             }
         }

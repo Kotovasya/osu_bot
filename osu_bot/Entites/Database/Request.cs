@@ -23,6 +23,8 @@ namespace osu_bot.Entites.Database
 
         public long BeatmapId { get; set; }
 
+        public long BeatmapsetId { get; set; }
+
         public bool RequirePass
         {
             get => _requirePass;

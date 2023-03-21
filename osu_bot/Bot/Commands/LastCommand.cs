@@ -80,7 +80,7 @@ namespace osu_bot.Bot.Commands
                 OsuScoreInfo score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
-                inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id);
+                inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmap.BeatmapsetId);
             }
             Message answer = await botClient.SendPhotoAsync(
                 chatId: message.Chat,

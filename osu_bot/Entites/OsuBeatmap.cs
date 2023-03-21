@@ -39,6 +39,11 @@ namespace osu_bot.Entites
         {
             if (json != null)
             {
+                if (json["id"] != null)
+                {
+                    BeatmapsetId = json["id"].Value<long>();
+                }
+
                 if (json["title"] != null)
                 {
                     Title = json["title"].Value<string>();
@@ -67,6 +72,7 @@ namespace osu_bot.Entites
         }
 
         public long Id { get; set; }
+        public long BeatmapsetId { get; set; }
         public string Title { get; set; }
         public string DifficultyName { get; set; }
         public string CoverUrl { get; set; }

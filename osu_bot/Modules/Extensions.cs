@@ -6,6 +6,7 @@ using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using SkiaSharp;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Modules
@@ -98,25 +99,37 @@ namespace osu_bot.Modules
             canvas.DrawText(drawableString, x, y, paint);
         }
 
-        public static InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId)
+        public static InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId, long beatmapsetId)
         {
             return new InlineKeyboardMarkup(
-                new[]
+                new InlineKeyboardButton[][]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
-                    InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                    InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} P: 1")
+                    new[]
+                    {
+                        InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
+                        InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
+                        InlineKeyboardButton.WithCallbackData(
+                            text: "📌Реквест",
+                            callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} BS: {beatmapsetId} P: 1"),
+                    },
+                    new[]
+                    {
+                   InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
+                   InlineKeyboardButton.WithUrl(text: "⬇️Map", url: $"https://osu.ppy.sh/beatmapsets/{beatmapsetId}/download"),
+                   InlineKeyboardButton.WithUrl(text: "⬇️Map🪞", url: $"https://beatconnect.io/b/{beatmapsetId}"),
+                    }
                 });
         }
 
-        public static InlineKeyboardMarkup RequestKeyboardMakrup(long beatmapId)
+        public static InlineKeyboardMarkup RequestKeyboardMakrup(long beatmapId, long beatmapsetId)
         {
-            return new InlineKeyboardMarkup(
-            new[]
-            {
-                    InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"osu.ppy.sh/beatmaps/{beatmapId}"),
-                    InlineKeyboardButton.WithUrl(text: "❤️Osu! Direct", url: $"osu://b/{beatmapId}"),
-            });
+           return new InlineKeyboardMarkup(
+               new[]
+               {
+                   InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
+                   InlineKeyboardButton.WithUrl(text: "⬇️Map", url: $"https://osu.ppy.sh/s/{beatmapsetId}"),
+                   InlineKeyboardButton.WithUrl(text: "⬇️Map🪞", url: $"https://beatconnect.io/b/{beatmapsetId}"),
+               });
         }
     }
 }

@@ -81,5 +81,10 @@ namespace osu_bot.API
             user.ParseUserJson(json);
             return user;
         }
+
+        public async Task<byte[]> BeatmapsetDownload(long beatmapsetId)
+        {
+            return await httpClient.GetByteArrayAsync($"https://osu.ppy.sh/beatmapsets/{beatmapsetId}/download");
+        }
     }
 }
