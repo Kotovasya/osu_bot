@@ -286,10 +286,7 @@ namespace osu_bot.Bot.Callbacks
 
             Match beatmapsetIdMatch = new Regex(@"BS: (\d+)").Match(data);
             if (beatmapsetIdMatch.Success)
-            {
                 request.BeatmapsetId = long.Parse(beatmapsetIdMatch.Groups[1].Value);
-                byte[] array = await OsuAPI.Instance.BeatmapsetDownload(request.BeatmapsetId);
-            }
 
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return;

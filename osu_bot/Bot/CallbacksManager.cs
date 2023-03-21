@@ -21,6 +21,7 @@ namespace osu_bot.Bot
             new MyScoreCallback(),
             new TopConferenceCallback(),
             new RequestCallback(),
+            new DownloadBeatmapCallback(),
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task>> _callbacks = new();
