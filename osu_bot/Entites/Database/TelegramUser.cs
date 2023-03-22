@@ -9,7 +9,7 @@ namespace osu_bot.Entites.Database
         {
         }
 
-        public TelegramUser(long id, int osuId, string osuName, long chatId)
+        public TelegramUser(long id, long osuId, string osuName, long chatId)
         {
             Id = id;
             OsuId = osuId;
@@ -21,7 +21,7 @@ namespace osu_bot.Entites.Database
 
         public long Id { get; set; }
 
-        public int OsuId { get; set; }
+        public long OsuId { get; set; }
 
         public string OsuName { get; set; }
     }

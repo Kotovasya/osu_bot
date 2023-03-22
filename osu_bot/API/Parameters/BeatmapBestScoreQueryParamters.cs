@@ -5,7 +5,7 @@ namespace osu_bot.API.Parameters
 {
     public class BeatmapBestScoresQueryParameters : IQueryParameters
     {
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public string? Username { get; set; }
 
         public long BeatmapId { get; set; }

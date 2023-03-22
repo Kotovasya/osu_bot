@@ -108,15 +108,12 @@ namespace osu_bot.Modules
                     {
                         InlineKeyboardButton.WithCallbackData(text: "🎯Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
                         InlineKeyboardButton.WithCallbackData(text: "🏆Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                        InlineKeyboardButton.WithCallbackData(
-                            text: "📌Реквест",
-                            callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} BS: {beatmapsetId} P: 1"),
+                        InlineKeyboardButton.WithCallbackData(text: "📌Реквест", callbackData: $"{RequestCallback.DATA}: {beatmapId} A: {RequestAction.Create} P: 1"),
                     },
                     new[]
                     {
-                   InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
-                   InlineKeyboardButton.WithCallbackData(text: "⬇️Map", callbackData: $"{DownloadBeatmapCallback.DATA} B: {beatmapId}"),
-                   InlineKeyboardButton.WithUrl(text: "⬇️Map🪞", url: $"https://beatconnect.io/b/{beatmapsetId}"),
+                        InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
+                        InlineKeyboardButton.WithUrl(text: "⬇️Map🪞", url: $"https://beatconnect.io/b/{beatmapsetId}"),
                     }
                 });
         }
@@ -127,7 +124,6 @@ namespace osu_bot.Modules
                new[]
                {
                    InlineKeyboardButton.WithUrl(text: "🌐Map URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
-                   InlineKeyboardButton.WithCallbackData(text: "⬇️Map", callbackData: $"{DownloadBeatmapCallback.DATA} B: {beatmapId}"),
                    InlineKeyboardButton.WithUrl(text: "⬇️Map🪞", url: $"https://beatconnect.io/b/{beatmapsetId}"),
                });
         }

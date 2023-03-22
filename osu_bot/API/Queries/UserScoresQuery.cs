@@ -4,6 +4,7 @@
 using Newtonsoft.Json.Linq;
 using osu_bot.API.Parameters;
 using osu_bot.Entites;
+using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 
 namespace osu_bot.API.Queries
@@ -21,7 +22,7 @@ namespace osu_bot.API.Queries
                 throw new ArgumentException($"Пользователь с именем {Parameters.Username} не найден");
             }
 
-            Parameters.Username = userInfo.Name;
+            Parameters.Username = userInfo.Username;
             Parameters.UserId = userInfo.Id;
 
             List<OsuScoreInfo> resultScores = new();

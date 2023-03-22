@@ -3,8 +3,10 @@
 
 using System.Net.Http.Json;
 using System.Text;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu_bot.Entites;
+using osu_bot.Entites.Database;
 
 namespace osu_bot.API
 {
@@ -52,6 +54,9 @@ namespace osu_bot.API
         {
             using HttpResponseMessage response = await httpClient.GetAsync(url);
             string str = await response.Content.ReadAsStringAsync();
+
+            JObject obj = JObject.Parse(str);
+
             if (!await CheckValidTokenAsync(str))
                 return await GetJsonArrayAsync(url);
             return JArray.Parse(str);
@@ -77,14 +82,8 @@ namespace osu_bot.API
                 throw new ArgumentException($"Пользователь с именем {username} не зарегистрирован");
             }
 
-            OsuUser user = new();
-            user.ParseUserJson(json);
+            OsuUser user = JsonConvert.DeserializeObject<OsuUser>(json.ToString());
             return user;
-        }
-
-        public async Task<Stream> BeatmapsetDownloadAsync(long beatmapsetId)
-        {
-            return await httpClient.GetStreamAsync($"https://osu.ppy.sh/beatmapsets/{beatmapsetId}/download");      
         }
     }
 }

@@ -47,7 +47,7 @@ namespace osu_bot.Bot.Commands
                     : throw new Exception("Неверно указано имя пользователя Osu! в команде, синтаксис /stats <username>");
             }
 
-            Entites.OsuUser userInfo = await _api.GetUserInfoByUsernameAsync(name);
+            OsuUser userInfo = await _api.GetUserInfoByUsernameAsync(name);
             if (userInfo.Id == 0)
             {
                 throw new ArgumentException($"Пользователь с именем {name} не найден");
