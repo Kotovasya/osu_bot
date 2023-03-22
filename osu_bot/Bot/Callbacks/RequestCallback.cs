@@ -13,6 +13,7 @@ using osu_bot.API.Queries;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -283,13 +284,6 @@ namespace osu_bot.Bot.Callbacks
                 RequestAction.RequireChange => ChangeRequireFromData(_database.Requests.FindById(requestId), data),
                 _ => _database.Requests.FindById(requestId),
             };
-
-            Match beatmapsetIdMatch = new Regex(@"BS: (\d+)").Match(data);
-            if (beatmapsetIdMatch.Success)
-            {
-                request.BeatmapsetId = long.Parse(beatmapsetIdMatch.Groups[1].Value);
-                byte[] array = await OsuAPI.Instance.BeatmapsetDownload(request.BeatmapsetId);
-            }
 
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return;

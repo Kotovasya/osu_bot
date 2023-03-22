@@ -4,6 +4,7 @@
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.API.Parameters
 {
@@ -17,7 +18,7 @@ namespace osu_bot.API.Parameters
 
         public string? Username { get; set; }
 
-        public int UserId { get; set; }
+        public long UserId { get; set; }
 
         public IEnumerable<Mod>? Mods { get; set; }
 

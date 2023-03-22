@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Globalization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
-using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.Entites
 {
@@ -103,7 +104,7 @@ namespace osu_bot.Entites
 
             if (json["user"] != null)
             {
-                User.ParseUserJson(json["user"]);
+                User = JsonConvert.DeserializeObject<OsuUser>(json["user"].ToString());
             }
         }
 

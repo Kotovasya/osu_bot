@@ -9,6 +9,7 @@ using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;

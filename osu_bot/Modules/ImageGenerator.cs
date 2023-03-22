@@ -6,6 +6,8 @@ using LiteDB;
 using osu_bot.Resources;
 using osu_bot.Entites;
 using SkiaSharp;
+using osu_bot.Entites.Database;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.Modules
 {
@@ -203,7 +205,7 @@ namespace osu_bot.Modules
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawText(score.Beatmap.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
 
-                drawableString = showNick ? $"Played by {score.User.Name} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
+                drawableString = showNick ? $"Played by {score.User.Username} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
                 _paint.SetColor(_lightGrayColor).SetSize(15);
                 canvas.DrawText(drawableString, x, 55, _paint);
 
@@ -323,17 +325,17 @@ namespace osu_bot.Modules
                 SKPaint paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikLightTypeface).SetSize(18);
                 StringsLinker stringLinker = new(paint1, paint2, true);
 
-                string drawableString = $"({score.User.CountryCode} #{score.User.CountryRating})";
-                float x = 102 - (paint1.MeasureText($"#{score.User.WorldRating}") / 2);
+                string drawableString = $"({score.User.CountryCode} #{score.User.CountryRank})";
+                float x = 102 - (paint1.MeasureText($"#{score.User.GlobalRank}") / 2);
 
-                stringLinker.SetStrings($"#{score.User.WorldRating}", drawableString)
+                stringLinker.SetStrings($"#{score.User.GlobalRank}", drawableString)
                     .SetPositions(x, 23, 48)
                     .Draw(canvas);
 
                 drawableString = $"{score.User.PP.Separate(".")}pp";
-                x = 102 - (paint1.MeasureText(score.User.Name) / 2);
+                x = 102 - (paint1.MeasureText(score.User.Username) / 2);
 
-                stringLinker.SetStrings(score.User.Name, drawableString)
+                stringLinker.SetStrings(score.User.Username, drawableString)
                     .SetPositions(x, 173, 198)
                     .Draw(canvas);
                 #endregion
@@ -637,7 +639,7 @@ namespace osu_bot.Modules
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
-                string drawableString = user.Name;
+                string drawableString = user.Username;
                 canvas.DrawAlignText(drawableString, avatarWidth / 2, 28, SKTextAlign.Center, _paint);
                 #endregion
 
@@ -647,12 +649,12 @@ namespace osu_bot.Modules
                 float rowSpacing = 30;
                 int wordSpacing = 5;
 
-                drawableString = $"#{user.WorldRating.Separate(".")}";
+                drawableString = $"#{user.GlobalRank.Separate(".")}";
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(22);
                 canvas.DrawText(drawableString, x, y, _paint);
                 y += rowSpacing;
 
-                drawableString = $"#{user.CountryRating} {user.CountryCode}";
+                drawableString = $"#{user.CountryRank} {user.CountryCode}";
                 canvas.DrawText(drawableString, x, 65, _paint);
 
 
@@ -667,7 +669,7 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = $"{user.Accuracy:0.00}%";
+                drawableString = $"{user.HitAccuracy:0.00}%";
                 stringLinker.SetStrings("Accuracy:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -679,19 +681,20 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = $"{user.PlayTime.Days}d {user.PlayTime.Hours}h {user.PlayTime.Minutes}m {user.PlayTime.Seconds}s";
+                TimeSpan playTime = TimeSpan.FromSeconds(user.PlayTime);
+                drawableString = $"{playTime.Days}d {playTime.Hours}h {playTime.Minutes}m {playTime.Seconds}s";
                 stringLinker.SetStrings("Playtime:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = user.LastOnline != null ? GetPlayedTimeString(user.LastOnline.Value) : "скрыто";
+                drawableString = user.LastVisit != null ? GetPlayedTimeString(user.LastVisit.Value) : "скрыто";
                 stringLinker.SetStrings("Online:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = user.DateRegistration.ToString("dd MM yyyy г.");
+                drawableString = user.JoinDate.ToString("dd MM yyyy г.");
                 stringLinker.SetStrings("Registration:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -707,11 +710,11 @@ namespace osu_bot.Modules
                 float graphHeight = 110f;
 
                 int linesCount = 5;
-                int coef = user.RankHistory.Length / linesCount;
+                int coef = user.RankHistory.Count / linesCount;
                 int maxRank = user.RankHistory.Max();
                 int minRank = user.RankHistory.Min();
                 int rankDiff = maxRank - minRank;
-                float scaleX = graphWidth / user.RankHistory.Length;
+                float scaleX = graphWidth / user.RankHistory.Count;
                 float scaleY = rankDiff != 0 ? graphHeight / rankDiff : graphHeight / 2;
                 float startX = 55;
                 float startY = 350;
@@ -725,9 +728,9 @@ namespace osu_bot.Modules
                 x = startX + (scaleX * 0);
                 y = startY + (scaleY * (user.RankHistory[0] - minRank));
                 path.MoveTo(x, y);
-                for (int i = 0; i <= user.RankHistory.Length; i++)
+                for (int i = 0; i <= user.RankHistory.Count; i++)
                 {
-                    if (i < user.RankHistory.Length - 1)
+                    if (i < user.RankHistory.Count - 1)
                     {
                         x = startX + (scaleX * i) + 1;
                         y = startY + (scaleY * (user.RankHistory[i + 1] - minRank));
@@ -740,13 +743,13 @@ namespace osu_bot.Modules
                             .StrokeWidth = 0.4f;
                         canvas.DrawLine(x, y, x, startY + graphHeight, linePaint);
                         _paint.SetColor(_lightGrayColor).SetTypeface(_rubikLightTypeface).SetSize(15);
-                        int day = user.RankHistory.Length - i;
+                        int day = user.RankHistory.Count - i;
                         drawableString = day == 0 ? "now" : $"{day} d ago";
 
                         float centerX = x - (_paint.MeasureText(drawableString) / 2);
                         canvas.DrawText(drawableString, centerX, startY + graphHeight + 40, _paint);
 
-                        drawableString = i != user.RankHistory.Length ? $"#{user.RankHistory[i].Separate(".")}" : $"#{user.RankHistory[i - 1].Separate(".")}";
+                        drawableString = i != user.RankHistory.Count ? $"#{user.RankHistory[i].Separate(".")}" : $"#{user.RankHistory[i - 1].Separate(".")}";
                         centerX = x - (_paint.MeasureText(drawableString) / 2);
                         canvas.DrawText(drawableString, centerX, startY + graphHeight + 40 + _paint.FontSpacing, _paint);
                     }
@@ -785,9 +788,9 @@ namespace osu_bot.Modules
                 canvas.DrawImage(image, sourceRect, destRect, _paint);
 
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
-                canvas.DrawText($"#{user.Name}", 156, 30, _paint);
-                canvas.DrawText($"#{user.WorldRating}", 156, 60, _paint);
-                canvas.DrawText($"({user.CountryCode} #{user.CountryRating})", 156, 90, _paint);
+                canvas.DrawText($"#{user.Username}", 156, 30, _paint);
+                canvas.DrawText($"#{user.GlobalRank}", 156, 60, _paint);
+                canvas.DrawText($"({user.CountryCode} #{user.CountryRank})", 156, 90, _paint);
 
                 int i = 0;
                 foreach (OsuScoreInfo score in scores)
@@ -963,7 +966,7 @@ namespace osu_bot.Modules
                     drawableString = $"# {i}";
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
-                    drawableString = score.User.Name;
+                    drawableString = score.User.Username;
                     centerX += 100;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
@@ -1029,6 +1032,21 @@ namespace osu_bot.Modules
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
                 }
                 #endregion
+
+                return surface.Snapshot();
+            }
+        }
+
+        public async Task<SKImage> CreateRequestCardAsync(Request request)
+        {
+            int width = 400;
+            int height = 400;
+
+            SKImageInfo imageInfo = new(width, height);
+            using (SKSurface surface = SKSurface.Create(imageInfo))
+            {
+                SKCanvas canvas = surface.Canvas;
+                canvas.Clear(_backgroundColor);
 
                 return surface.Snapshot();
             }

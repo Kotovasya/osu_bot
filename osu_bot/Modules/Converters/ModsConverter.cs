@@ -7,7 +7,7 @@ using osu_bot.Exceptions;
 using SkiaSharp;
 using Telegram.Bot.Types.Enums;
 
-namespace osu_bot.Modules
+namespace osu_bot.Modules.Converters
 {
     //[Flags]
     //public enum Mods
@@ -110,7 +110,7 @@ namespace osu_bot.Modules
             HashSet<Mod> result = new();
             if (number == 0)
                 return result;
- 
+
             int i = 0;
             while (number > 0)
             {

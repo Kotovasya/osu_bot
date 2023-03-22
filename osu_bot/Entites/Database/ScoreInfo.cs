@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using osu_bot.Entites.Mods;
-using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.Entites.Database
 {

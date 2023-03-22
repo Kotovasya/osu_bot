@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using osu_bot.Entites.Mods;
-using osu_bot.Modules;
+using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests.Abstractions;
 
 namespace osu_bot.Entites.Database
