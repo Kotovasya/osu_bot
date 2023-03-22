@@ -1,28 +1,26 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using LiteDB;
+
 namespace osu_bot.Entites.Database
 {
     public class TelegramUser
     {
-        public TelegramUser()
-        {
-        }
+        public TelegramUser() { }
 
-        public TelegramUser(long id, long osuId, string osuName, long chatId)
+        public TelegramUser(long id, long chatId, OsuUser osuUser)
         {
             Id = id;
-            OsuId = osuId;
-            OsuName = osuName;
             ChatId = chatId;
+            OsuUser = osuUser;
         }
-
-        public long ChatId { get; set; }
 
         public long Id { get; set; }
 
-        public long OsuId { get; set; }
+        public long ChatId { get; set; }
 
-        public string OsuName { get; set; }
+        [BsonRef]
+        public OsuUser OsuUser { get; set; }
     }
 }

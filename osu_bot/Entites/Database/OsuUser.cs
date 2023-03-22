@@ -115,9 +115,5 @@ namespace osu_bot.Entites.Database
         [AllowNull]
         [JsonProperty("rank_history.data")]
         public IList<int> RankHistory { get; set; }
-
-
-        [JsonIgnore]
-        public DateTime LastUpdate { get; set; }
     }
 }
