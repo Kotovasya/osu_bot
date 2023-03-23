@@ -8,15 +8,44 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using Newtonsoft.Json;
+using osu_bot.Entites.Database;
 
 namespace osu_bot.Entites
 {
+    public class BeatmapAttributesKey : IEquatable<BeatmapAttributesKey>
+    {
+        public long BeatmapId { get; set; }
+        public int Mods { get; set; }
+
+        public BeatmapAttributesKey() { }
+        public BeatmapAttributesKey(long beatmapId, int mods)
+        {
+            BeatmapId = beatmapId;
+            Mods = mods;
+        }
+
+        public bool Equals(BeatmapAttributesKey? other)
+        {
+            if (other is null)
+                return false;
+
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return BeatmapId == other.BeatmapId && Mods == other.Mods;
+        }
+    }
+
     public class OsuBeatmapAttributes
     {
         [BsonId]
+        [JsonIgnore]
+        public BeatmapAttributesKey Id { get; set; }
+
+        [JsonIgnore]
         public long BeatmapId { get; set; }
 
-        [BsonId]
+        [JsonIgnore]
         public int Mods { get; set; }
 
         [JsonProperty("star_rating")]

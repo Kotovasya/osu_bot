@@ -8,6 +8,13 @@ using osu_bot.Modules.Converters;
 
 namespace osu_bot.API.Parameters
 {
+    public enum ScoreType
+    {
+        Best,
+        Firsts,
+        Recent
+    }
+
     public class UserScoreQueryParameters
         : IQueryParameters, IParseParameters
     {
@@ -20,23 +27,27 @@ namespace osu_bot.API.Parameters
 
         public long UserId { get; set; }
 
-        public IEnumerable<Mod>? Mods { get; set; }
+        public int Mods { get; set; }
 
         public int Offset { get; set; }
 
         public int Limit { get; set; }
 
-        public bool IsRecent { get; set; }
+        public ScoreType Type { get; set; }
 
         public bool IncludeFails { get; set; }
 
-        public string GetQueryString() => IsRecent
-                ? $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/recent?include_fails={(IncludeFails ? 1 : 0)}&limit=100"
-                : $"https://osu.ppy.sh/api/v2/users/{UserId}/scores/best?limit=100";
+        public string GetQueryString() => Type switch
+        {
+            ScoreType.Best => $"/users/{UserId}/scores/best?limit=100",
+            ScoreType.Firsts => $"/users/{UserId}/scores/firsts?limit=100",
+            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails={(IncludeFails ? 1 : 0)}&limit=100",
+            _ => throw new ArgumentException()
+        };
 
         public void Parse(string input)
         {
-            if (IsRecent)
+            if (Type == ScoreType.Recent)
                 Limit = 1;
             else
                 Limit = 5;
@@ -82,7 +93,6 @@ namespace osu_bot.API.Parameters
                     else
                     {
                         HashSet<Mod> parameterMods = new();
-                        Mods = parameterMods;
 
                         if (result.Length < 2 || result.Length % 2 != 0)
                         {
@@ -98,6 +108,8 @@ namespace osu_bot.API.Parameters
 
                             parameterMods.Add(mod);
                         }
+
+                        Mods = ModsConverter.ToInt(parameterMods);
                     }
                 }
             }

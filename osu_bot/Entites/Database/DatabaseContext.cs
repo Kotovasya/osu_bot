@@ -13,12 +13,17 @@ namespace osu_bot.Entites.Database
 
         private readonly LiteDatabase _database;
 
-        private DatabaseContext(string connectionString) => _database = new LiteDatabase(connectionString);
+        private DatabaseContext(string connectionString)
+        {
+            _database = new LiteDatabase(connectionString);
+        }
 
         public ILiteCollection<TelegramUser> TelegramUsers => _database.GetCollection<TelegramUser>();
 
-        public ILiteCollection<ScoreInfo> Scores => _database.GetCollection<ScoreInfo>();
+        public ILiteCollection<OsuScore> Scores => _database.GetCollection<OsuScore>();
 
         public ILiteCollection<Request> Requests => _database.GetCollection<Request>();
+
+        public ILiteCollection<OsuBeatmapAttributes> BeatmapAttributes => _database.GetCollection<OsuBeatmapAttributes>();
     }
 }

@@ -23,7 +23,10 @@ namespace osu_bot.Entites
         public float Stars { get; set; }
 
         [JsonProperty("status")]
-        public string Statis { get; set; }
+        public string Status { get; set; }
+
+        [JsonProperty("is_scoreable")]
+        public bool IsScoreable { get; set; }
 
         [JsonProperty("total_length")]
         public int TotalLength { get; set; }
@@ -73,6 +76,7 @@ namespace osu_bot.Entites
         [JsonProperty("beatmapset_id")]
         public long BeatmapsetId { get; set; }
 
+        [JsonProperty("beatmapset")]
         [BsonRef]
         public OsuBeatmapset Beatmapset { get; set; }
     }
