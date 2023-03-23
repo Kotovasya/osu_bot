@@ -12,7 +12,7 @@ using LiteDB;
 using Newtonsoft.Json;
 using osu_bot.Modules.Converters;
 
-namespace osu_bot.Entites.Database
+namespace osu_bot.Entites
 {
     [JsonConverter(typeof(JsonPathConverter))]
     public class OsuUser

@@ -3,7 +3,6 @@
 
 using osu_bot.API.Parameters;
 using osu_bot.Entites;
-using osu_bot.Entites.Database;
 
 namespace osu_bot.API.Queries
 {

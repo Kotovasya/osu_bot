@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using osu_bot.API;
+using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using Telegram.Bot;
 using Telegram.Bot.Types;

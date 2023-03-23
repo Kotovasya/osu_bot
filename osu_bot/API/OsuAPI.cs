@@ -1,23 +1,28 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu_bot.Entites;
-using osu_bot.Entites.Database;
 
 namespace osu_bot.API
 {
     public class OsuAPI
     {
-        private readonly HttpClient httpClient = new();
+        public const string BASE_URL = "https://osu.ppy.sh/api/v2"; 
+
+        private static readonly SemaphoreSlim s_sempahore = new(1);
+
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public static OsuAPI Instance { get; } = new();
 
         private async Task SetTokenAsync()
         {
+            await s_sempahore.WaitAsync();
             var json = new
             {
                 client_id = 20064,
@@ -25,65 +30,69 @@ namespace osu_bot.API
                 grant_type = "client_credentials",
                 scope = "public"
             };
-            using HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://osu.ppy.sh/oauth/token", json);
+            using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("https://osu.ppy.sh/oauth/token", json);
             JToken jsonResponse = JToken.Parse(await response.Content.ReadAsStringAsync());
-            httpClient.DefaultRequestHeaders.Authorization =
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse["access_token"].ToString());
-        }
-
-        private async Task<bool> CheckValidTokenAsync(string content)
-        {
-            bool valid = !content.Contains("authentication");
-            if (!valid)
-                await SetTokenAsync();
-            return valid;
+            s_sempahore.Release();
         }
 
         public async Task InitalizeAsync() => await SetTokenAsync();
 
-        public async Task<JToken> GetJsonAsync(string url)
+        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
-            using HttpResponseMessage response = await httpClient.GetAsync(url);            
-            string str = await response.Content.ReadAsStringAsync();
-            if (!await CheckValidTokenAsync(str))
-                return await GetJsonAsync(url);
-            return JToken.Parse(str);
-        }
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-        public async Task<JArray> GetJsonArrayAsync(string url)
-        {
-            using HttpResponseMessage response = await httpClient.GetAsync(url);
-            string str = await response.Content.ReadAsStringAsync();
-
-            JObject obj = JObject.Parse(str);
-
-            if (!await CheckValidTokenAsync(str))
-                return await GetJsonArrayAsync(url);
-            return JArray.Parse(str);
-        }
-
-        public async Task<JToken> PostJsonAsync(string url, JToken json)
-        {
-            string str = json.ToString();
-            using HttpResponseMessage response = await httpClient.PostAsync(url, new StringContent(str, Encoding.UTF8, "application/json"));
-            string content = await response.Content.ReadAsStringAsync();
-            if (!await CheckValidTokenAsync(content))
-                return await PostJsonAsync(url, json);
-            return JToken.Parse(content);
-        }
-
-        public async Task<OsuUser> GetUserInfoByUsernameAsync(string username)
-        {
-            JToken json = await GetJsonAsync($"https://osu.ppy.sh/api/v2/users/{username}");
-            if (!await CheckValidTokenAsync(json.ToString()))
-                return await GetUserInfoByUsernameAsync(username);
-            if (json.Contains("error"))
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                throw new ArgumentException($"Пользователь с именем {username} не зарегистрирован");
+                await SetTokenAsync();
+                response = await _httpClient.SendAsync(request);
             }
 
-            OsuUser user = JsonConvert.DeserializeObject<OsuUser>(json.ToString());
-            return user;
+            return response;
+        }
+        
+        public async Task<JObject> GetJsonAsync(string url)
+        {
+            using HttpRequestMessage request = new(HttpMethod.Get, url);
+            using HttpResponseMessage response = await SendAsync(request);
+            string str = await response.Content.ReadAsStringAsync();
+            return JObject.Parse(str);
+        }
+
+        public async Task<JObject> PostJsonAsync(string url, JObject json)
+        {
+            string str = json.ToString();
+            using HttpRequestMessage request = new(HttpMethod.Post, url)
+            {
+                Content = new StringContent(str, Encoding.UTF8, "application/json")
+            };
+            using HttpResponseMessage response = await SendAsync(request);
+            string content = await response.Content.ReadAsStringAsync();
+            return JObject.Parse(content);
+        }
+
+        public async Task<OsuUser?> GetUserAsync(string username)
+        {
+            JObject json = await GetJsonAsync($"{BASE_URL}/users/{username}");
+            if (json.ContainsKey("error"))
+                return null;
+
+            return JsonConvert.DeserializeObject<OsuUser>(json.ToString());
+        }
+
+        public async Task<OsuUser?> GetUserAsync(long id)
+        {
+            JObject json = await GetJsonAsync($"{BASE_URL}/users/{id}");
+            if (json.ContainsKey("error"))
+                return null;
+
+            return JsonConvert.DeserializeObject<OsuUser>(json.ToString());
+        }
+
+        public async Task<OsuBeatmap?> GetBeatmapAsync()
+        {
+
         }
     }
 }

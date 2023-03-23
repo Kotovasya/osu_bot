@@ -1,87 +1,79 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Newtonsoft.Json.Linq;
-using osu_bot.Entites.Mods;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using LiteDB;
+using Newtonsoft.Json;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.Entites
 {
+    [JsonConverter(typeof(JsonPathConverter))]
     public class OsuBeatmap
     {
-#pragma warning disable CS8618
-        public OsuBeatmap() => Attributes = new OsuBeatmapAttributes();
-#pragma warning restore CS8618
-
-        public void ParseBeatmapJson(JToken json)
-        {
-            if (json != null)
-            {
-                if (json["id"] != null)
-                {
-                    Id = json["id"].Value<long>();
-                }
-
-                if (json["version"] != null)
-                {
-                    DifficultyName = json["version"].Value<string>();
-                }
-
-                if (json["url"] != null)
-                {
-                    Url = json["url"].Value<string>();
-                }
-
-                Attributes.ParseBeatmapAttributesJson(json);
-            }
-        }
-
-        public void ParseBeatmapsetJson(JToken json)
-        {
-            if (json != null)
-            {
-                if (json["id"] != null)
-                {
-                    BeatmapsetId = json["id"].Value<long>();
-                }
-
-                if (json["title"] != null)
-                {
-                    Title = json["title"].Value<string>();
-                }
-
-                if (json["covers"] != null)
-                {
-                    CoverUrl = json["covers"]["cover@2x"].Value<string>();
-                }
-
-                if (json["status"] != null)
-                {
-                    Status = json["status"].Value<string>();
-                }
-
-                if (json["artist"] != null)
-                {
-                    Artist = json["artist"].Value<string>();
-                }
-
-                if (json["creator"] != null)
-                {
-                    MapperName = json["creator"].Value<string>();
-                }
-            }
-        }
-
+        [BsonId]
+        [JsonProperty("id")]
         public long Id { get; set; }
-        public long BeatmapsetId { get; set; }
-        public string Title { get; set; }
-        public string DifficultyName { get; set; }
-        public string CoverUrl { get; set; }
-        public string Artist { get; set; }
-        public string Url { get; set; }
-        public string MapperName { get; set; }
-        public string Status { get; set; }
-        public OsuBeatmapAttributes Attributes { get; set; }
 
-        public bool ScoresTable => Status != "graveyard" && Status != "wip" && Status != "pending";
+        [JsonProperty("difficulty_rating")]
+        public float Stars { get; set; }
+
+        [JsonProperty("status")]
+        public string Statis { get; set; }
+
+        [JsonProperty("total_length")]
+        public int TotalLength { get; set; }
+
+        [JsonProperty("version")]
+        public string DifficultyName { get; set; }
+
+        [JsonProperty("accuracy")]
+        public float OD { get; set; }
+
+        [JsonProperty("ar")]
+        public float AR { get; set; }
+
+        [JsonProperty("cs")]
+        public float CS { get; set; }
+
+        [JsonProperty("drain")]
+        public float HP { get; set; }
+
+        [JsonProperty("bpm")]
+        public float BPM { get; set; }
+
+        [JsonProperty("count_circles")]
+        public int CountCircles { get; set; }
+
+        [JsonProperty("count_sliders")]
+        public int CountSliders { get; set; }
+
+        [JsonProperty("drain")]
+        public int CountSpinners { get; set; }
+
+        [JsonProperty("hit_length")]
+        public int HitLength { get; set; }
+
+        [JsonProperty("last_updated")]
+        public DateTime LastUpdated { get; set; }
+
+        [JsonProperty("passcount")]
+        public int PassCount { get; set; }
+
+        [JsonProperty("playcount")]
+        public int PlayCount { get; set; }
+
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("beatmapset_id")]
+        public long BeatmapsetId { get; set; }
+
+        [BsonRef]
+        public OsuBeatmapset Beatmapset { get; set; }
     }
 }

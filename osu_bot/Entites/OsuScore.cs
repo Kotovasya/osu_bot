@@ -6,10 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LiteDB;
 using Newtonsoft.Json;
+using osu_bot.Modules.Converters;
 
-namespace osu_bot.Entites.Database
+namespace osu_bot.Entites
 {
+    [JsonConverter(typeof(JsonPathConverter))]
     public class OsuScore
     {
         [JsonProperty("id")]
@@ -39,27 +42,25 @@ namespace osu_bot.Entites.Database
         [JsonProperty("statistics.count_300")]
         public int Count300 { get; set; }
 
-        [JsonProperty("count_100")]
+        [JsonProperty("statistics.count_100")]
         public int Count100 { get; set; }
 
-        [JsonProperty("count_50")]
+        [JsonProperty("statistics.count_50")]
         public int Count50 { get; set; }
 
-        [JsonProperty("count_miss")]
+        [JsonProperty("statistics.count_miss")]
         public int CountMises { get; set; }
 
         [JsonProperty("mods")]
         public int Mods { get; set; }
 
-        [JsonProperty("max_combo")]
+        [BsonRef]
+        public OsuBeatmap Beatmap { get; set; }
 
+        [BsonRef]
+        public OsuUser User { get; set; }
 
-        [JsonProperty("max_combo")]
-
-
-        [JsonProperty("max_combo")]
-
-
-        [JsonProperty("max_combo")]
+        [BsonRef]
+        public OsuBeatmapAttributes BeatmapAttributes { get; set; }
     }
 }
