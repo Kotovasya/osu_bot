@@ -4,7 +4,6 @@
 using System.Text.RegularExpressions;
 using LiteDB;
 using osu_bot.API;
-using osu_bot.API.Queries;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -22,75 +21,35 @@ namespace osu_bot.Bot.Callbacks
         public const string DATA = "Top conf";
         public string Data => DATA;
 
-        private readonly BeatmapScoresQuery _beatmapScoresQuery = new();
-        private readonly BeatmapInfoQuery _beatmapInfoQuery = new();
-        private readonly BeatmapAttributesJsonQuery _beatmapAttributesQuery = new();
-
-        private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
+        private readonly OsuService _service = OsuService.Instance;
 
         public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            if (callbackQuery.Data == null)
-            {
+            if (callbackQuery.Data is null)
                 return;
-            }
 
-            if (callbackQuery.Message == null)
-            {
+            if (callbackQuery.Message is null)
                 return;
-            }
-
+            
             string data = callbackQuery.Data;
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
 
             if (!beatmapIdMatch.Success)
-            {
                 throw new Exception("При обработке запроса \"Топ конфы\" произошла ошибка считывания ID карты");
-            }
-
+            
             int beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            _beatmapInfoQuery.Parameters.BeatmapId = beatmapId;
-            OsuBeatmap beatmap = await _beatmapInfoQuery.ExecuteAsync();
-            IEnumerable<Mod>? mods = ModsConverter.ToMods(new string[] { NoMod.NAME } );
+            IEnumerable<TelegramUser> telegramUsers = _database.TelegramUsers
+                .Find(u => u.ChatId == callbackQuery.Message.Chat.Id);
 
-            _beatmapAttributesQuery.Parameters.BeatmapId = beatmapId;
-            _beatmapAttributesQuery.Parameters.Mods = mods;
-            beatmap.Attributes.ParseDifficultyAttributesJson(await _beatmapAttributesQuery.ExecuteAsync());
+            List<OsuScore> result = new();
 
-            List<OsuScoreInfo> result = new();
-            IEnumerable<TelegramUser> telegramUsers =
-                _database.TelegramUsers.Find(u => u.ChatId == callbackQuery.Message.Chat.Id);
-
-            foreach (TelegramUser telegramUser in telegramUsers)
-            { 
-                IEnumerable<OsuScoreInfo> scores;
-
-                if (beatmap.ScoresTable)
-                {
-                    //После выполнения ExecuteAsync beatmapScoreQuery.Parameters = new()
-                    _beatmapScoresQuery.Parameters.BeatmapId = beatmapId;
-                    _beatmapScoresQuery.Parameters.Username = telegramUser.OsuName;
-                    scores = await _beatmapScoresQuery.ExecuteAsync();
-                }
-                else
-                {
-                    scores = _database.Scores
-                        .Find(s => s.BeatmapId == beatmapId)
-                        .Where(s => s.User.Id == telegramUser.Id)
-                        .Select(s => new OsuScoreInfo(s))
-                        .ToList();
-
-                    OsuUser user = await _api.GetUserInfoByUsernameAsync(telegramUser.OsuName);
-                    foreach (OsuScoreInfo score in scores)
-                        score.User = user;
-                }
-
-                foreach (OsuScoreInfo score in scores)
-                    score.Beatmap = beatmap;
-
-                result.AddRange(scores);
+            foreach(TelegramUser telegramUser in telegramUsers)
+            {
+                IList<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(beatmapId, telegramUser.OsuUser.Id, false);
+                if (scores is not null)
+                    result.AddRange(scores);
             }
 
             if (result.Count == 0)

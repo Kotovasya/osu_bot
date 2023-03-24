@@ -7,10 +7,10 @@ using System.Text;
 using LiteDB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using osu_bot.API.Parameters;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Modules.Converters;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API
 {
@@ -81,26 +81,6 @@ namespace osu_bot.API
             return JsonConvert.DeserializeObject<T>(jsonResponse.ToString());
         }
 
-        public async Task<JObject> GetJsonAsync(string url)
-        {
-            using HttpRequestMessage request = new(HttpMethod.Get, url);
-            using HttpResponseMessage response = await SendAsync(request);
-            string str = await response.Content.ReadAsStringAsync();
-            return JObject.Parse(str);
-        }
-
-        public async Task<JObject> PostJsonAsync(string url, JObject json)
-        {
-            string str = json.ToString();
-            using HttpRequestMessage request = new(HttpMethod.Post, url)
-            {
-                Content = new StringContent(str, Encoding.UTF8, "application/json")
-            };
-            using HttpResponseMessage response = await SendAsync(request);
-            string content = await response.Content.ReadAsStringAsync();
-            return JObject.Parse(content);
-        }
-
         public async Task<OsuUser?> GetUserAsync(string username)
         {
             return await GetAsync<OsuUser>($"/users/{username}");
@@ -111,6 +91,12 @@ namespace osu_bot.API
             return await GetAsync<OsuUser>($"/users/{id}");
         }
 
+
+        public async Task<OsuScore?> GetScoreAsync(long id)
+        {
+            return await GetAsync<OsuScore>($"/scores/osu/{id}");
+        }
+
         public async Task<OsuBeatmap?> GetBeatmapAsync(long id)
         {
             return await GetAsync<OsuBeatmap>($"/beatmaps/{id}");
@@ -118,46 +104,39 @@ namespace osu_bot.API
 
         public async Task<OsuBeatmapset?> GetBeatmapsetAsync(long id)
         {
-            return await GetAsync<OsuBeatmapset>($"beatmapsets/{id}");
+            return await GetAsync<OsuBeatmapset>($"/beatmapsets/{id}");
         }
 
-        public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(long id, int mods = 0)
+        public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(long beatmapId, int mods = 0)
         {
             JObject json = JObject.FromObject(new
             {
                 mods = mods,
                 ruleset = "osu",
             });
-            return await PostAsync<OsuBeatmapAttributes>($"/beatmaps/{id}/attributes", json);
+            return await PostAsync<OsuBeatmapAttributes>($"/beatmaps/{beatmapId}/attributes", json);
         }
 
-        public async Task<IList<OsuScore>?> GetUserScores(UserScoreQueryParameters parameters, bool includeBeatmapsAttributes = true)
+        public async Task<IList<OsuScore>?> GetUserScoresAsync(UserScoreQueryParameters parameters)
         {
             IList<OsuScore>? scores = await GetAsync<IList<OsuScore>>(parameters.GetQueryString());
             if (scores is null)
                 return null;
 
-            scores = scores.Where(s => s.Mods == parameters.Mods)
+            return scores.Where(s => s.Mods == parameters.Mods)
                 .Skip(parameters.Offset)
                 .Take(parameters.Limit)
                 .ToList();
+        }
 
-            if (includeBeatmapsAttributes)
-            {
-                foreach (OsuScore score in scores)
-                {
-                    OsuBeatmapAttributes? attributes = _database.BeatmapAttributes
-                        .FindOne(a => a.Equals(new BeatmapAttributesKey(score.Beatmap.Id, score.Mods)));
+        public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long userId, long beatmapId)
+        {
+            return await GetAsync<OsuScore>($"/beatmaps/{beatmapId}/scores/users/{userId}");
+        }
 
-                    attributes ??= await GetBeatmapAttributesAsync(score.Beatmap.Id, score.Mods);
-                    if (attributes is null)
-                        throw new NotImplementedException();
-
-                    score.BeatmapAttributes = attributes;
-                }
-            }
-
-            return scores;
+        public async Task<IList<OsuScore>?> GetUserBeatmapAllScoresAsync(long beatmapId, long userId)
+        {
+            return await GetAsync<IList<OsuScore>>($"/beatmaps/{beatmapId}/scores/users/{userId}/all");
         }
     }
 }

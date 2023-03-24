@@ -137,6 +137,16 @@ namespace osu_bot.Modules.Converters
             return sb.Remove(sb.Length - 1, 1).ToString();
         }
 
+        public static string ToString(int mods)
+        {
+            return ToString(ToMods(mods));
+        }
+
+        public static SKImage? ToImage(int mods)
+        {
+            return ToImage(ToMods(mods));
+        }
+
         public static SKImage? ToImage(IEnumerable<Mod>? mods)
         {
             if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))

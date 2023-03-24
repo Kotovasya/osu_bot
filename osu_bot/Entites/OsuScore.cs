@@ -31,7 +31,7 @@ namespace osu_bot.Entites
         public bool IsPassed { get; set; }
 
         [JsonProperty("pp")]
-        public float PP { get; set; }
+        public float? PP { get; set; }
 
         [JsonProperty("rank")]
         public string Rank { get; set; }
@@ -49,7 +49,7 @@ namespace osu_bot.Entites
         public int Count50 { get; set; }
 
         [JsonProperty("statistics.count_miss")]
-        public int CountMises { get; set; }
+        public int CountMisses { get; set; }
 
         [JsonProperty("mods")]
         public int Mods { get; set; }
@@ -62,5 +62,8 @@ namespace osu_bot.Entites
 
         [BsonRef]
         public OsuBeatmapAttributes BeatmapAttributes { get; set; }
+
+
+        public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
     }
 }

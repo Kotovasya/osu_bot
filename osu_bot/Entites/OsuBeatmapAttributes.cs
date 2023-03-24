@@ -12,30 +12,6 @@ using osu_bot.Entites.Database;
 
 namespace osu_bot.Entites
 {
-    public class BeatmapAttributesKey : IEquatable<BeatmapAttributesKey>
-    {
-        public long BeatmapId { get; set; }
-        public int Mods { get; set; }
-
-        public BeatmapAttributesKey() { }
-        public BeatmapAttributesKey(long beatmapId, int mods)
-        {
-            BeatmapId = beatmapId;
-            Mods = mods;
-        }
-
-        public bool Equals(BeatmapAttributesKey? other)
-        {
-            if (other is null)
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
-            return BeatmapId == other.BeatmapId && Mods == other.Mods;
-        }
-    }
-
     public class OsuBeatmapAttributes
     {
         [BsonId]
@@ -71,6 +47,7 @@ namespace osu_bot.Entites
         public double OD { get; set; }
         public double HP { get; set; }
 
+        public int Length { get; set; }
         public double BPM { get; set; }
     }
 }

@@ -31,11 +31,14 @@ namespace osu_bot.Entites
         [JsonProperty("play_count")]
         public int PlayCount { get; set; }
 
+        [JsonProperty("is_scoreable")]
+        public bool IsScoreable { get; set; }
+
         [JsonProperty("preview_url")]
         public string AudioUrl { get; set; }
 
-        [JsonProperty("status")]
-        public string Status { get; set; }
+        [JsonProperty("ranked")]
+        public OsuBeatmapStatus Status { get; set; }
 
         [JsonProperty("title")]
         public string Title { get; set; }

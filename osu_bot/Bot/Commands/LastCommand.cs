@@ -1,8 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using osu_bot.API.Parameters;
-using osu_bot.API.Queries;
+using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
@@ -18,9 +17,8 @@ namespace osu_bot.Bot.Commands
 {
     internal class LastCommand : ICommand
     {
-        private readonly UserScoresQuery _userScoresQuery = new();
-
         private readonly DatabaseContext _database = DatabaseContext.Instance;
+        private readonly OsuService _service = OsuService.Instance;
 
         public string CommandText => "/last";
 
@@ -36,8 +34,7 @@ namespace osu_bot.Bot.Commands
                 return;
             }
 
-            UserScoreQueryParameters parameters = _userScoresQuery.Parameters;
-            parameters.IsRecent = true;
+            UserScoreQueryParameters parameters = new(ScoreType.Recent, true);
 
             string args = message.Text.Trim()[CommandText.Length..];
             parameters.Parse(args);
@@ -50,15 +47,18 @@ namespace osu_bot.Bot.Commands
                 }
 
                 TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
-                parameters.Username = telegramUser != null
-                    ? telegramUser.OsuName
+                parameters.UserId = telegramUser != null
+                    ? telegramUser.OsuUser.Id
                     : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
             }
 
-            List<OsuScoreInfo> scores = await _userScoresQuery.ExecuteAsync();
+            IList<OsuScore>? scores = await _service.GetUserScoresAsync(parameters);
+            if (scores is null)
+                throw new NotImplementedException();
+
             if (scores.Count == 0)
             {
-                if (parameters.Mods == null)
+                if (parameters.Mods == 0)
                 {
                     throw new Exception($"У пользователя {parameters.Username} отсутствуют скоры за последние 24 часа");
                 }
@@ -78,7 +78,7 @@ namespace osu_bot.Bot.Commands
             }
             else
             {
-                OsuScoreInfo score = scores.First();
+                OsuScore score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
                 inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmap.BeatmapsetId);

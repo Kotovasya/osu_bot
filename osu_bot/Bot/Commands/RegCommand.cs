@@ -14,44 +14,33 @@ namespace osu_bot.Bot.Commands
         public string CommandText => "/reg";
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private readonly OsuAPI _api = OsuAPI.Instance;
+        private readonly OsuService _service = OsuService.Instance;
 
         public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
-            if (message.Text == null)
-            {
+            if (message.Text is null)
                 return;
-            }
 
-            if (message.From == null)
-            {
-                return;
-            }
+            if (message.From is null)
+                return; 
 
             string text = message.Text;
             int startIndex = text.IndexOf(' ') + 1;
             string name = text[startIndex..].ToLower();
 
-            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.OsuName.ToLower() == name);
+            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.OsuUser.Username.ToLower() == name);
             if (telegramUser != null)
             {
-                throw new ArgumentException($"Аккаунт {telegramUser.OsuName} уже привязан к другому пользователю");
+                throw new ArgumentException($"Аккаунт {telegramUser.OsuUser.Username} уже привязан к другому пользователю");
             }
 
-            OsuUser osuUser = await _api.GetUserInfoByUsernameAsync(name);
+            OsuUser? osuUser = await _service.GetUserAsync(name);
 
-            telegramUser = _database.TelegramUsers.FindById(message.From.Id);
-            if (telegramUser != null)
-            {
-                telegramUser.OsuName = osuUser.Username;
-                telegramUser.OsuId = osuUser.Id;
-                telegramUser.ChatId = message.Chat.Id;
-                _database.TelegramUsers.Update(telegramUser);
-            }
-            else
-            {
-                _database.TelegramUsers.Insert(new TelegramUser(message.From.Id, osuUser.Id, osuUser.Username, message.Chat.Id));
-            }
+            if (osuUser is null)
+                throw new NotImplementedException();
+
+            TelegramUser newTelegramUser = new(message.From.Id, message.Chat.Id, osuUser);
+            _database.TelegramUsers.Upsert(newTelegramUser);
 
             await botClient.SendTextMessageAsync(
                     chatId: message.Chat,

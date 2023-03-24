@@ -6,28 +6,32 @@ using osu_bot.Exceptions;
 using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 
-namespace osu_bot.API.Parameters
+namespace osu_bot.API
 {
     public enum ScoreType
     {
         Best,
         Firsts,
-        Recent
+        Recent,
     }
 
     public class UserScoreQueryParameters
-        : IQueryParameters, IParseParameters
     {
-        public UserScoreQueryParameters()
+        public UserScoreQueryParameters(ScoreType type, bool includeFails = false)
         {
-            IncludeFails = true;
+            Type = type;
+            IncludeFails = includeFails;
         }
 
         public string? Username { get; set; }
 
-        public long UserId { get; set; }
+        public long? UserId { get; set; }
+
+        public long? BeatmapId { get; set; }
 
         public int Mods { get; set; }
+
+        public bool IncludeFails { get; set; }
 
         public int Offset { get; set; }
 
@@ -35,13 +39,11 @@ namespace osu_bot.API.Parameters
 
         public ScoreType Type { get; set; }
 
-        public bool IncludeFails { get; set; }
-
         public string GetQueryString() => Type switch
         {
             ScoreType.Best => $"/users/{UserId}/scores/best?limit=100",
             ScoreType.Firsts => $"/users/{UserId}/scores/firsts?limit=100",
-            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails={(IncludeFails ? 1 : 0)}&limit=100",
+            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails=1&limit=100",
             _ => throw new ArgumentException()
         };
 

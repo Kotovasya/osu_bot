@@ -15,7 +15,7 @@ namespace osu_bot.Bot.Commands
     public class StatsCommand : ICommand
     {
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private readonly OsuAPI _api = OsuAPI.Instance;
+        private readonly OsuService _service = OsuService.Instance;
 
         public string CommandText => "/stats";
 
@@ -37,7 +37,7 @@ namespace osu_bot.Bot.Commands
             {
                 TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
                 name = telegramUser != null
-                    ? telegramUser.OsuName
+                    ? telegramUser.OsuUser.Username
                     : throw new Exception("Аккаунт Osu! не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
             }
             else
@@ -48,13 +48,15 @@ namespace osu_bot.Bot.Commands
                     : throw new Exception("Неверно указано имя пользователя Osu! в команде, синтаксис /stats <username>");
             }
 
-            OsuUser userInfo = await _api.GetUserInfoByUsernameAsync(name);
-            if (userInfo.Id == 0)
-            {
-                throw new ArgumentException($"Пользователь с именем {name} не найден");
-            }
+            OsuUser? user = await _service.GetUserAsync(name);
 
-            SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(userInfo);
+            if (user is null)
+                throw new NotImplementedException();
+
+            if (user.Id == 0)
+                throw new ArgumentException($"Пользователь с именем {name} не найден");
+
+            SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(user);
 
             await botClient.SendPhotoAsync(
                 chatId: message.Chat,

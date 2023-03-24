@@ -139,15 +139,15 @@ namespace osu_bot.Modules
 
         #endregion
 
-        private readonly Dictionary<string, SKImage> _rankStatus = new()
+        private readonly Dictionary<OsuBeatmapStatus, SKImage> _rankStatus = new()
         {
-            { "graveyard", ResourcesManager.MapStatusManager.Graveyard },
-            { "wip", ResourcesManager.MapStatusManager.Graveyard },
-            { "pending", ResourcesManager.MapStatusManager.Graveyard },
-            { "ranked", ResourcesManager.MapStatusManager.Rating },
-            { "approved", ResourcesManager.MapStatusManager.Approved },
-            { "qualified", ResourcesManager.MapStatusManager.Approved },
-            { "loved", ResourcesManager.MapStatusManager.Loved },
+            { OsuBeatmapStatus.Graveyard, ResourcesManager.MapStatusManager.Graveyard },
+            { OsuBeatmapStatus.Wip, ResourcesManager.MapStatusManager.Graveyard },
+            { OsuBeatmapStatus.Pending, ResourcesManager.MapStatusManager.Graveyard },
+            { OsuBeatmapStatus.Ranked, ResourcesManager.MapStatusManager.Rating },
+            { OsuBeatmapStatus.Approved, ResourcesManager.MapStatusManager.Approved },
+            { OsuBeatmapStatus.Qualified, ResourcesManager.MapStatusManager.Approved },
+            { OsuBeatmapStatus.Loved, ResourcesManager.MapStatusManager.Loved },
         };
 
         private readonly HttpClient _httpClient = new();
@@ -170,7 +170,7 @@ namespace osu_bot.Modules
                 : diff.Seconds > 30 ? $"{diff.Seconds} seconds ago" : "few seconds ago";
         }
 
-        public async Task<SKImage> CreateSmallCardAsync(OsuScoreInfo score, bool showNick)
+        public async Task<SKImage> CreateSmallCardAsync(OsuScore score, bool showNick)
         {
             int width = 1000;
             int height = 114;
@@ -187,7 +187,7 @@ namespace osu_bot.Modules
                 float x = 100f;
 
                 
-                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.CoverUrl);
+                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.Beatmapset.CoverUrl);
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRect sourceRect = new() { Location = new SKPoint((image.Width / 2) - 406, (image.Height / 2) - 250), Size = new SKSize(812, 500) };
                 SKRect destRect = new() { Location = new SKPoint(x, 14), Size = new SKSize(146, 90) };
@@ -203,13 +203,13 @@ namespace osu_bot.Modules
                 x = 260;
 
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
-                canvas.DrawText(score.Beatmap.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
+                canvas.DrawText(score.Beatmap.Beatmapset.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
 
-                drawableString = showNick ? $"Played by {score.User.Username} {GetPlayedTimeString(score.Date)}" : $"Played {GetPlayedTimeString(score.Date)}";
+                drawableString = showNick ? $"Played by {score.User.Username} {GetPlayedTimeString(score.CreatedAt)}" : $"Played {GetPlayedTimeString(score.CreatedAt)}";
                 _paint.SetColor(_lightGrayColor).SetSize(15);
                 canvas.DrawText(drawableString, x, 55, _paint);
 
-                drawableString = $"{score.Beatmap.DifficultyName} {score.Beatmap.Attributes.Stars:0.00}";
+                drawableString = $"{score.Beatmap.DifficultyName} {score.BeatmapAttributes.Stars:0.00}";
                 canvas.DrawText(drawableString, x, 75, _paint);
 
                 x += _paint.MeasureText(drawableString);
@@ -227,7 +227,7 @@ namespace osu_bot.Modules
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 20 + _paint.MeasureText(drawableString);
 
-                drawableString = $"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x";
+                drawableString = $"{score.MaxCombo}x/{score.Beatmap.MaxCombo}x";
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 20 + _paint.MeasureText(drawableString);
 
@@ -267,7 +267,7 @@ namespace osu_bot.Modules
 
                 if (score.Rank ==  "F")
                 {
-                    float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
+                    float hits = score.HitObjects * 1.0f / score.Beatmap.TotalObjects * 100.0f;
                     drawableString = $"{hits:F2}%";
                     _paint.SetColor(_whiteColor);
                     x = 50 - (_paint.MeasureText(drawableString) / 2);
@@ -291,7 +291,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateFullCardAsync(OsuScoreInfo score)
+        public async Task<SKImage> CreateFullCardAsync(OsuScore score)
         {
             int width = 1080;
             int height = 376;
@@ -304,7 +304,7 @@ namespace osu_bot.Modules
                 canvas.Clear(_backgroundColor);
 
                 #region Background map image
-                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.CoverUrl);
+                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.Beatmapset.CoverUrl);
                 SKRect sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
                 SKRect destRect = new() { Location = new SKPoint(204, 0), Size = new SKSize(876, 204) };
                 SKImage image = SKImage.FromEncodedData(data);
@@ -348,15 +348,15 @@ namespace osu_bot.Modules
                 x += mapStatusImage.Width + 5;
 
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
-                drawableString = $"{score.Beatmap.Title} [{score.Beatmap.DifficultyName}]";
+                drawableString = $"{score.Beatmap.Beatmapset.Title} [{score.Beatmap.DifficultyName}]";
                 canvas.DrawText(drawableString, x, 23, _paint);
 
-                drawableString = $"{score.Beatmap.Artist}";
+                drawableString = $"{score.Beatmap.Beatmapset.Artist}";
                 _paint.SetSize(18);
                 canvas.DrawText(drawableString, x, 48, _paint);
 
                 x = 213;
-                drawableString = $"Mapped by {score.Beatmap.MapperName}";
+                drawableString = $"Mapped by {score.Beatmap.Beatmapset.Mapper}";
                 _paint.SetSize(15);
                 canvas.DrawText(drawableString, x, 73, _paint);
 
@@ -367,15 +367,15 @@ namespace osu_bot.Modules
                 paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
                 stringLinker = new StringsLinker(paint1, paint2, wordSpacing);
 
-                drawableString = score.Beatmap.Attributes.BaseCS.ToString("0.0");
+                drawableString = score.Beatmap.CS.ToString("0.0");
                 x = stringLinker.SetStrings("CS:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
-                if (score.Beatmap.Attributes.CS != score.Beatmap.Attributes.BaseCS)
+                if (score.Beatmap.CS != score.BeatmapAttributes.CS)
                 {
                     x += 2;
-                    drawableString = $"{score.Beatmap.Attributes.CS:0.0}";
+                    drawableString = $"{score.BeatmapAttributes.CS:0.0}";
                     _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
@@ -388,15 +388,15 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = score.Beatmap.Attributes.BaseAR.ToString("0.0");
+                drawableString = score.Beatmap.AR.ToString("0.0");
                 x = stringLinker.SetStrings("AR:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
-                if (score.Beatmap.Attributes.AR != score.Beatmap.Attributes.BaseAR)
+                if (score.Beatmap.AR != score.BeatmapAttributes.AR)
                 {
                     x += 2;
-                    drawableString = $"{score.Beatmap.Attributes.AR:0.0}";
+                    drawableString = $"{score.BeatmapAttributes.AR:0.0}";
                     _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
@@ -409,15 +409,15 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = score.Beatmap.Attributes.BaseOD.ToString("0.0");
+                drawableString = score.Beatmap.OD.ToString("0.0");
                 x = stringLinker.SetStrings("OD:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
-                if (score.Beatmap.Attributes.OD != score.Beatmap.Attributes.BaseOD)
+                if (score.Beatmap.OD != score.BeatmapAttributes.OD)
                 {
                     x += 2;
-                    drawableString = $"{score.Beatmap.Attributes.OD:0.0}";
+                    drawableString = $"{score.BeatmapAttributes.OD:0.0}";
                     _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
 
@@ -430,15 +430,15 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = score.Beatmap.Attributes.BaseHP.ToString("0.0");
+                drawableString = score.Beatmap.HP.ToString("0.0");
                 x = stringLinker.SetStrings("HP:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
-                if (score.Beatmap.Attributes.HP != score.Beatmap.Attributes.BaseHP)
+                if (score.Beatmap.HP != score.BeatmapAttributes.HP)
                 {
                     x += 2;
-                    drawableString = $"{score.Beatmap.Attributes.HP:0.0}";
+                    drawableString = $"{score.Beatmap.HP:0.0}";
                     _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 4, _paint);
 
@@ -451,21 +451,21 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = TimeSpan.FromSeconds(score.Beatmap.Attributes.Length).ToString(@"mm\:ss");
+                drawableString = TimeSpan.FromSeconds(score.BeatmapAttributes.Length).ToString(@"mm\:ss");
                 x = stringLinker.SetStrings("Length:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = score.Beatmap.Attributes.BPM.ToString();
+                drawableString = score.BeatmapAttributes.BPM.ToString();
                 x = stringLinker.SetStrings("BPM:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = $"{score.Beatmap.Attributes.Stars:0.00}";
+                drawableString = $"{score.BeatmapAttributes.Stars:0.00}";
                 x = stringLinker.SetStrings("Stars:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -503,7 +503,7 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 x += columnSpacing;
 
-                drawableString = $"{score.MaxCombo}x/{score.Beatmap.Attributes.MaxCombo}x";
+                drawableString = $"{score.MaxCombo}x/{score.Beatmap.MaxCombo}x";
                 x = stringLinker.SetStrings("Combo", drawableString)
                     .SetPositions(x, y, y + 30)
                     .Draw(canvas);
@@ -550,7 +550,7 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 x += columnSpacing;
 
-                float hits = score.HitObjects * 1.0f / score.Beatmap.Attributes.TotalObjects * 100.0f;
+                float hits = score.HitObjects * 1.0f / score.Beatmap.TotalObjects * 100.0f;
                 drawableString = $"{hits:F2}%";
                 x = stringLinker.SetStrings("Hit objects", drawableString)
                     .SetPositions(x, y, y + 20)
@@ -600,7 +600,7 @@ namespace osu_bot.Modules
 
                 x = width - 200;
                 stringLinker.SecondPaint.SetColor(_whiteColor);
-                drawableString = GetPlayedTimeString(score.Date);
+                drawableString = GetPlayedTimeString(score.CreatedAt);
                 stringLinker.SetStrings("Played", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
@@ -765,7 +765,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<OsuScoreInfo> scores)
+        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<OsuScore> scores)
         {
             int width = 1000;
             int height = 136 + (scores.Count() * 114);
@@ -793,7 +793,7 @@ namespace osu_bot.Modules
                 canvas.DrawText($"({user.CountryCode} #{user.CountryRank})", 156, 90, _paint);
 
                 int i = 0;
-                foreach (OsuScoreInfo score in scores)
+                foreach (OsuScore score in scores)
                 {
                     float y = 136 + (i * 114);
                     SKImage scoreImage = await CreateSmallCardAsync(score, false);
@@ -810,7 +810,7 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateTableScoresCardAsync(IEnumerable<OsuScoreInfo> scores)
+        public async Task<SKImage> CreateTableScoresCardAsync(IEnumerable<OsuScore> scores)
         {
             scores = scores.OrderByDescending(score => score.Score).Take(15);
 
@@ -825,18 +825,18 @@ namespace osu_bot.Modules
 
                 #region Map info
                 OsuBeatmap beatmap = scores.First().Beatmap;
-                byte[] data = await _httpClient.GetByteArrayAsync(beatmap.CoverUrl);
+                byte[] data = await _httpClient.GetByteArrayAsync(beatmap.Beatmapset.CoverUrl);
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRectI imageSize = new(0, 0, image.Width, image.Height);
                 image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 SKRect dest = new(0, 0, 1080, 300);
                 canvas.DrawImage(image, dest, _paint);
 
-                string drawableString = $"{beatmap.Title} - {beatmap.Artist} [{beatmap.DifficultyName}]";
+                string drawableString = $"{beatmap.Beatmapset.Title} - {beatmap.Beatmapset.Artist} [{beatmap.DifficultyName}]";
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawAlignText(drawableString, width / 2, 25, SKTextAlign.Center, _paint);
 
-                drawableString = $"Mapped by {beatmap.MapperName}";
+                drawableString = $"Mapped by {beatmap.Beatmapset.Mapper}";
                 _paint.SetSize(16);
                 canvas.DrawAlignText(drawableString, width / 2, 45, SKTextAlign.Center, _paint);
 
@@ -848,49 +848,49 @@ namespace osu_bot.Modules
                 SKPaint paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
                 StringsLinker stringLinker = new(paint1, paint2, wordSpacing);
 
-                drawableString = beatmap.Attributes.BaseCS.ToString("0.0");
+                drawableString = beatmap.CS.ToString("0.0");
                 x = stringLinker.SetStrings("CS:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = beatmap.Attributes.BaseAR.ToString("0.0");
+                drawableString = beatmap.AR.ToString("0.0");
                 x = stringLinker.SetStrings("AR:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = beatmap.Attributes.BaseOD.ToString("0.0");
+                drawableString = beatmap.OD.ToString("0.0");
                 x = stringLinker.SetStrings("OD:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = beatmap.Attributes.BaseHP.ToString("0.0");
+                drawableString = beatmap.HP.ToString("0.0");
                 x = stringLinker.SetStrings("HP:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = TimeSpan.FromSeconds(beatmap.Attributes.Length).ToString(@"mm\:ss");
+                drawableString = TimeSpan.FromSeconds(beatmap.HitLength).ToString(@"mm\:ss");
                 x = stringLinker.SetStrings("Length:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = beatmap.Attributes.BPM.ToString();
+                drawableString = beatmap.BPM.ToString();
                 x = stringLinker.SetStrings("BPM:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
 
                 x += columnSpacing;
 
-                drawableString = $"{beatmap.Attributes.Stars:0.00}";
+                drawableString = $"{beatmap.Stars:0.00}";
                 x = stringLinker.SetStrings("Stars:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -957,7 +957,7 @@ namespace osu_bot.Modules
 
                 #region Score rows
                 int i = 0;
-                foreach (OsuScoreInfo score in scores)
+                foreach (OsuScore score in scores)
                 {
                     centerX = 40;
                     y = 380 + (35 * i);
@@ -988,7 +988,7 @@ namespace osu_bot.Modules
                     _paint.SetColor(_whiteColor);
                     canvas.DrawText(")", x, y, _paint);
 
-                    drawableString = $"{score.MaxCombo}/{score.Beatmap.Attributes.MaxCombo}x";
+                    drawableString = $"{score.MaxCombo}/{score.Beatmap.MaxCombo}x";
                     centerX += 110;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
@@ -1007,7 +1007,7 @@ namespace osu_bot.Modules
                     centerX += 100;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
-                    drawableString = score.Date.ToShortDateString();
+                    drawableString = score.CreatedAt.ToShortDateString();
                     centerX += 100;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 

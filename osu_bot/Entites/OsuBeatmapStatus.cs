@@ -7,12 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu_bot.API.Parameters
+namespace osu_bot.Entites
 {
-    public class ScoreQueryParameters : IQueryParameters
+    public enum OsuBeatmapStatus
     {
-        public long ScoreId { get; set; }
-        public string Username { get; set; }
-        public string GetQueryString() => $"https://osu.ppy.sh/api/v2/scores/osu/{ScoreId}";
+        Graveyard = -2,
+        Wip = -1,
+        Pending = 0,
+        Ranked = 1,
+        Approved = 2,
+        Qualified = 3,
+        Loved = 4,
     }
 }

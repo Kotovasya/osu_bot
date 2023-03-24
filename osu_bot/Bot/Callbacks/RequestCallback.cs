@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using osu_bot.API;
-using osu_bot.API.Queries;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
@@ -87,7 +86,7 @@ namespace osu_bot.Bot.Callbacks
                 {
                     TelegramUser user = usersEnumerator.Current;
                     rowButtons.Add(InlineKeyboardButton.WithCallbackData(
-                        text: user.OsuName,
+                        text: user.OsuUser.Username,
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.ToUser), user.Id)));
                     j++;
                 }

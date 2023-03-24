@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using osu_bot.Entites;
+using osu_bot.Entites.Mods;
+using osu_bot.Modules.Converters;
 
 namespace osu_bot.Modules
 {
@@ -20,23 +22,33 @@ namespace osu_bot.Modules
 
         private static int totalHits => s_countGreat + s_countOk + s_countMeh + s_countMiss;
 
-        public static int Calculate(OsuScoreInfo score, bool isFullCombo = false, bool isPerfect = false)
+#pragma warning disable CS8618
+        private static OsuBeatmapAttributes s_attributes;
+        private static OsuBeatmap s_beatmap;
+        private static IEnumerable<Mod> s_mods;
+#pragma warning restore CS8618
+
+        public static int Calculate(OsuScore score, bool isFullCombo = false, bool isPerfect = false)
         {
+            s_attributes = score.BeatmapAttributes;
+            s_beatmap = score.Beatmap;
+            s_mods = ModsConverter.ToMods(score.Mods);
+
             if (isFullCombo)
             {
                 if (isPerfect)
                 {
                     s_accuracy = 1;
-                    s_scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
-                    s_countGreat = score.Beatmap.Attributes.TotalObjects;
+                    s_scoreMaxCombo = s_beatmap.MaxCombo;
+                    s_countGreat = s_beatmap.TotalObjects;
                     s_countOk = 0;
                     s_countMeh = 0;
                     s_countMiss = 0;
                 }
                 else
                 {
-                    s_scoreMaxCombo = score.Beatmap.Attributes.MaxCombo;
-                    if (score.Beatmap.Attributes.TotalObjects == score.Count300 + score.Count100 + score.Count50 + score.CountMisses)
+                    s_scoreMaxCombo = score.Beatmap.MaxCombo;
+                    if (score.Beatmap.TotalObjects == score.HitObjects)
                     {
                         s_countGreat = score.Count300 + score.CountMisses;
                         s_countOk = score.Count100;
@@ -45,7 +57,7 @@ namespace osu_bot.Modules
                     }
                     else
                     {
-                        (s_countGreat, s_countOk) = CalculateHitsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.Attributes.TotalObjects);
+                        (s_countGreat, s_countOk) = CalculateHitsFromAccuracy(score.Accuracy * 0.01, score.Beatmap.TotalObjects);
                         s_accuracy = score.Accuracy * 0.01;
                         s_countMeh = 0;
                     }
@@ -62,34 +74,32 @@ namespace osu_bot.Modules
                 s_countMiss = score.CountMisses;
             }
 
-            s_effectiveMissCount = CalculateEffectiveMissCount(score.Beatmap.Attributes);
-
-            OsuBeatmapAttributes attributes = score.Beatmap.Attributes;
+            s_effectiveMissCount = CalculateEffectiveMissCount();
 
             double multiplier = PERFORMANCE_BASE_MULTIPLIER;
 
-            if (score.Mods.Any(m => m.Name == "NF"))
+            if (s_mods.Any(m => m.Name == ModNoFail.NAME))
             {
                 multiplier *= Math.Max(0.90, 1.0 - (0.02 * s_effectiveMissCount));
             }
 
-            if (score.Mods.Any(m => m.Name == "SO") && totalHits > 0)
+            if (s_mods.Any(m => m.Name == ModSpunOut.NAME) && totalHits > 0)
             {
-                multiplier *= 1.0 - Math.Pow((double)attributes.SpinnerCount / totalHits, 0.85);
+                multiplier *= 1.0 - Math.Pow((double)s_beatmap.CountSpinners / totalHits, 0.85);
             }
 
-            if (score.Mods.Any(m => m.Name == "RL"))
+            if (s_mods.Any(m => m.Name == ModRelax.NAME))
             {
-                double okMultiplier = Math.Max(0.0, attributes.OD > 0.0 ? 1 - Math.Pow(attributes.OD / 13.33, 1.8) : 1.0);
-                double mehMultiplier = Math.Max(0.0, attributes.OD > 0.0 ? 1 - Math.Pow(attributes.OD / 13.33, 5) : 1.0);
+                double okMultiplier = Math.Max(0.0, s_attributes.OD > 0.0 ? 1 - Math.Pow(s_attributes.OD / 13.33, 1.8) : 1.0);
+                double mehMultiplier = Math.Max(0.0, s_attributes.OD > 0.0 ? 1 - Math.Pow(s_attributes.OD / 13.33, 5) : 1.0);
 
                 s_effectiveMissCount = Math.Min(s_effectiveMissCount + (s_countOk * okMultiplier) + (s_countMeh * mehMultiplier), totalHits);
             }
 
-            double aimValue = computeAimValue(score, attributes);
-            double speedValue = computeSpeedValue(score, attributes);
-            double accuracyValue = computeAccuracyValue(score, attributes);
-            double flashlightValue = computeFlashlightValue(score, attributes);
+            double aimValue = computeAimValue();
+            double speedValue = computeSpeedValue();
+            double accuracyValue = computeAccuracyValue();
+            double flashlightValue = computeFlashlightValue();
             double totalValue =
                 Math.Pow(
                     Math.Pow(aimValue, 1.1) +
@@ -100,11 +110,11 @@ namespace osu_bot.Modules
             return (int)Math.Round(totalValue, 2, MidpointRounding.AwayFromZero);
         }
 
-        private static double getComboScalingFactor(OsuBeatmapAttributes attributes) => attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(attributes.MaxCombo, 0.8), 1.0);
+        private static double getComboScalingFactor() => s_beatmap.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(s_beatmap.MaxCombo, 0.8), 1.0);
 
-        private static double computeAimValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
+        private static double computeAimValue()
         {
-            double aimValue = Math.Pow((5.0 * Math.Max(1.0, attributes.AimDifficulty / 0.0675)) - 4.0, 3.0) / 100000.0;
+            double aimValue = Math.Pow((5.0 * Math.Max(1.0, s_attributes.AimDifficulty / 0.0675)) - 4.0, 3.0) / 100000.0;
 
             double lengthBonus = 0.95 + (0.4 * Math.Min(1.0, totalHits / 2000.0)) +
                                  (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
@@ -115,53 +125,53 @@ namespace osu_bot.Modules
                 aimValue *= 0.97 * Math.Pow(1 - Math.Pow(s_effectiveMissCount / totalHits, 0.775), s_effectiveMissCount);
             }
 
-            aimValue *= getComboScalingFactor(attributes);
+            aimValue *= getComboScalingFactor();
 
             double approachRateFactor = 0.0;
-            if (attributes.AR > 10.33)
+            if (s_attributes.AR > 10.33)
             {
-                approachRateFactor = 0.3 * (attributes.AR - 10.33);
+                approachRateFactor = 0.3 * (s_attributes.AR - 10.33);
             }
-            else if (attributes.AR < 8.0)
+            else if (s_attributes.AR < 8.0)
             {
-                approachRateFactor = 0.05 * (8.0 - attributes.AR);
+                approachRateFactor = 0.05 * (8.0 - s_attributes.AR);
             }
 
-            if (score.Mods.Any(m => m.Name == "RL"))
+            if (s_mods.Any(m => m.Name == ModRelax.NAME))
             {
                 approachRateFactor = 0.0;
             }
 
             aimValue *= 1.0 + (approachRateFactor * lengthBonus);
 
-            if (score.Mods.Any(m => m.Name == "HD"))
+            if (s_mods.Any(m => m.Name == ModHidden.NAME))
             {
-                aimValue *= 1.0 + (0.04 * (12.0 - attributes.AR));
+                aimValue *= 1.0 + (0.04 * (12.0 - s_attributes.AR));
             }
 
-            double estimateDifficultSliders = attributes.SliderCount * 0.15;
+            double estimateDifficultSliders = s_beatmap.CountSliders * 0.15;
 
-            if (attributes.SliderCount > 0)
+            if (s_beatmap.CountSliders > 0)
             {
-                double estimateSliderEndsDropped = Math.Clamp(Math.Min(s_countOk + s_countMeh + s_countMiss, attributes.MaxCombo - s_scoreMaxCombo), 0, estimateDifficultSliders);
-                double sliderNerfFactor = ((1 - attributes.SliderFactor) * Math.Pow(1 - (estimateSliderEndsDropped / estimateDifficultSliders), 3)) + attributes.SliderFactor;
+                double estimateSliderEndsDropped = Math.Clamp(Math.Min(s_countOk + s_countMeh + s_countMiss, s_beatmap.MaxCombo - s_scoreMaxCombo), 0, estimateDifficultSliders);
+                double sliderNerfFactor = ((1 - s_attributes.SliderFactor) * Math.Pow(1 - (estimateSliderEndsDropped / estimateDifficultSliders), 3)) + s_attributes.SliderFactor;
                 aimValue *= sliderNerfFactor;
             }
 
             aimValue *= s_accuracy;
-            aimValue *= 0.98 + (Math.Pow(attributes.OD, 2) / 2500);
+            aimValue *= 0.98 + (Math.Pow(s_attributes.OD, 2) / 2500);
 
             return aimValue;
         }
 
-        private static double computeSpeedValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
+        private static double computeSpeedValue()
         {
-            if (score.Mods.Any(m => m.Name == "RL"))
+            if (s_mods.Any(m => m.Name == ModRelax.NAME))
             {
                 return 0.0;
             }
 
-            double speedValue = Math.Pow((5.0 * Math.Max(1.0, attributes.SpeedDifficulty / 0.0675)) - 4.0, 3.0) / 100000.0;
+            double speedValue = Math.Pow((5.0 * Math.Max(1.0, s_attributes.SpeedDifficulty / 0.0675)) - 4.0, 3.0) / 100000.0;
 
             double lengthBonus = 0.95 + (0.4 * Math.Min(1.0, totalHits / 2000.0)) +
                                  (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
@@ -172,43 +182,43 @@ namespace osu_bot.Modules
                 speedValue *= 0.97 * Math.Pow(1 - Math.Pow(s_effectiveMissCount / totalHits, 0.775), Math.Pow(s_effectiveMissCount, .875));
             }
 
-            speedValue *= getComboScalingFactor(attributes);
+            speedValue *= getComboScalingFactor();
 
             double approachRateFactor = 0.0;
-            if (attributes.AR > 10.33)
+            if (s_attributes.AR > 10.33)
             {
-                approachRateFactor = 0.3 * (attributes.AR - 10.33);
+                approachRateFactor = 0.3 * (s_attributes.AR - 10.33);
             }
 
             speedValue *= 1.0 + (approachRateFactor * lengthBonus);
 
-            if (score.Mods.Any(m => m.Name == "HD"))
+            if (s_mods.Any(m => m.Name == ModHidden.NAME))
             {
-                speedValue *= 1.0 + (0.04 * (12.0 - attributes.AR));
+                speedValue *= 1.0 + (0.04 * (12.0 - s_attributes.AR));
             }
 
-            double relevantTotalDiff = totalHits - attributes.SpeedNoteCount;
+            double relevantTotalDiff = totalHits - s_attributes.SpeedNoteCount;
             double relevantCountGreat = Math.Max(0, s_countGreat - relevantTotalDiff);
             double relevantCountOk = Math.Max(0, s_countOk - Math.Max(0, relevantTotalDiff - s_countGreat));
             double relevantCountMeh = Math.Max(0, s_countMeh - Math.Max(0, relevantTotalDiff - s_countGreat - s_countOk));
-            double relevantAccuracy = attributes.SpeedNoteCount == 0 ? 0 : ((relevantCountGreat * 6.0) + (relevantCountOk * 2.0) + relevantCountMeh) / (attributes.SpeedNoteCount * 6.0);
+            double relevantAccuracy = s_attributes.SpeedNoteCount == 0 ? 0 : ((relevantCountGreat * 6.0) + (relevantCountOk * 2.0) + relevantCountMeh) / (s_attributes.SpeedNoteCount * 6.0);
 
-            speedValue *= (0.95 + (Math.Pow(attributes.OD, 2) / 750)) * Math.Pow((s_accuracy + relevantAccuracy) / 2.0, (14.5 - Math.Max(attributes.OD, 8)) / 2);
+            speedValue *= (0.95 + (Math.Pow(s_attributes.OD, 2) / 750)) * Math.Pow((s_accuracy + relevantAccuracy) / 2.0, (14.5 - Math.Max(s_attributes.OD, 8)) / 2);
 
             speedValue *= Math.Pow(0.99, s_countMeh < totalHits / 500.0 ? 0 : s_countMeh - (totalHits / 500.0));
 
             return speedValue;
         }
 
-        private static double computeAccuracyValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
+        private static double computeAccuracyValue()
         {
-            if (score.Mods.Any(m => m.Name == "RL"))
+            if (s_mods.Any(m => m.Name ==  ModRelax.NAME))
             {
                 return 0.0;
             }
 
             double betterAccuracyPercentage;
-            int amountHitObjectsWithAccuracy = attributes.CircleCount;
+            int amountHitObjectsWithAccuracy = s_beatmap.CountCircles;
 
             betterAccuracyPercentage = amountHitObjectsWithAccuracy > 0
                 ? (((s_countGreat - (totalHits - amountHitObjectsWithAccuracy)) * 6) + (s_countOk * 2) + s_countMeh) / (double)(amountHitObjectsWithAccuracy * 6)
@@ -219,16 +229,16 @@ namespace osu_bot.Modules
                 betterAccuracyPercentage = 0;
             }
 
-            double accuracyValue = Math.Pow(1.52163, attributes.OD) * Math.Pow(betterAccuracyPercentage, 24) * 2.83;
+            double accuracyValue = Math.Pow(1.52163, s_attributes.OD) * Math.Pow(betterAccuracyPercentage, 24) * 2.83;
 
             accuracyValue *= Math.Min(1.15, Math.Pow(amountHitObjectsWithAccuracy / 1000.0, 0.3));
 
-            if (score.Mods.Any(m => m.Name == "HD"))
+            if (s_mods.Any(m => m.Name == ModHidden.NAME))
             {
                 accuracyValue *= 1.08;
             }
 
-            if (score.Mods.Any(m => m.Name == "FL"))
+            if (s_mods.Any(m => m.Name == ModFlashlight.NAME))
             {
                 accuracyValue *= 1.02;
             }
@@ -236,38 +246,38 @@ namespace osu_bot.Modules
             return accuracyValue;
         }
 
-        private static double computeFlashlightValue(OsuScoreInfo score, OsuBeatmapAttributes attributes)
+        private static double computeFlashlightValue()
         {
-            if (!score.Mods.Any(m => m.Name == "FL"))
+            if (!s_mods.Any(m => m.Name == ModFlashlight.NAME))
             {
                 return 0.0;
             }
 
-            double flashlightValue = Math.Pow(attributes.FlashlightDifficulty, 2.0) * 25.0;
+            double flashlightValue = Math.Pow(s_attributes.FlashlightDifficulty, 2.0) * 25.0;
 
             if (s_effectiveMissCount > 0)
             {
                 flashlightValue *= 0.97 * Math.Pow(1 - Math.Pow(s_effectiveMissCount / totalHits, 0.775), Math.Pow(s_effectiveMissCount, .875));
             }
 
-            flashlightValue *= getComboScalingFactor(attributes);
+            flashlightValue *= getComboScalingFactor();
 
             flashlightValue *= 0.7 + (0.1 * Math.Min(1.0, totalHits / 200.0)) +
                                (totalHits > 200 ? 0.2 * Math.Min(1.0, (totalHits - 200) / 200.0) : 0.0);
 
             flashlightValue *= 0.5 + (s_accuracy / 2.0);
-            flashlightValue *= 0.98 + (Math.Pow(attributes.OD, 2) / 2500);
+            flashlightValue *= 0.98 + (Math.Pow(s_attributes.OD, 2) / 2500);
 
             return flashlightValue;
         }
 
-        private static double CalculateEffectiveMissCount(OsuBeatmapAttributes attributes)
+        private static double CalculateEffectiveMissCount()
         {
             double comboBasedMissCount = 0.0;
 
-            if (attributes.SliderCount > 0)
+            if (s_beatmap.CountSliders > 0)
             {
-                double fullComboThreshold = attributes.MaxCombo - (0.1 * attributes.SliderCount);
+                double fullComboThreshold = s_beatmap.MaxCombo - (0.1 * s_beatmap.CountSliders);
                 if (s_scoreMaxCombo < fullComboThreshold)
                 {
                     comboBasedMissCount = fullComboThreshold / Math.Max(1.0, s_scoreMaxCombo);

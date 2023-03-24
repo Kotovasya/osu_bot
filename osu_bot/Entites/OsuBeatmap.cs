@@ -22,14 +22,17 @@ namespace osu_bot.Entites
         [JsonProperty("difficulty_rating")]
         public float Stars { get; set; }
 
-        [JsonProperty("status")]
-        public string Status { get; set; }
+        [JsonProperty("ranked")]
+        public OsuBeatmapStatus Status { get; set; }
 
         [JsonProperty("is_scoreable")]
         public bool IsScoreable { get; set; }
 
         [JsonProperty("total_length")]
         public int TotalLength { get; set; }
+
+        [JsonProperty("max_combo")]
+        public int MaxCombo { get; set; }
 
         [JsonProperty("version")]
         public string DifficultyName { get; set; }
@@ -64,20 +67,17 @@ namespace osu_bot.Entites
         [JsonProperty("last_updated")]
         public DateTime LastUpdated { get; set; }
 
-        [JsonProperty("passcount")]
-        public int PassCount { get; set; }
-
-        [JsonProperty("playcount")]
-        public int PlayCount { get; set; }
-
         [JsonProperty("url")]
         public string Url { get; set; }
 
         [JsonProperty("beatmapset_id")]
         public long BeatmapsetId { get; set; }
 
-        [JsonProperty("beatmapset")]
         [BsonRef]
+        [JsonProperty("beatmapset")]
         public OsuBeatmapset Beatmapset { get; set; }
+
+
+        public int TotalObjects => CountCircles + CountSliders + CountSpinners;
     }
 }

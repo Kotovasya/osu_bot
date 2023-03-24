@@ -20,10 +20,16 @@ namespace osu_bot.Entites.Database
 
         public ILiteCollection<TelegramUser> TelegramUsers => _database.GetCollection<TelegramUser>();
 
+        public ILiteCollection<OsuUser> OsuUsers => _database.GetCollection<OsuUser>();
+
         public ILiteCollection<OsuScore> Scores => _database.GetCollection<OsuScore>();
 
         public ILiteCollection<Request> Requests => _database.GetCollection<Request>();
 
         public ILiteCollection<OsuBeatmapAttributes> BeatmapAttributes => _database.GetCollection<OsuBeatmapAttributes>();
+
+        public ILiteCollection<OsuBeatmapset> Beatmapsets => _database.GetCollection<OsuBeatmapset>();
+
+        public ILiteCollection<OsuBeatmap> Beatmaps => _database.GetCollection<OsuBeatmap>();
     }
 }
