@@ -39,7 +39,7 @@ namespace osu_bot.Modules
                 if (isPerfect)
                 {
                     s_accuracy = 1;
-                    s_scoreMaxCombo = s_beatmap.MaxCombo;
+                    s_scoreMaxCombo = s_attributes.MaxCombo;
                     s_countGreat = s_beatmap.TotalObjects;
                     s_countOk = 0;
                     s_countMeh = 0;
@@ -47,7 +47,7 @@ namespace osu_bot.Modules
                 }
                 else
                 {
-                    s_scoreMaxCombo = score.Beatmap.MaxCombo;
+                    s_scoreMaxCombo = s_attributes.MaxCombo;
                     if (score.Beatmap.TotalObjects == score.HitObjects)
                     {
                         s_countGreat = score.Count300 + score.CountMisses;
@@ -110,7 +110,7 @@ namespace osu_bot.Modules
             return (int)Math.Round(totalValue, 2, MidpointRounding.AwayFromZero);
         }
 
-        private static double getComboScalingFactor() => s_beatmap.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(s_beatmap.MaxCombo, 0.8), 1.0);
+        private static double getComboScalingFactor() => s_attributes.MaxCombo <= 0 ? 1.0 : Math.Min(Math.Pow(s_scoreMaxCombo, 0.8) / Math.Pow(s_attributes.MaxCombo, 0.8), 1.0);
 
         private static double computeAimValue()
         {
@@ -153,7 +153,7 @@ namespace osu_bot.Modules
 
             if (s_beatmap.CountSliders > 0)
             {
-                double estimateSliderEndsDropped = Math.Clamp(Math.Min(s_countOk + s_countMeh + s_countMiss, s_beatmap.MaxCombo - s_scoreMaxCombo), 0, estimateDifficultSliders);
+                double estimateSliderEndsDropped = Math.Clamp(Math.Min(s_countOk + s_countMeh + s_countMiss, s_attributes.MaxCombo - s_scoreMaxCombo), 0, estimateDifficultSliders);
                 double sliderNerfFactor = ((1 - s_attributes.SliderFactor) * Math.Pow(1 - (estimateSliderEndsDropped / estimateDifficultSliders), 3)) + s_attributes.SliderFactor;
                 aimValue *= sliderNerfFactor;
             }
@@ -277,7 +277,7 @@ namespace osu_bot.Modules
 
             if (s_beatmap.CountSliders > 0)
             {
-                double fullComboThreshold = s_beatmap.MaxCombo - (0.1 * s_beatmap.CountSliders);
+                double fullComboThreshold = s_attributes.MaxCombo - (0.1 * s_beatmap.CountSliders);
                 if (s_scoreMaxCombo < fullComboThreshold)
                 {
                     comboBasedMissCount = fullComboThreshold / Math.Max(1.0, s_scoreMaxCombo);

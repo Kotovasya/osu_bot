@@ -15,6 +15,9 @@ namespace osu_bot.Entites
     [JsonConverter(typeof(JsonPathConverter))]
     public class OsuScore
     {
+        private float _accuracy;
+        private OsuBeatmapset _beatmapset;
+
         [JsonProperty("id")]
         public long Id { get; set; }
 
@@ -22,7 +25,16 @@ namespace osu_bot.Entites
         public DateTime CreatedAt { get; set; }
 
         [JsonProperty("accuracy")]
-        public float Accuracy { get; set; }
+        public float Accuracy
+        {
+            get => _accuracy;
+            set
+            {
+                if (value <= 1)
+                    value *= 100;
+                _accuracy = value;
+            }
+        }
 
         [JsonProperty("max_combo")]
         public int MaxCombo { get; set; }
@@ -51,11 +63,25 @@ namespace osu_bot.Entites
         [JsonProperty("statistics.count_miss")]
         public int CountMisses { get; set; }
 
+        [JsonConverter(typeof(JsonModsConverter))]
         [JsonProperty("mods")]
         public int Mods { get; set; }
 
+        [JsonProperty("beatmap")]
         [BsonRef]
         public OsuBeatmap Beatmap { get; set; }
+
+        [JsonProperty("beatmapset")]
+        [BsonRef]
+        public OsuBeatmapset Beatmapset
+        {
+            get => _beatmapset;
+            set
+            {
+                _beatmapset = value;
+                Beatmap.Beatmapset = value;
+            }
+        }
 
         [BsonRef]
         public OsuUser User { get; set; }

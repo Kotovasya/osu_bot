@@ -5,6 +5,7 @@ using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
 using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 using SkiaSharp;
@@ -39,29 +40,20 @@ namespace osu_bot.Bot.Commands
 
             if (parameters.Username == null || message.Text == CommandText)
             {
-                TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
-                parameters.UserId = telegramUser != null
-                    ? telegramUser.OsuUser.Id
-                    : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+                TelegramUser telegramUser = _database.TelegramUsers
+                    .Include(u => u.OsuUser)
+                    .FindOne(u => u.Id == message.From.Id);
+
+                if (telegramUser is not null)
+                    parameters.Username = telegramUser.OsuUser.Username;
+                else
+                    throw new UserNotRegisteredException();
             }
 
             IList<OsuScore>? scores = await _service.GetUserScoresAsync(parameters);
 
-            if (scores is null)
-                throw new NotImplementedException();
-
-            if (scores.Count == 0)
-            {
-                if (parameters.Mods == 0)
-                {
-                    throw new Exception($"У пользователя {parameters.Username} отсутствуют топ скоры");
-                }
-                else
-                {
-                    throw new Exception
-                        ($"У пользователя {parameters.Username} отсутствуют топ скоры с {ModsConverter.ToString(parameters.Mods)}");
-                }
-            }
+            if (scores is null || scores.Count == 0)
+                throw new UserScoresNotFound(parameters.Username, ScoreType.Best, parameters.Mods);
 
             SKImage image;
             string? caption = null;

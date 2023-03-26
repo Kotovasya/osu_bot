@@ -4,6 +4,7 @@
 using osu_bot.API;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -28,18 +29,20 @@ namespace osu_bot.Bot.Commands
             int startIndex = text.IndexOf(' ') + 1;
             string name = text[startIndex..].ToLower();
 
-            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.OsuUser.Username.ToLower() == name);
+            TelegramUser telegramUser = _database.TelegramUsers
+                .Include(u => u.OsuUser)
+                .FindOne(u => u.OsuUser.Username.ToLower() == name);
+
             if (telegramUser != null)
-            {
-                throw new ArgumentException($"Аккаунт {telegramUser.OsuUser.Username} уже привязан к другому пользователю");
-            }
+                throw new UserAlreadyRegistered(telegramUser.OsuUser.Username);
 
             OsuUser? osuUser = await _service.GetUserAsync(name);
 
             if (osuUser is null)
-                throw new NotImplementedException();
+                throw new UserNotFoundException(name);
 
             TelegramUser newTelegramUser = new(message.From.Id, message.Chat.Id, osuUser);
+            _database.OsuUsers.Upsert(osuUser);
             _database.TelegramUsers.Upsert(newTelegramUser);
 
             await botClient.SendTextMessageAsync(

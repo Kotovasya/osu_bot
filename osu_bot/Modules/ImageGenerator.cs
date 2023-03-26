@@ -81,12 +81,15 @@ namespace osu_bot.Modules
         }
 
         private const int STAR_UNICODE = 9733;
-        private const int TRIANGLE_UNICODE = 9650;
+        private const int TRIANGLEUP_UNICODE = 9650;
+        private const int TRIANGLEDOWN_UNICODE = 9660;
+        
 
         public static ImageGenerator Instance { get; } = new();
 
         private readonly SKTypeface _starTypeface = SKFontManager.Default.MatchCharacter(STAR_UNICODE);
-        private readonly SKTypeface _triangleTypeface = SKFontManager.Default.MatchCharacter(TRIANGLE_UNICODE);
+        private readonly SKTypeface _triangleUpTypeface = SKFontManager.Default.MatchCharacter(TRIANGLEUP_UNICODE);
+        private readonly SKTypeface _triangleDownTypeface = SKFontManager.Default.MatchCharacter(TRIANGLEDOWN_UNICODE);
 
         private readonly SKImageFilter _imageDarkingFilter = SKImageFilter.CreateColorFilter(
             SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 140), SKBlendMode.Darken));
@@ -227,7 +230,7 @@ namespace osu_bot.Modules
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 20 + _paint.MeasureText(drawableString);
 
-                drawableString = $"{score.MaxCombo}x/{score.Beatmap.MaxCombo}x";
+                drawableString = $"{score.MaxCombo}x/{score.BeatmapAttributes.MaxCombo}x";
                 canvas.DrawText(drawableString, x, y, _paint);
                 x += 20 + _paint.MeasureText(drawableString);
 
@@ -374,14 +377,28 @@ namespace osu_bot.Modules
 
                 if (score.Beatmap.CS != score.BeatmapAttributes.CS)
                 {
+                    if (score.Beatmap.CS < score.BeatmapAttributes.CS)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
                     x += 2;
                     drawableString = $"{score.BeatmapAttributes.CS:0.0}";
-                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
-
                     x += _paint.MeasureText(drawableString);
-                    drawableString = "▲";
-                    _paint.SetTypeface(_triangleTypeface);
+
+                    if (score.Beatmap.CS < score.BeatmapAttributes.CS)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -395,14 +412,28 @@ namespace osu_bot.Modules
 
                 if (score.Beatmap.AR != score.BeatmapAttributes.AR)
                 {
+                    if (score.Beatmap.AR < score.BeatmapAttributes.AR)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
                     x += 2;
                     drawableString = $"{score.BeatmapAttributes.AR:0.0}";
-                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
-
                     x += _paint.MeasureText(drawableString);
-                    drawableString = "▲";
-                    _paint.SetTypeface(_triangleTypeface);
+
+                    if (score.Beatmap.AR < score.BeatmapAttributes.AR)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -416,14 +447,28 @@ namespace osu_bot.Modules
 
                 if (score.Beatmap.OD != score.BeatmapAttributes.OD)
                 {
+                    if (score.Beatmap.OD < score.BeatmapAttributes.OD)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
                     x += 2;
                     drawableString = $"{score.BeatmapAttributes.OD:0.0}";
-                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
                     canvas.DrawText(drawableString, x, y - 6, _paint);
-
                     x += _paint.MeasureText(drawableString);
-                    drawableString = "▲";
-                    _paint.SetTypeface(_triangleTypeface);
+
+                    if (score.Beatmap.OD < score.BeatmapAttributes.OD)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
                     canvas.DrawText(drawableString, x, y - 6, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
@@ -437,21 +482,35 @@ namespace osu_bot.Modules
 
                 if (score.Beatmap.HP != score.BeatmapAttributes.HP)
                 {
-                    x += 2;
-                    drawableString = $"{score.Beatmap.HP:0.0}";
-                    _paint.SetColor(_colorMisses).SetTypeface(_rubikMediumTypeface).SetSize(16);
-                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    if (score.Beatmap.HP < score.BeatmapAttributes.HP)
+                        _paint.SetColor(_colorMisses);             
+                    else
+                        _paint.SetColor(_color300);
 
+                    x += 2;
+                    drawableString = $"{score.BeatmapAttributes.HP:0.0}";
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 4, _paint);
                     x += _paint.MeasureText(drawableString);
-                    drawableString = "▲";
-                    _paint.SetTypeface(_triangleTypeface);
+
+                    if (score.Beatmap.HP < score.BeatmapAttributes.HP)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
                     canvas.DrawText(drawableString, x, y - 4, _paint);
                     x += _paint.MeasureText(drawableString);
                 }
 
                 x += columnSpacing;
 
-                drawableString = TimeSpan.FromSeconds(score.BeatmapAttributes.Length).ToString(@"mm\:ss");
+                drawableString = TimeSpan.FromSeconds(score.BeatmapAttributes.HitLength).ToString(@"mm\:ss");
                 x = stringLinker.SetStrings("Length:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -503,7 +562,7 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 x += columnSpacing;
 
-                drawableString = $"{score.MaxCombo}x/{score.Beatmap.MaxCombo}x";
+                drawableString = $"{score.MaxCombo}x/{score.BeatmapAttributes.MaxCombo}x";
                 x = stringLinker.SetStrings("Combo", drawableString)
                     .SetPositions(x, y, y + 30)
                     .Draw(canvas);
@@ -706,59 +765,66 @@ namespace osu_bot.Modules
                 drawableString = "GLOBAL RANK HISTORY";
                 canvas.DrawAlignText(drawableString, width / 2, 330, SKTextAlign.Center, _paint);
 
-                float graphWidth = 520f;
-                float graphHeight = 110f;
+                
 
-                int linesCount = 5;
-                int coef = user.RankHistory.Count / linesCount;
-                int maxRank = user.RankHistory.Max();
-                int minRank = user.RankHistory.Min();
-                int rankDiff = maxRank - minRank;
-                float scaleX = graphWidth / user.RankHistory.Count;
-                float scaleY = rankDiff != 0 ? graphHeight / rankDiff : graphHeight / 2;
-                float startX = 55;
-                float startY = 350;
-                SKPaint linePaint = new()
+                if (user.RankHistory is null)
+                    canvas.DrawAlignText("NOT AVAILABLE", width / 2, 390, SKTextAlign.Center, _paint);
+                else
                 {
-                    Style = SKPaintStyle.Stroke,
-                    IsAntialias = true,
-                    FilterQuality = SKFilterQuality.High,
-                };
-                using SKPath path = new();
-                x = startX + (scaleX * 0);
-                y = startY + (scaleY * (user.RankHistory[0] - minRank));
-                path.MoveTo(x, y);
-                for (int i = 0; i <= user.RankHistory.Count; i++)
-                {
-                    if (i < user.RankHistory.Count - 1)
+                    float graphWidth = 520f;
+                    float graphHeight = 110f;
+
+                    int linesCount = 5;
+                    int coef = user.RankHistory.Count / linesCount;
+                    int maxRank = user.RankHistory.Max();
+                    int minRank = user.RankHistory.Min();
+                    int rankDiff = maxRank - minRank;
+                    float scaleX = graphWidth / user.RankHistory.Count;
+                    float scaleY = rankDiff != 0 ? graphHeight / rankDiff : graphHeight / 2;
+                    float startX = 55;
+                    float startY = 350;
+                    SKPaint linePaint = new()
                     {
-                        x = startX + (scaleX * i) + 1;
-                        y = startY + (scaleY * (user.RankHistory[i + 1] - minRank));
-                        path.LineTo(x, y);
-                    }
-
-                    if (i % coef == 0)
+                        Style = SKPaintStyle.Stroke,
+                        IsAntialias = true,
+                        FilterQuality = SKFilterQuality.High,
+                    };
+                    using SKPath path = new();
+                    x = startX + (scaleX * 0);
+                    y = startY + (scaleY * (user.RankHistory[0] - minRank));
+                    path.MoveTo(x, y);
+                    for (int i = 0; i <= user.RankHistory.Count; i++)
                     {
-                        linePaint.SetColor(_lightGrayColor)
-                            .StrokeWidth = 0.4f;
-                        canvas.DrawLine(x, y, x, startY + graphHeight, linePaint);
-                        _paint.SetColor(_lightGrayColor).SetTypeface(_rubikLightTypeface).SetSize(15);
-                        int day = user.RankHistory.Count - i;
-                        drawableString = day == 0 ? "now" : $"{day} d ago";
+                        if (i < user.RankHistory.Count - 1)
+                        {
+                            x = startX + (scaleX * i) + 1;
+                            y = startY + (scaleY * (user.RankHistory[i + 1] - minRank));
+                            path.LineTo(x, y);
+                        }
 
-                        float centerX = x - (_paint.MeasureText(drawableString) / 2);
-                        canvas.DrawText(drawableString, centerX, startY + graphHeight + 40, _paint);
+                        if (i % coef == 0)
+                        {
+                            linePaint.SetColor(_lightGrayColor)
+                                .StrokeWidth = 0.4f;
+                            canvas.DrawLine(x, y, x, startY + graphHeight, linePaint);
+                            _paint.SetColor(_lightGrayColor).SetTypeface(_rubikLightTypeface).SetSize(15);
+                            int day = user.RankHistory.Count - i;
+                            drawableString = day == 0 ? "now" : $"{day} d ago";
 
-                        drawableString = i != user.RankHistory.Count ? $"#{user.RankHistory[i].Separate(".")}" : $"#{user.RankHistory[i - 1].Separate(".")}";
-                        centerX = x - (_paint.MeasureText(drawableString) / 2);
-                        canvas.DrawText(drawableString, centerX, startY + graphHeight + 40 + _paint.FontSpacing, _paint);
+                            float centerX = x - (_paint.MeasureText(drawableString) / 2);
+                            canvas.DrawText(drawableString, centerX, startY + graphHeight + 40, _paint);
+
+                            drawableString = i != user.RankHistory.Count ? $"#{user.RankHistory[i].Separate(".")}" : $"#{user.RankHistory[i - 1].Separate(".")}";
+                            centerX = x - (_paint.MeasureText(drawableString) / 2);
+                            canvas.DrawText(drawableString, centerX, startY + graphHeight + 40 + _paint.FontSpacing, _paint);
+                        }
+
+                        linePaint.SetColor(_orangeColor)
+                            .StrokeWidth = 2f;
                     }
-
-                    linePaint.SetColor(_orangeColor)
-                        .StrokeWidth = 2f;
-                }
-                canvas.DrawPath(path, linePaint);
-                path.Dispose();
+                    canvas.DrawPath(path, linePaint);
+                    path.Dispose();
+                }     
                 #endregion
 
                 return surface.Snapshot();
@@ -988,7 +1054,7 @@ namespace osu_bot.Modules
                     _paint.SetColor(_whiteColor);
                     canvas.DrawText(")", x, y, _paint);
 
-                    drawableString = $"{score.MaxCombo}/{score.Beatmap.MaxCombo}x";
+                    drawableString = $"{score.MaxCombo}/{score.BeatmapAttributes.MaxCombo}x";
                     centerX += 110;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 

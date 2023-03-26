@@ -6,8 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LiteDB;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Entites.Mods;
+using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 
@@ -52,12 +55,23 @@ namespace osu_bot.API
             return beatmapset;
         }
 
-        public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(long beatmapId, int mods = 0)
+        public async Task<OsuBeatmapAttributes?> GetScoreBeatmapAttributesAsync(OsuScore score)
         {
-            OsuBeatmapAttributes? attributes = _database.BeatmapAttributes
-                .FindOne(a => a.Equals(new BeatmapAttributesKey(beatmapId, mods)));
-            attributes ??= await _api.GetBeatmapAttributesAsync(beatmapId, mods);
+            int mods = score.Mods;
+            if (score.Mods == NoMod.NUMBER)
+                mods = 0;
 
+            OsuBeatmapAttributes? attributes = _database.BeatmapAttributes
+                .FindOne(a => a.Id.BeatmapId == score.Beatmap.Id && a.Id.Mods == mods);
+            attributes ??= await _api.GetBeatmapAttributesAsync(score.Beatmap.Id, mods);
+
+            if (attributes is null)
+                return null;
+
+            attributes.Id = new BeatmapAttributesKey(score.Beatmap.Id, score.Mods);
+            attributes.CopyBeatmapAttributes(score.Beatmap);
+            attributes.CalculateAttributesWithMods(ModsConverter.ToMods(mods));
+                
             return attributes;
         }
 
@@ -80,17 +94,25 @@ namespace osu_bot.API
             if (user is null)
                 throw new NotImplementedException();
 
+            parameters.UserId = user.Id;
+
             IList<OsuScore>? scores = await _api.GetUserScoresAsync(parameters);
 
             if (scores is null)
                 return null;
 
+            scores = scores.Where(s => parameters.Mods == AllMods.NUMBER || s.Mods == parameters.Mods)
+                .Where(s => parameters.MapsStatusOnly is null || parameters.MapsStatusOnly.Any(b => b == s.Beatmap.Status))
+                .Skip(parameters.Offset)
+                .Take(parameters.Limit)
+                .ToList();
+         
             foreach (OsuScore score in scores)
             {
                 score.User = user;
                 if (includeBeatmapsAttributes)
                 {
-                    OsuBeatmapAttributes? attributes = await GetBeatmapAttributesAsync(score.Beatmap.Id, score.Mods);
+                    OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
                     if (attributes is null)
                         throw new NotImplementedException();
                     score.BeatmapAttributes = attributes;
@@ -103,9 +125,22 @@ namespace osu_bot.API
         public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long beatmapId, long userId, bool includeBeatmapsAttributes = true)
         {
             OsuScore? score = await _api.GetUserBeatmapBestScoreAsync(beatmapId, userId);
+
+            if (score is null)
+            {
+                score = _database.Scores
+                       .Include(s => s.Beatmap)
+                       .Include(s => s.Beatmapset)
+                       .Find(s => s.Beatmap.Id == beatmapId && s.User.Id == userId)
+                       .MaxBy(s => s.Score);
+
+                if (score is not null)
+                    score.User = await GetUserAsync(userId);
+            }
+
             if (score is not null && includeBeatmapsAttributes)
             {
-                OsuBeatmapAttributes? attributes = await GetBeatmapAttributesAsync(score.Beatmap.Id, score.Mods);
+                OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
                 if (attributes is null)
                     throw new NotImplementedException();
                 score.BeatmapAttributes = attributes;
@@ -124,7 +159,12 @@ namespace osu_bot.API
             if (user is null)
                 throw new NotImplementedException();
 
-            IList<OsuScore>? scores = await _api.GetUserBeatmapAllScoresAsync(beatmapId, userId);
+            IList<OsuScore>? scores = null;
+            if (beatmap.IsScoreable)
+                scores = await _api.GetUserBeatmapAllScoresAsync(beatmapId, userId);
+            else
+                scores = _database.Scores.Find(s => s.Beatmap.Id == beatmapId && s.User.Id == userId).ToList();
+
             if (scores is null)
                 return null;
 
@@ -134,7 +174,7 @@ namespace osu_bot.API
                 score.Beatmap = beatmap;
                 if (includeBeatmapsAttributes)
                 {
-                    OsuBeatmapAttributes? attributes = await GetBeatmapAttributesAsync(beatmapId, score.Mods);
+                    OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
                     if (attributes is null)
                         throw new NotImplementedException();
 

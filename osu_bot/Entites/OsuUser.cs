@@ -114,6 +114,6 @@ namespace osu_bot.Entites
 
         [AllowNull]
         [JsonProperty("rank_history.data")]
-        public IList<int> RankHistory { get; set; }
+        public IList<int>? RankHistory { get; set; }
     }
 }

@@ -40,9 +40,6 @@ namespace osu_bot.Bot
                 {
                     await _callbacks[callbackData].Invoke(botClient, callbackQuery, cancellationToken);
                 }
-                await botClient.AnswerCallbackQueryAsync(
-                    callbackQueryId: callbackQuery.Id,
-                    cancellationToken: cancellationToken);
             }
         }
     }

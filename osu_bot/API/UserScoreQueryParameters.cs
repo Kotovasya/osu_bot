@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using osu_bot.Entites;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules;
@@ -21,13 +22,12 @@ namespace osu_bot.API
         {
             Type = type;
             IncludeFails = includeFails;
+            Mods = AllMods.NUMBER;
         }
 
         public string? Username { get; set; }
 
         public long? UserId { get; set; }
-
-        public long? BeatmapId { get; set; }
 
         public int Mods { get; set; }
 
@@ -39,11 +39,13 @@ namespace osu_bot.API
 
         public ScoreType Type { get; set; }
 
+        public IEnumerable<OsuBeatmapStatus>? MapsStatusOnly { get; set; }
+
         public string GetQueryString() => Type switch
         {
             ScoreType.Best => $"/users/{UserId}/scores/best?limit=100",
             ScoreType.Firsts => $"/users/{UserId}/scores/firsts?limit=100",
-            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails=1&limit=100",
+            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails={ (IncludeFails ? 1 : 0) }&limit=100",
             _ => throw new ArgumentException()
         };
 

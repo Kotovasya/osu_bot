@@ -31,9 +31,12 @@ namespace osu_bot.Bot.Callbacks
             if (callbackQuery.Message == null)
                 return;
 
-            TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == callbackQuery.From.Id);
+            TelegramUser telegramUser = _database.TelegramUsers
+                .Include(u => u.OsuUser)
+                .FindOne(u => u.Id == callbackQuery.From.Id);
+
             if (telegramUser == null)
-                throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+                throw new UserNotRegisteredException();
 
             string data = callbackQuery.Data;
 
@@ -49,7 +52,7 @@ namespace osu_bot.Bot.Callbacks
             OsuScore? score = await _service.GetUserBeatmapBestScoreAsync(beatmapId, userId);
 
             if (score is null)
-                throw new Exception($"У пользователя {telegramUser.OsuUser.Username} отсутствуют скоры на карте {beatmapId}");
+                throw new UserScoresNotFound(telegramUser.OsuUser.Username, beatmapId);
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 

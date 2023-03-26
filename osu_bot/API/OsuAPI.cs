@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Entites.Mods;
 using osu_bot.Modules.Converters;
 using static System.Formats.Asn1.AsnWriter;
 
@@ -62,10 +63,12 @@ namespace osu_bot.API
         {
             using HttpRequestMessage request = new(HttpMethod.Get, $"{BASE_URL}{url}");
             using HttpResponseMessage response = await SendAsync(request);
-            JObject json = JObject.Parse(await response.Content.ReadAsStringAsync());
-            if (json.ContainsKey("error"))
-                return default;
-            return JsonConvert.DeserializeObject<T>(json.ToString());
+            string str = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == HttpStatusCode.OK)
+                return JsonConvert.DeserializeObject<T>(str);
+
+            return default;
         }
 
         private async Task<T?> PostAsync<T>(string url, JObject json)
@@ -75,10 +78,12 @@ namespace osu_bot.API
                 Content = new StringContent(json.ToString(), Encoding.UTF8, "application/json")
             };
             using HttpResponseMessage response = await SendAsync(request);
-            JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
-            if (json.ContainsKey("error"))
-                return default;
-            return JsonConvert.DeserializeObject<T>(jsonResponse.ToString());
+            string str = await response.Content.ReadAsStringAsync();
+
+            if (response.StatusCode == HttpStatusCode.OK)
+                return JsonConvert.DeserializeObject<T>(str);
+
+            return default;
         }
 
         public async Task<OsuUser?> GetUserAsync(string username)
@@ -109,9 +114,10 @@ namespace osu_bot.API
 
         public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(long beatmapId, int mods = 0)
         {
+            IEnumerable<string> m = ModsConverter.ToStrings(mods);
             JObject json = JObject.FromObject(new
             {
-                mods = mods,
+                mods = m,
                 ruleset = "osu",
             });
             return await PostAsync<OsuBeatmapAttributes>($"/beatmaps/{beatmapId}/attributes", json);
@@ -119,14 +125,7 @@ namespace osu_bot.API
 
         public async Task<IList<OsuScore>?> GetUserScoresAsync(UserScoreQueryParameters parameters)
         {
-            IList<OsuScore>? scores = await GetAsync<IList<OsuScore>>(parameters.GetQueryString());
-            if (scores is null)
-                return null;
-
-            return scores.Where(s => s.Mods == parameters.Mods)
-                .Skip(parameters.Offset)
-                .Take(parameters.Limit)
-                .ToList();
+            return await GetAsync<IList<OsuScore>>(parameters.GetQueryString());
         }
 
         public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long userId, long beatmapId)

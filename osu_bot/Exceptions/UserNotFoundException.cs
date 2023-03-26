@@ -9,18 +9,15 @@ using System.Threading.Tasks;
 
 namespace osu_bot.Exceptions
 {
-    public class UserScoreNotFoundException : Exception
+    public class UserNotFoundException : Exception
     {
         public string Username { get; set; }
-        public long BeatmapId { get; set; }
 
-        public UserScoreNotFoundException(string username, long beatmapId)
+        public override string Message => $"Пользователь с именем {Username} не найден";
+
+        public UserNotFoundException(string username)
         {
             Username = username;
-            BeatmapId = beatmapId;
         }
-
-        public override string Message =>
-            $"У пользователя {Username} отсутствуют скоры на карте {BeatmapId}";
     }
 }

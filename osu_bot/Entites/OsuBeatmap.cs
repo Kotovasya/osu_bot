@@ -31,9 +31,6 @@ namespace osu_bot.Entites
         [JsonProperty("total_length")]
         public int TotalLength { get; set; }
 
-        [JsonProperty("max_combo")]
-        public int MaxCombo { get; set; }
-
         [JsonProperty("version")]
         public string DifficultyName { get; set; }
 
@@ -58,7 +55,7 @@ namespace osu_bot.Entites
         [JsonProperty("count_sliders")]
         public int CountSliders { get; set; }
 
-        [JsonProperty("drain")]
+        [JsonProperty("count_spinners")]
         public int CountSpinners { get; set; }
 
         [JsonProperty("hit_length")]

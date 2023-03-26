@@ -4,6 +4,7 @@
 using osu_bot.API;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
 using osu_bot.Modules;
 using SkiaSharp;
 using Telegram.Bot;
@@ -22,39 +23,33 @@ namespace osu_bot.Bot.Commands
         public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
             if (message.Text == null)
-            {
                 return;
-            }
 
             if (message.From == null)
-            {
                 return;
-            }
 
             string text = message.Text.Trim();
             string name;
             if (text == CommandText)
             {
-                TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
-                name = telegramUser != null
-                    ? telegramUser.OsuUser.Username
-                    : throw new Exception("Аккаунт Osu! не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+                TelegramUser telegramUser = _database.TelegramUsers
+                    .Include(u => u.OsuUser)
+                    .FindOne(u => u.Id == message.From.Id);
+                if (telegramUser != null)
+                    name = telegramUser.OsuUser.Username;
+                else
+                    throw new UserNotRegisteredException();
             }
             else
             {
                 int startIndex = text.IndexOf(' ') + 1;
-                name = text.Length > startIndex
-                    ? text[startIndex..]
-                    : throw new Exception("Неверно указано имя пользователя Osu! в команде, синтаксис /stats <username>");
+                name = text[startIndex..];
             }
 
             OsuUser? user = await _service.GetUserAsync(name);
 
-            if (user is null)
-                throw new NotImplementedException();
-
-            if (user.Id == 0)
-                throw new ArgumentException($"Пользователь с именем {name} не найден");
+            if (user is null || user.Id == 0)
+                throw new UserNotFoundException(name);
 
             SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(user);
 

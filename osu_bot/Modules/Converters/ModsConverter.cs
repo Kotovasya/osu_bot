@@ -12,7 +12,8 @@ namespace osu_bot.Modules.Converters
     //[Flags]
     //public enum Mods
     //{
-    //    ALL = 0,
+    //    ALL = int.MinValue
+    //    NM = 0,
     //    NF = 1 << 0,    //No fail
     //    EZ = 1 << 1,    //Easy
     //    TD = 1 << 2,    //TouchDevice
@@ -67,6 +68,7 @@ namespace osu_bot.Modules.Converters
             new ModSpunOut(),
             new ModSuddenDeath(),
             new NoMod(),
+            new AllMods(),
         };
 
         private static readonly Dictionary<int, Mod> s_intModsDictionary = new();
@@ -89,9 +91,16 @@ namespace osu_bot.Modules.Converters
         {
             HashSet<Mod> result = new();
 
+            if (mods is null)
+            {
+                result.Add(s_intModsDictionary[AllMods.NUMBER]);
+                return result;
+            }
+
             if (!mods.Any())
             {
-                return null;
+                result.Add(s_intModsDictionary[NoMod.NUMBER]);
+                return result;
             }
 
             foreach (string modString in mods)
@@ -108,8 +117,11 @@ namespace osu_bot.Modules.Converters
         public static IEnumerable<Mod> ToMods(int number)
         {
             HashSet<Mod> result = new();
-            if (number == 0)
+            if (number == int.MinValue)
+            {
+                result.Add(s_intModsDictionary[AllMods.NUMBER]);
                 return result;
+            }
 
             int i = 0;
             while (number > 0)
@@ -137,6 +149,23 @@ namespace osu_bot.Modules.Converters
             return sb.Remove(sb.Length - 1, 1).ToString();
         }
 
+        public static IEnumerable<string> ToStrings(IEnumerable<Mod> mods)
+        {
+            IEnumerable<string> stringsMods;
+            if (mods.Count() == 1 && mods.Any(m => m.Name == NoMod.NAME))
+                stringsMods = Array.Empty<string>();
+            else if (mods.Any(m => m.Name == AllMods.NAME))
+                stringsMods = Array.Empty<string>();
+            else
+                stringsMods = mods.Select(m => m.Name);
+            return stringsMods;
+        }
+
+        public static IEnumerable<string> ToStrings(int mods)
+        {
+            return ToStrings(ToMods(mods));      
+        }
+
         public static string ToString(int mods)
         {
             return ToString(ToMods(mods));
@@ -149,7 +178,7 @@ namespace osu_bot.Modules.Converters
 
         public static SKImage? ToImage(IEnumerable<Mod>? mods)
         {
-            if (mods == null || !mods.Any() || mods.Any(m => m.Name == "NM"))
+            if (mods == null || !mods.Any() || mods.Any(m => m.Name == NoMod.NAME || m.Name == AllMods.NAME))
             {
                 return null;
             }
@@ -168,12 +197,32 @@ namespace osu_bot.Modules.Converters
 
         public static int ToInt(IEnumerable<Mod>? mods)
         {
-            if (mods == null || !mods.Any())
+            if (mods is null)
             {
-                return 0;
+                return AllMods.NUMBER;
+            }
+
+            if (!mods.Any())
+            {
+                return NoMod.NUMBER;
             }
 
             return mods.Sum(m => m.Number);
+        }
+
+        public static int ToInt(IEnumerable<string>? mods)
+        {
+            if (mods is null)
+            {
+                return AllMods.NUMBER;
+            }
+
+            if (!mods.Any())
+            {
+                return NoMod.NUMBER;
+            }
+
+            return ToInt(ToMods(mods));
         }
     }
 }

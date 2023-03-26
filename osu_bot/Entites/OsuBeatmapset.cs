@@ -19,7 +19,7 @@ namespace osu_bot.Entites
         [JsonProperty("id")]
         public long Id { get; set; }
 
-        [JsonProperty("cover.cover@2x")]
+        [JsonProperty("covers.cover@2x")]
         public string CoverUrl { get; set; }
 
         [JsonProperty("creator")]

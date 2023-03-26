@@ -48,12 +48,12 @@ namespace osu_bot.Bot
             {
                 AllowedUpdates = Array.Empty<UpdateType>()
             };
-
+#if !DEBUG
             Console.WriteLine("Update chat photo...");
 
             Stream botStatusStream = ResourcesManager.BotStatusManager.Online.Encode().AsStream();
             await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
-
+#endif
             Console.WriteLine("Start listening...");
 
             _botClient.StartReceiving(
@@ -63,11 +63,11 @@ namespace osu_bot.Bot
                 cancellationToken: cts.Token
             );           
             Console.ReadLine();
-
+#if !DEBUG
             Console.WriteLine("Update chat photo...");
             botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
             await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
-
+#endif
             cts.Cancel();
         }
 
@@ -96,6 +96,13 @@ namespace osu_bot.Bot
                         text: ex.Message,
                         replyToMessageId: message.MessageId,
                         cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                if (update.CallbackQuery != null)
+                    await botClient.AnswerCallbackQueryAsync(
+                    callbackQueryId: update.CallbackQuery.Id,
+                    cancellationToken: cancellationToken);
             }
             return;
         }

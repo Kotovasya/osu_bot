@@ -5,6 +5,7 @@ using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
 using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 using SkiaSharp;
@@ -25,49 +26,33 @@ namespace osu_bot.Bot.Commands
         public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
             if (message.Text == null)
-            {
                 return;
-            }
 
             if (message.From == null)
-            {
                 return;
-            }
-
+            
             UserScoreQueryParameters parameters = new(ScoreType.Recent, true);
 
             string args = message.Text.Trim()[CommandText.Length..];
             parameters.Parse(args);
 
-            if (parameters.Username == null)
-            {
-                if (message.Text == CommandText)
-                {
-                    parameters.Limit = 1;
-                }
+            TelegramUser? telegramUser = null;
 
-                TelegramUser telegramUser = _database.TelegramUsers.FindOne(u => u.Id == message.From.Id);
-                parameters.UserId = telegramUser != null
-                    ? telegramUser.OsuUser.Id
-                    : throw new Exception("Аккаунт Osu не привязан к твоему телеграм аккаунту. Используй /reg [username] для привязки");
+            if (parameters.Username == null || message.Text == CommandText)
+            {
+                telegramUser = _database.TelegramUsers
+                    .Include(u => u.OsuUser)
+                    .FindOne(u => u.Id == message.From.Id);
+
+                if (telegramUser is not null)
+                    parameters.Username = telegramUser.OsuUser.Username;
+                else
+                    throw new UserNotRegisteredException();
             }
 
             IList<OsuScore>? scores = await _service.GetUserScoresAsync(parameters);
-            if (scores is null)
-                throw new NotImplementedException();
-
-            if (scores.Count == 0)
-            {
-                if (parameters.Mods == 0)
-                {
-                    throw new Exception($"У пользователя {parameters.Username} отсутствуют скоры за последние 24 часа");
-                }
-                else
-                {
-                    throw new Exception
-                        ($"У пользователя {parameters.Username} отсутствуют скоры {ModsConverter.ToString(parameters.Mods)} за последние 24 часа");
-                }
-            }
+            if (scores is null || scores.Count == 0)
+                throw new UserScoresNotFound(parameters.Username, ScoreType.Recent, parameters.Mods);
 
             SKImage image;
             string? caption = null;

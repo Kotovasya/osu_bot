@@ -47,7 +47,7 @@ namespace osu_bot.Bot.Callbacks
 
             foreach(TelegramUser telegramUser in telegramUsers)
             {
-                IList<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(beatmapId, telegramUser.OsuUser.Id, false);
+                IList<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(beatmapId, telegramUser.OsuUser.Id);
                 if (scores is not null)
                     result.AddRange(scores);
             }

@@ -25,7 +25,7 @@ namespace osu_bot.Entites.Mods
             attributes.AR = Math.Min((attributes.AR - 3.33) * 4 / 3, 9.0);
             attributes.OD = Math.Min((attributes.OD - 3.33) * 4 / 3, 9.0);
             attributes.HP = Math.Min((attributes.HP - 3.33) * 4 / 3, 9.0);
-            attributes.Length = attributes.Length * 4 / 3;
+            attributes.HitLength = attributes.HitLength * 4 / 3;
             attributes.BPM = attributes.BPM * 3 / 4;
         }
     }
