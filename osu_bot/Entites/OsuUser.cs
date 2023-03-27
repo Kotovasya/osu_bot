@@ -40,10 +40,10 @@ namespace osu_bot.Entites
         public bool IsOnline { get; set; }
 
         [JsonProperty("last_visit")]
-        public DateTime? LastVisit { get; set; }
+        public DateTimeOffset? LastVisit { get; set; }
 
         [JsonProperty("join_date")]
-        public DateTime JoinDate { get; set; }
+        public DateTimeOffset JoinDate { get; set; }
 
         [AllowNull]
         [JsonConverter(typeof(JsonPlaycountConverter))]

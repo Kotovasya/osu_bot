@@ -22,7 +22,7 @@ namespace osu_bot.Entites
         public long Id { get; set; }
 
         [JsonProperty("created_at")]
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
         [JsonProperty("accuracy")]
         public float Accuracy
@@ -83,6 +83,7 @@ namespace osu_bot.Entites
             }
         }
 
+        [JsonProperty("user")]
         [BsonRef]
         public OsuUser User { get; set; }
 

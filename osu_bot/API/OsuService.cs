@@ -10,6 +10,7 @@ using LiteDB;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
+using osu_bot.Exceptions;
 using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
@@ -39,7 +40,7 @@ namespace osu_bot.API
         {
             OsuBeatmap? beatmap = _database.Beatmaps.FindById(id);
 
-            if (beatmap is not null && !beatmap.IsScoreable)
+            if (beatmap is null || !beatmap.IsScoreable)
                 beatmap = await _api.GetBeatmapAsync(id);
 
             return beatmap;
@@ -49,7 +50,7 @@ namespace osu_bot.API
         {
             OsuBeatmapset? beatmapset = _database.Beatmapsets.FindById(id);
 
-            if (beatmapset is not null && !beatmapset.IsScoreable)
+            if (beatmapset is null || !beatmapset.IsScoreable)
                 beatmapset = await _api.GetBeatmapsetAsync(id);
 
             return beatmapset;
@@ -92,7 +93,7 @@ namespace osu_bot.API
                 user = await GetUserAsync(parameters.Username);
 
             if (user is null)
-                throw new NotImplementedException();
+                throw new UserNotFoundException(parameters.Username);
 
             parameters.UserId = user.Id;
 
@@ -138,7 +139,20 @@ namespace osu_bot.API
                     score.User = await GetUserAsync(userId);
             }
 
-            if (score is not null && includeBeatmapsAttributes)
+            if (score is null)
+                return null;
+
+            if (score.Beatmapset is null)
+            {
+                OsuBeatmapset? beatmapset = await _api.GetBeatmapsetAsync(score.Beatmap.BeatmapsetId);
+                if (beatmapset is null)
+                    throw new NotImplementedException();
+
+                score.Beatmapset = beatmapset;
+            }
+                
+
+            if (includeBeatmapsAttributes)
             {
                 OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
                 if (attributes is null)
@@ -153,11 +167,11 @@ namespace osu_bot.API
         {
             OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
             if (beatmap is null)
-                throw new NotImplementedException();
+                throw new BeatmapNotFoundException(beatmapId);
 
             OsuUser? user = await GetUserAsync(userId);
             if (user is null)
-                throw new NotImplementedException();
+                throw new UserNotFoundException(userId.ToString());
 
             IList<OsuScore>? scores = null;
             if (beatmap.IsScoreable)
@@ -172,6 +186,7 @@ namespace osu_bot.API
             {
                 score.User = user;
                 score.Beatmap = beatmap;
+                score.Beatmapset = beatmap.Beatmapset;
                 if (includeBeatmapsAttributes)
                 {
                     OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);

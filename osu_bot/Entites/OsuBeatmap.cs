@@ -62,7 +62,7 @@ namespace osu_bot.Entites
         public int HitLength { get; set; }
 
         [JsonProperty("last_updated")]
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
 
         [JsonProperty("url")]
         public string Url { get; set; }

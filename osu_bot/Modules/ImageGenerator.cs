@@ -160,7 +160,15 @@ namespace osu_bot.Modules
             TimeSpan diff = DateTime.Now - date;
             if (diff.Days > 0)
             {
-                return diff.Days <= 7 ? diff.Days == 1 ? "1 day ago" : $"{diff.Days} days ago" : date.ToString("dd MMMM yyyy г.");
+                if (diff.Days <= 7)
+                {
+                    if (diff.Days == 1)
+                        return "1 day ago";
+                    else
+                        return $"{diff.Days} days ago";
+                }
+                else
+                    date.ToString("dd.MMMM.yyyy г.");
             }
 
             if (diff.Hours > 0)
@@ -168,9 +176,15 @@ namespace osu_bot.Modules
                 return diff.Hours == 1 ? "1 hour ago" : $"{diff.Hours} hours ago";
             }
 
-            return diff.Minutes > 0
-                ? diff.Minutes == 1 ? "1 minute ago" : $"{diff.Minutes} minutes ago"
-                : diff.Seconds > 30 ? $"{diff.Seconds} seconds ago" : "few seconds ago";
+            if (diff.Minutes > 0)
+            {
+                if (diff.Minutes == 1)
+                    return "1 minute ago";
+                else
+                    return $"{diff.Minutes} minutes ago";
+            }
+            else
+                return diff.Seconds > 30 ? $"{diff.Seconds} seconds ago" : "few seconds ago";
         }
 
         public async Task<SKImage> CreateSmallCardAsync(OsuScore score, bool showNick)
@@ -208,7 +222,9 @@ namespace osu_bot.Modules
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
                 canvas.DrawText(score.Beatmap.Beatmapset.Title, new SKRect() { Location = new(x, 30), Size = new(575, 20) }, _paint);
 
-                drawableString = showNick ? $"Played by {score.User.Username} {GetPlayedTimeString(score.CreatedAt)}" : $"Played {GetPlayedTimeString(score.CreatedAt)}";
+                drawableString = showNick ?
+                    $"Played by {score.User.Username} {GetPlayedTimeString(score.CreatedAt.LocalDateTime)}":
+                    $"Played {GetPlayedTimeString(score.CreatedAt.LocalDateTime)}";
                 _paint.SetColor(_lightGrayColor).SetSize(15);
                 canvas.DrawText(drawableString, x, 55, _paint);
 
@@ -659,7 +675,7 @@ namespace osu_bot.Modules
 
                 x = width - 200;
                 stringLinker.SecondPaint.SetColor(_whiteColor);
-                drawableString = GetPlayedTimeString(score.CreatedAt);
+                drawableString = GetPlayedTimeString(score.CreatedAt.LocalDateTime);
                 stringLinker.SetStrings("Played", drawableString)
                     .SetPositions(x, y, y + 20)
                     .Draw(canvas);
@@ -747,13 +763,13 @@ namespace osu_bot.Modules
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = user.LastVisit != null ? GetPlayedTimeString(user.LastVisit.Value) : "скрыто";
+                drawableString = user.LastVisit != null ? GetPlayedTimeString(user.LastVisit.Value.LocalDateTime) : "скрыто";
                 stringLinker.SetStrings("Online:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
                 y += rowSpacing;
 
-                drawableString = user.JoinDate.ToString("dd MM yyyy г.");
+                drawableString = user.JoinDate.ToString("dd.MM.yyyy г.");
                 stringLinker.SetStrings("Registration:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -831,9 +847,9 @@ namespace osu_bot.Modules
             }
         }
 
-        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<OsuScore> scores)
+        public async Task<SKImage> CreateScoresCardAsync(IEnumerable<OsuScore> scores, bool showNumbers)
         {
-            int width = 1000;
+            int width = showNumbers ? 1040 : 1000;
             int height = 136 + (scores.Count() * 114);
 
             SKImageInfo imageInfo = new(width, height);
@@ -848,6 +864,9 @@ namespace osu_bot.Modules
                 _paint.SetColor(_backgroundSemilightColor);
                 canvas.DrawRect(0, 0, width, 136, _paint);
 
+                _paint.SetColor(_backgroundColor);
+                canvas.DrawRect(0, 136, width, height, _paint);
+
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRect sourceRect = new(0, 0, image.Width, image.Height);
                 SKRect destRect = new() { Location = new(4, 4), Size = new(128, 128) };
@@ -859,11 +878,15 @@ namespace osu_bot.Modules
                 canvas.DrawText($"({user.CountryCode} #{user.CountryRank})", 156, 90, _paint);
 
                 int i = 0;
+                float x = showNumbers ? 40 : 0;
                 foreach (OsuScore score in scores)
                 {
                     float y = 136 + (i * 114);
                     SKImage scoreImage = await CreateSmallCardAsync(score, false);
-                    canvas.DrawImage(scoreImage, 0, y);
+                    canvas.DrawImage(scoreImage, x, y);
+                    _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(48);
+                    if (showNumbers)
+                        canvas.DrawAlignText($"{i + 1}", 30, y + 74, SKTextAlign.Center, _paint);
                     if (i != 0)
                     {
                         _paint.SetColor(_lightGrayColor);
@@ -1073,7 +1096,7 @@ namespace osu_bot.Modules
                     centerX += 100;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 
-                    drawableString = score.CreatedAt.ToShortDateString();
+                    drawableString = score.CreatedAt.LocalDateTime.ToString("dd.MM.yyyy г.");
                     centerX += 100;
                     canvas.DrawAlignText(drawableString, centerX, y, SKTextAlign.Center, _paint);
 

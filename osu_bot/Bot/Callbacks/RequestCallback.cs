@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using osu_bot.API;
+using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules;
@@ -26,7 +27,10 @@ namespace osu_bot.Bot.Callbacks
         Delete,
         Save,
         PageChange,
-        RequireChange,     
+        RequireChange,
+        Score,
+        ScoreSelect,
+        ScoreCancel,
     }
 
     public class RequestCallback : ICallback
@@ -36,6 +40,7 @@ namespace osu_bot.Bot.Callbacks
         public string Data => DATA;
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
+        private readonly OsuService _service = OsuService.Instance;
 
         private readonly Dictionary<RequestAction, Action<Request>> _actions;
 
@@ -68,7 +73,9 @@ namespace osu_bot.Bot.Callbacks
 
             int page = int.Parse(requestMatch.Groups[1].Value);
 
-            IEnumerable<TelegramUser> users = _database.TelegramUsers.Find(u => u.ChatId == chatId);
+            IEnumerable<TelegramUser> users = _database.TelegramUsers
+                .Include(u => u.OsuUser)
+                .Find(u => u.ChatId == chatId);
             int pagesCount = users.Count() / 8 + 1;
             users = users.Skip((page - 1) * 8).Take(8);
             IEnumerator<TelegramUser> usersEnumerator = users.GetEnumerator();
@@ -112,6 +119,32 @@ namespace osu_bot.Bot.Callbacks
             return new InlineKeyboardMarkup(keyboard);
         }
 
+        private async Task<InlineKeyboardMarkup> CreateScoreSelectMarkup(Request request)
+        {
+            IList<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(request.Beatmap.Id, request.FromUser.OsuUser.Id);
+            if (scores is null)
+            {
+                request.RequirePass = true;
+                return CreateRequireEditMarkup(request);
+            }
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            keyboard.Add(new InlineKeyboardButton[]
+            {
+                InlineKeyboardButton.WithCallbackData("Выбери свое позорище:"),
+                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{DATA}: {request.Id} A: {RequestAction.ScoreCancel}")
+            });
+            foreach (OsuScore score in scores)
+            {
+                keyboard.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{ModsConverter.ToString(score.Mods)} Score: 💰{score.Score.Separate(".")} 🎯{score.Accuracy:F2}% 🏆{score.MaxCombo}/{score.BeatmapAttributes.MaxCombo}x",
+                        callbackData: $"{DATA}: {request.Id} A: {RequestAction.Score} S: {score.Score} M: {score.Mods}")
+                });
+            }
+            return new InlineKeyboardMarkup(keyboard);
+        }
+
         private InlineKeyboardMarkup CreateRequireEditMarkup(Request request)
         {
             List<IEnumerable<InlineKeyboardButton>> keyboard = new();
@@ -125,7 +158,7 @@ namespace osu_bot.Bot.Callbacks
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireFullCombo), !request.RequireFullCombo)),
                 InlineKeyboardButton.WithCallbackData(
                         text: request.RequireSnipe ? "🎯 Snipe 🟢" : "🎯 Snipe 🔴",
-                        callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireSnipe), !request.RequireSnipe))
+                        callbackData: $"{DATA}: {request.Id} A: {RequestAction.ScoreSelect}")
             };
             keyboard.Add(rowButtons1);
 
@@ -221,14 +254,16 @@ namespace osu_bot.Bot.Callbacks
             return new InlineKeyboardMarkup(keyboard);
         }
 
-        private InlineKeyboardMarkup CreateMarkup(RequestAction action, Request request, string callbackQueryData, long chatId)
+        private async Task<InlineKeyboardMarkup> CreateMarkup(RequestAction action, Request request, string callbackQueryData, long chatId)
         {
             return action switch
             {
                 RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData, chatId),
                 RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData, chatId),
                 RequestAction.RequireChange => CreateRequireEditMarkup(request),
-                _ => Extensions.ScoreKeyboardMarkup(request.BeatmapId, request.BeatmapsetId)
+                RequestAction.ScoreSelect => await CreateScoreSelectMarkup(request),
+                RequestAction.ScoreCancel => CreateRequireEditMarkup(request),
+                _ => Extensions.ScoreKeyboardMarkup(request.Beatmap.Id, request.Beatmap.BeatmapsetId)
             };
         }
 
@@ -277,20 +312,59 @@ namespace osu_bot.Bot.Callbacks
             long requestId = long.Parse(requestMatch.Groups[1].Value);
             RequestAction actionRequest = (RequestAction)Enum.Parse(typeof(RequestAction), requestMatch.Groups[2].Value);
 
-            Request request = actionRequest switch
+            Request? request;
+            if (actionRequest is RequestAction.Create)
             {
-                RequestAction.Create => new Request(_database.TelegramUsers.FindById(callbackQuery.From.Id), requestId),
-                RequestAction.RequireChange => ChangeRequireFromData(_database.Requests.FindById(requestId), data),
-                _ => _database.Requests.FindById(requestId),
-            };
+                OsuBeatmap? beatmap = await _service.GetBeatmapAsync(requestId);
+
+                if (beatmap is null)
+                    throw new Exception("При обработке запроса на реквест произошла ошибка");
+
+                TelegramUser fromUser = _database.TelegramUsers.FindById(callbackQuery.From.Id);
+                request = new Request(fromUser, beatmap);
+            }
+            else
+            {
+                request = _database.Requests
+                    .Include(u => u.FromUser)
+                    .FindById(requestId);
+            }
+
+            if (request is null)
+                throw new Exception("При обработке запроса на реквест произошла ошибка");
 
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return;
 
+            if (actionRequest is RequestAction.RequireChange)
+                request = ChangeRequireFromData(request, data);
+
+            if (actionRequest is RequestAction.Score)
+            {
+                Match scoreMatch = new Regex(@"S: (\d+) M: (\d+)").Match(data);
+                if (!scoreMatch.Success)
+                    throw new Exception("При обработке запроса на реквест произошла ошибка");
+
+                long score = long.Parse(scoreMatch.Groups[1].Value);
+                int mods = int.Parse(scoreMatch.Groups[2].Value);
+
+                request.Score = score;
+                request.RequireSnipe = true;
+                request.IsAllMods = true;
+                request.RequireMods = mods; 
+                actionRequest = RequestAction.Save;
+            }
+
+            if (actionRequest is RequestAction.ScoreCancel)
+            {
+                request.RequirePass = true;
+                request.IsAllMods = false;
+            }
+
             if (_actions.TryGetValue(actionRequest, out Action<Request>? action))
                 action.Invoke(request);
 
-            InlineKeyboardMarkup newReplyMarkup = CreateMarkup(actionRequest, request, data, callbackQuery.Message.Chat.Id);
+            InlineKeyboardMarkup newReplyMarkup = await CreateMarkup(actionRequest, request, data, callbackQuery.Message.Chat.Id);
 
             try
             {
@@ -320,8 +394,8 @@ namespace osu_bot.Bot.Callbacks
 
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.Message.Chat,
-                    text: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте osu.ppy.sh/beatmaps/{request.BeatmapId}",
-                    replyMarkup: Extensions.RequestKeyboardMakrup(request.BeatmapId, request.BeatmapId),
+                    text: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте {request.Beatmap.Url}",
+                    replyMarkup: Extensions.RequestKeyboardMakrup(request.Beatmap.Id, request.Beatmap.BeatmapsetId),
                     cancellationToken: cancellationToken);
             }
         }

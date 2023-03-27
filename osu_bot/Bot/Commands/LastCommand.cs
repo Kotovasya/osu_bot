@@ -59,14 +59,14 @@ namespace osu_bot.Bot.Commands
             InlineKeyboardMarkup? inlineKeyboard = null;
             if (scores.Count > 1)
             {
-                image = await ImageGenerator.Instance.CreateScoresCardAsync(scores);
+                image = await ImageGenerator.Instance.CreateScoresCardAsync(scores, false);
             }
             else
             {
                 OsuScore score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
-                inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmap.BeatmapsetId);
+                inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
             }
             Message answer = await botClient.SendPhotoAsync(
                 chatId: message.Chat,

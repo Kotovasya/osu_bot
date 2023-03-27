@@ -18,6 +18,11 @@ namespace osu_bot.Bot
     public class BotHandle
     {
 
+        private readonly ReceiverOptions _receiverOptions = new()
+        {
+            AllowedUpdates = Array.Empty<UpdateType>()
+        };
+
         #region Chats settings
 #if DEBUG
         private readonly ChatId _chatId = new(-1001888790264);
@@ -44,10 +49,6 @@ namespace osu_bot.Bot
             foreach (Parser parser in _parsers)
                 parser.Run();
 
-            ReceiverOptions receiverOptions = new()
-            {
-                AllowedUpdates = Array.Empty<UpdateType>()
-            };
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
 
@@ -59,7 +60,7 @@ namespace osu_bot.Bot
             _botClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
-                receiverOptions: receiverOptions,
+                receiverOptions: _receiverOptions,
                 cancellationToken: cts.Token
             );           
             Console.ReadLine();
@@ -99,15 +100,22 @@ namespace osu_bot.Bot
             }
             finally
             {
-                if (update.CallbackQuery != null)
-                    await botClient.AnswerCallbackQueryAsync(
-                    callbackQueryId: update.CallbackQuery.Id,
-                    cancellationToken: cancellationToken);
+                try
+                {
+                    if (update.CallbackQuery != null)
+                        await botClient.AnswerCallbackQueryAsync(
+                        callbackQueryId: update.CallbackQuery.Id,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
             return;
         }
 
-        public static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
             string ErrorMessage = exception switch
             {

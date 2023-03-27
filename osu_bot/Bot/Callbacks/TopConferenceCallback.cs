@@ -40,8 +40,9 @@ namespace osu_bot.Bot.Callbacks
             
             int beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
-            IEnumerable<TelegramUser> telegramUsers = _database.TelegramUsers
-                .Find(u => u.ChatId == callbackQuery.Message.Chat.Id);
+            List<TelegramUser> telegramUsers = _database.TelegramUsers
+                .Find(u => u.ChatId == callbackQuery.Message.Chat.Id)
+                .ToList();
 
             List<OsuScore> result = new();
 

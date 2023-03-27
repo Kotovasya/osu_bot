@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LiteDB;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests.Abstractions;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Entites.Database
 {
@@ -17,13 +19,11 @@ namespace osu_bot.Entites.Database
         private bool _requirePass;
         private bool _requireFullcombo;
         private bool _requireSnipe;
+
         private int _requireMods;
+        private bool _isAllMods;
 
         public long Id { get; set; }
-
-        public long BeatmapId { get; set; }
-
-        public long BeatmapsetId { get; set; }
 
         public bool RequirePass
         {
@@ -67,6 +67,19 @@ namespace osu_bot.Entites.Database
             }
         }
 
+        public bool IsAllMods
+        {
+            get => _isAllMods;
+            set
+            {
+                if (value)
+                    RequireMods = NoMod.NUMBER;
+                else
+                    RequireMods = NoMod.NUMBER + ModHidden.NUMBER + ModHardRock.NUMBER + ModDoubleTime.NUMBER + ModFlashlight.NUMBER;
+                _isAllMods = value;
+            }
+        }
+
         public int RequireMods
         {
             get => _requireMods;
@@ -97,7 +110,7 @@ namespace osu_bot.Entites.Database
             }
         }
 
-        public bool IsAllMods { get; set; }
+        public long? Score { get; set; }
 
         public bool IsTemporary { get; set; }
 
@@ -106,8 +119,13 @@ namespace osu_bot.Entites.Database
 
         public bool IsComplete { get; set; }
 
+        [BsonRef]
         public TelegramUser FromUser { get; set; }
+        [BsonRef]
         public TelegramUser ToUser { get; set; }
+
+        [BsonRef]
+        public OsuBeatmap Beatmap { get; set; }
 
         public Request()
         {
@@ -124,10 +142,10 @@ namespace osu_bot.Entites.Database
             _requirePass = true;
         }
 
-        public Request(TelegramUser requestOwner, long beatmapId)
+        public Request(TelegramUser requestOwner, OsuBeatmap beatmap)
             : this(requestOwner, new TelegramUser())
         {
-            BeatmapId = beatmapId;
+            Beatmap = beatmap;
         }
     }
 }

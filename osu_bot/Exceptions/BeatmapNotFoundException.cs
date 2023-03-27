@@ -9,15 +9,12 @@ using System.Threading.Tasks;
 
 namespace osu_bot.Exceptions
 {
-    public class UserNotFoundException : Exception
+    public class BeatmapNotFoundException : Exception
     {
-        public string? Username { get; set; }
+        public long BeatmapId { get; set; }
 
-        public override string Message => $"Пользователь {Username} не найден";
+        public override string Message => $"Карта с ID {BeatmapId} не найдена";
 
-        public UserNotFoundException(string? username)
-        {
-            Username = username;
-        }
+        public BeatmapNotFoundException(long beatmapId) => BeatmapId = beatmapId;
     }
 }

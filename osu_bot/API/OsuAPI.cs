@@ -59,14 +59,22 @@ namespace osu_bot.API
             return response;
         }
 
-        private async Task<T?> GetAsync<T>(string url)
+        private async Task<T?> GetAsync<T>(string url, string? pathParse = null)
         {
             using HttpRequestMessage request = new(HttpMethod.Get, $"{BASE_URL}{url}");
             using HttpResponseMessage response = await SendAsync(request);
             string str = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK)
-                return JsonConvert.DeserializeObject<T>(str);
+            {
+                if (pathParse is null)
+                    return JsonConvert.DeserializeObject<T>(str);
+                else
+                {
+                    JObject jo = JObject.Parse(str);
+                    return JsonConvert.DeserializeObject<T>(jo[pathParse].ToString());
+                }
+            }
 
             return default;
         }
@@ -128,14 +136,14 @@ namespace osu_bot.API
             return await GetAsync<IList<OsuScore>>(parameters.GetQueryString());
         }
 
-        public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long userId, long beatmapId)
+        public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long beatmapId, long userId)
         {
-            return await GetAsync<OsuScore>($"/beatmaps/{beatmapId}/scores/users/{userId}");
+            return await GetAsync<OsuScore>($"/beatmaps/{beatmapId}/scores/users/{userId}", "score");
         }
 
         public async Task<IList<OsuScore>?> GetUserBeatmapAllScoresAsync(long beatmapId, long userId)
         {
-            return await GetAsync<IList<OsuScore>>($"/beatmaps/{beatmapId}/scores/users/{userId}/all");
+            return await GetAsync<IList<OsuScore>>($"/beatmaps/{beatmapId}/scores/users/{userId}/all", "scores");
         }
     }
 }
