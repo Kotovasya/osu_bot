@@ -1,15 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Net;
 using LiteDB;
 using osu_bot.Resources;
 using osu_bot.Entites;
 using SkiaSharp;
 using osu_bot.Entites.Database;
 using osu_bot.Modules.Converters;
-using Telegram.Bot.Types;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Modules
 {
@@ -85,13 +82,14 @@ namespace osu_bot.Modules
         private const int STAR_UNICODE = 9733;
         private const int TRIANGLEUP_UNICODE = 9650;
         private const int TRIANGLEDOWN_UNICODE = 9660;
-        
+        private const int RIGHT_ARROW = 8680;
 
         public static ImageGenerator Instance { get; } = new();
 
         private readonly SKTypeface _starTypeface = SKFontManager.Default.MatchCharacter(STAR_UNICODE);
         private readonly SKTypeface _triangleUpTypeface = SKFontManager.Default.MatchCharacter(TRIANGLEUP_UNICODE);
         private readonly SKTypeface _triangleDownTypeface = SKFontManager.Default.MatchCharacter(TRIANGLEDOWN_UNICODE);
+        private readonly SKTypeface _rightArrowTypeface = SKFontManager.Default.MatchCharacter(RIGHT_ARROW);
 
         private readonly SKImageFilter _imageDarkingFilter = SKImageFilter.CreateColorFilter(
             SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 140), SKBlendMode.Darken));
@@ -1131,7 +1129,7 @@ namespace osu_bot.Modules
         public async Task<SKImage> CreateRequestCardAsync(Request request)
         {
             int width = 876;
-            int height = 400;
+            int height = 404;
 
             SKImageInfo imageInfo = new(width, height);
             using (SKSurface surface = SKSurface.Create(imageInfo))
@@ -1339,9 +1337,56 @@ namespace osu_bot.Modules
                 #endregion
 
                 #region Request info
-                x = 300 + ((width - 300) / 2);
-                y += 20;
+                data = await _httpClient.GetByteArrayAsync(request.FromUser.OsuUser.AvatarUrl);
+                image = SKImage.FromEncodedData(data);
+                imageSize = new(0, 0, image.Width, image.Height);
+                destRect = new() { Location = new SKPoint(20, 240), Size = new SKSize(128, 128) };
+                image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
+                canvas.DrawImage(image, imageSize, destRect, _paint);
+
+                x = 188;
+                y = 304;
+                _paint.SetColor(_whiteColor).SetTypeface(_rightArrowTypeface).SetSize(64);
+                canvas.DrawAlignText("⇨", x, y, SKTextAlign.Center, _paint);
+
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(22);
+                drawableString = $"From: {request.FromUser.OsuUser.Username}";
+                canvas.DrawAlignText(drawableString, x, y - 32, SKTextAlign.Center, _paint);
+                drawableString = $"To: {request.ToUser.OsuUser.Username}";
+                canvas.DrawAlignText(drawableString, x, y + 32, SKTextAlign.Center, _paint);
+
+                data = await _httpClient.GetByteArrayAsync(request.ToUser.OsuUser.AvatarUrl);
+                image = SKImage.FromEncodedData(data);
+                imageSize = new(0, 0, image.Width, image.Height);
+                destRect = new() { Location = new SKPoint(228, 240), Size = new SKSize(128, 128) };
+                image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
+                canvas.DrawImage(image, imageSize, destRect, _paint);
+
+                x = width / 2;
+                y = 300;
+
+                drawableString = "REQUIRED TASK:";
+                _paint.SetTypeface(_rubikTypeface).SetSize(18);
+                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
+
+                if (request.RequirePass)
+                    drawableString = "PASS BEATMAP";
+                else if (request.RequireFullCombo)
+                    drawableString = "FC BEATMAP";
+                else if (request.RequireSnipeScore)
+                    drawableString = $"GET MORE {request.Score.Separate(".")} SCORE";
+                else if (request.RequireSnipeAccuracy)
+                    drawableString = $"GET MORE {request.Accuracy} ACCURACY";
+                else if (request.RequireSnipeCombo)
+                    drawableString = $"GET MORE {request.Combo.Separate(".")}/{request.BeatmapAttributes.MaxCombo}x COMBO";
+
+                canvas.DrawAlignText(drawableString, x, y + 25, SKTextAlign.Center, _paint);
+
+                x = 670;
+                y = 300;
                 drawableString = request.IsOnlyMods ? "With only mods:" : "With any mod(-s):";
+                _paint.SetTypeface(_rubikTypeface).SetSize(18);
+                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
                 SKImage? modsImage = ModsConverter.ToImage(request.RequireMods);
                 if (modsImage != null)
                 {
@@ -1350,26 +1395,9 @@ namespace osu_bot.Modules
                 }
                 else
                 {
-                    drawableString += " " + ModsConverter.ToString(request.RequireMods);
-                }
-                _paint.SetTypeface(_rubikTypeface).SetSize(18);
-                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
-
-                y += 40;
-                drawableString = "REQUIRED TASK: ";
-
-                if (request.RequirePass)
-                    drawableString += "PASS BEATMAP";
-                else if (request.RequireFullCombo)
-                    drawableString += "FC BEATMAP";
-                else if (request.RequireSnipeScore)
-                    drawableString += $"GET MORE {request.Score.Separate(".")} SCORE";
-                else if (request.RequireSnipeAccuracy)
-                    drawableString += $"GET MORE {request.Accuracy} ACCURACY";
-                else if (request.RequireSnipeCombo)
-                    drawableString += $"GET MORE {request.Combo.Separate(".")}x COMBO";
-
-                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
+                    drawableString = ModsConverter.ToString(request.RequireMods);
+                    canvas.DrawAlignText(drawableString, x, y + 25, SKTextAlign.Center, _paint);
+                } 
                 #endregion                
 
                 return surface.Snapshot();
