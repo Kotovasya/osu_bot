@@ -11,11 +11,11 @@ namespace osu_bot.Entites.Database
 {
     public class BeatmapAttributesKey
     {
-        public long BeatmapId { get; set; }
+        public int BeatmapId { get; set; }
         public int Mods { get; set; }
 
         public BeatmapAttributesKey() { }
-        public BeatmapAttributesKey(long beatmapId, int mods)
+        public BeatmapAttributesKey(int beatmapId, int mods)
         {
             BeatmapId = beatmapId;
             Mods = mods;

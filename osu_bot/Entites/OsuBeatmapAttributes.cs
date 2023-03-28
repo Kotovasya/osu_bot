@@ -42,13 +42,19 @@ namespace osu_bot.Entites
         [JsonProperty("attributes.speed_difficulty")]
         public double SpeedDifficulty { get; set; }
 
+        [JsonIgnore]
         public double CS { get; set; }
+        [JsonIgnore]
         public double AR { get; set; }
+        [JsonIgnore]
         public double OD { get; set; }
+        [JsonIgnore]
         public double HP { get; set; }
-
+        [JsonIgnore]
         public int TotalLength { get; set; }
+        [JsonIgnore]
         public int HitLength { get; set; }
+        [JsonIgnore]
         public double BPM { get; set; }
 
         public void CopyBeatmapAttributes(OsuBeatmap beatmap)

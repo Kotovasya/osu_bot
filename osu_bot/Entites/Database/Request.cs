@@ -17,11 +17,15 @@ namespace osu_bot.Entites.Database
     public class Request
     {
         private bool _requirePass;
-        private bool _requireFullcombo;
+        private bool _requireFullCombo;
         private bool _requireSnipe;
 
+        private bool _requireSnipeScore;
+        private bool _requireSnipeAccuracy;
+        private bool _requireSnipeCombo;
+
         private int _requireMods;
-        private bool _isAllMods;
+        private bool _isOnlyMods;
 
         public long Id { get; set; }
 
@@ -30,26 +34,22 @@ namespace osu_bot.Entites.Database
             get => _requirePass;
             set
             {          
-                if (value)
-                {
-                    _requirePass = value;
-                    _requireSnipe = false;
-                    _requireFullcombo = false;
-                }
+                _requirePass = value;
+                _requireSnipe = false;
+                _requireFullCombo = false;
+                CheckRequrieTaskValid();
             }
         }
 
         public bool RequireFullCombo
         {
-            get => _requireFullcombo;
+            get => _requireFullCombo;
             set
             {              
-                if (value)
-                {
-                    _requireFullcombo = value;
-                    _requireSnipe = false;
-                    _requirePass = false;
-                }
+                _requireFullCombo = value;
+                _requireSnipe = false;
+                _requirePass = false;
+                CheckRequrieTaskValid();
             }
         }
 
@@ -57,26 +57,24 @@ namespace osu_bot.Entites.Database
         {
             get => _requireSnipe;
             set
-            {
-                if (value)
-                {
-                    _requireSnipe = value;
-                    _requireFullcombo = false;
-                    _requirePass = false;
-                }
+            {                
+                _requireSnipe = value;
+                _requireFullCombo = false;
+                _requirePass = false;
+                CheckRequrieTaskValid();
             }
         }
 
-        public bool IsAllMods
+        public bool IsOnlyMods
         {
-            get => _isAllMods;
+            get => _isOnlyMods;
             set
             {
                 if (value)
                     RequireMods = NoMod.NUMBER;
                 else
                     RequireMods = NoMod.NUMBER + ModHidden.NUMBER + ModHardRock.NUMBER + ModDoubleTime.NUMBER + ModFlashlight.NUMBER;
-                _isAllMods = value;
+                _isOnlyMods = value;
             }
         }
 
@@ -86,7 +84,7 @@ namespace osu_bot.Entites.Database
             set
             {
                 IEnumerable<Mod> mods = ModsConverter.ToMods(value);
-                if (IsAllMods)
+                if (IsOnlyMods)
                 {
                     Mod? newMod = null;
                     if (value >= _requireMods)
@@ -110,7 +108,47 @@ namespace osu_bot.Entites.Database
             }
         }
 
-        public long? Score { get; set; }
+        public bool RequireSnipeScore
+        {
+            get => _requireSnipeScore;
+            set
+            {
+                _requireSnipeScore = value;
+                _requireSnipeAccuracy = false;
+                _requireSnipeCombo = false;
+                CheckRequrieTaskValid();
+            }
+        }
+
+        public bool RequireSnipeAccuracy
+        {
+            get => _requireSnipeAccuracy;
+            set
+            {
+                _requireSnipeAccuracy = value;
+                _requireSnipeScore = false;
+                _requireSnipeCombo = false;
+                CheckRequrieTaskValid();
+            }
+        }
+
+        public bool RequireSnipeCombo
+        {
+            get => _requireSnipeCombo;
+            set
+            {
+                _requireSnipeCombo = value;
+                _requireSnipeScore = false;
+                _requireSnipeAccuracy = false;
+                CheckRequrieTaskValid();
+            }
+        }
+
+        public int Score { get; set; }
+
+        public float Accuracy { get; set; }
+
+        public int Combo { get; set; }
 
         public bool IsTemporary { get; set; }
 
@@ -127,6 +165,9 @@ namespace osu_bot.Entites.Database
         [BsonRef]
         public OsuBeatmap Beatmap { get; set; }
 
+        [BsonRef]
+        public OsuBeatmapAttributes BeatmapAttributes { get; set; }
+
         public Request()
         {
 
@@ -138,14 +179,24 @@ namespace osu_bot.Entites.Database
             ToUser = toUser;
             DateCreate = DateTime.Now;
             IsTemporary = true;
-            _requireMods = NoMod.NUMBER;
+            _requireMods = NoMod.NUMBER + ModHidden.NUMBER + ModHardRock.NUMBER + ModDoubleTime.NUMBER + ModFlashlight.NUMBER;
             _requirePass = true;
+            _requireSnipeScore = true;
         }
 
         public Request(TelegramUser requestOwner, OsuBeatmap beatmap)
             : this(requestOwner, new TelegramUser())
         {
             Beatmap = beatmap;
+        }
+
+        private void CheckRequrieTaskValid()
+        {
+            if (!_requirePass && !_requireFullCombo && !_requireSnipe)
+                _requirePass = true;
+
+            if (!_requireSnipeScore && !_requireSnipeAccuracy && !_requireSnipeCombo)
+                _requireSnipeScore = true;
         }
     }
 }

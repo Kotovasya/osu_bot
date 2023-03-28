@@ -90,7 +90,8 @@ namespace osu_bot.Entites
         [BsonRef]
         public OsuBeatmapAttributes BeatmapAttributes { get; set; }
 
-
+        [BsonIgnore]
+        [JsonIgnore]
         public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
     }
 }

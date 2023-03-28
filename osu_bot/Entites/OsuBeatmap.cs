@@ -17,7 +17,7 @@ namespace osu_bot.Entites
     {
         [BsonId]
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         [JsonProperty("difficulty_rating")]
         public float Stars { get; set; }
@@ -68,13 +68,14 @@ namespace osu_bot.Entites
         public string Url { get; set; }
 
         [JsonProperty("beatmapset_id")]
-        public long BeatmapsetId { get; set; }
+        public int BeatmapsetId { get; set; }
 
         [BsonRef]
         [JsonProperty("beatmapset")]
         public OsuBeatmapset Beatmapset { get; set; }
 
-
+        [BsonIgnore]
+        [JsonIgnore]
         public int TotalObjects => CountCircles + CountSliders + CountSpinners;
     }
 }

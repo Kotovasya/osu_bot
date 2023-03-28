@@ -17,10 +17,13 @@ namespace osu_bot.Entites
     {
         [BsonId]
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         [JsonProperty("covers.cover@2x")]
         public string CoverUrl { get; set; }
+
+        [JsonProperty("covers.list@2x")]
+        public string ListUrl { get; set; }
 
         [JsonProperty("creator")]
         public string Mapper { get; set; }

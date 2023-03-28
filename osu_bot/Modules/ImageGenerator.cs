@@ -8,6 +8,8 @@ using osu_bot.Entites;
 using SkiaSharp;
 using osu_bot.Entites.Database;
 using osu_bot.Modules.Converters;
+using Telegram.Bot.Types;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Modules
 {
@@ -1128,7 +1130,7 @@ namespace osu_bot.Modules
 
         public async Task<SKImage> CreateRequestCardAsync(Request request)
         {
-            int width = 400;
+            int width = 876;
             int height = 400;
 
             SKImageInfo imageInfo = new(width, height);
@@ -1136,6 +1138,239 @@ namespace osu_bot.Modules
             {
                 SKCanvas canvas = surface.Canvas;
                 canvas.Clear(_backgroundColor);
+
+                #region Map Info
+                byte[] data = await _httpClient.GetByteArrayAsync(request.Beatmap.Beatmapset.CoverUrl);
+                SKRect sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
+                SKRect destRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(876, 204) };
+                SKImage image = SKImage.FromEncodedData(data);
+                SKRectI imageSize = new(0, 0, image.Width, image.Height);
+                image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
+                canvas.DrawImage(image, sourceRect, destRect, _paint);
+
+                float x = 5;
+                SKImage mapStatusImage = _rankStatus[request.Beatmap.Status];
+                canvas.DrawImage(mapStatusImage, x, 5, _paint);
+
+                x += mapStatusImage.Width + 5;
+
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
+                string drawableString = $"{request.Beatmap.Beatmapset.Title} [{request.Beatmap.DifficultyName}]";
+                canvas.DrawText(drawableString, x, 23, _paint);
+
+                drawableString = $"{request.Beatmap.Beatmapset.Artist}";
+                _paint.SetSize(18);
+                canvas.DrawText(drawableString, x, 48, _paint);
+
+                x = 9;
+                drawableString = $"Mapped by {request.Beatmap.Beatmapset.Mapper}";
+                _paint.SetSize(15);
+                canvas.DrawText(drawableString, x, 73, _paint);
+
+                float y = 195;
+                float columnSpacing = 18;
+                float wordSpacing = 4;
+                SKPaint paint1 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikLightTypeface).SetSize(18);
+                SKPaint paint2 = new SKPaint().SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
+                StringsLinker stringLinker = new(paint1, paint2, wordSpacing);
+
+                drawableString = request.Beatmap.CS.ToString("0.0");
+                x = stringLinker.SetStrings("CS:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                if (request.Beatmap.CS != request.BeatmapAttributes.CS)
+                {
+                    if (request.Beatmap.CS < request.BeatmapAttributes.CS)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
+                    x += 2;
+                    drawableString = $"{request.BeatmapAttributes.CS:0.0}";
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+
+                    if (request.Beatmap.CS < request.BeatmapAttributes.CS)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+                }
+
+                x += columnSpacing;
+
+                drawableString = request.Beatmap.AR.ToString("0.0");
+                x = stringLinker.SetStrings("AR:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                if (request.Beatmap.AR != request.BeatmapAttributes.AR)
+                {
+                    if (request.Beatmap.AR < request.BeatmapAttributes.AR)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
+                    x += 2;
+                    drawableString = $"{request.BeatmapAttributes.AR:0.0}";
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+
+                    if (request.Beatmap.AR < request.BeatmapAttributes.AR)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+                }
+
+                x += columnSpacing;
+
+                drawableString = request.Beatmap.OD.ToString("0.0");
+                x = stringLinker.SetStrings("OD:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                if (request.Beatmap.OD != request.BeatmapAttributes.OD)
+                {
+                    if (request.Beatmap.OD < request.BeatmapAttributes.OD)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
+                    x += 2;
+                    drawableString = $"{request.BeatmapAttributes.OD:0.0}";
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+
+                    if (request.Beatmap.OD < request.BeatmapAttributes.OD)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
+                    canvas.DrawText(drawableString, x, y - 6, _paint);
+                    x += _paint.MeasureText(drawableString);
+                }
+
+                x += columnSpacing;
+
+                drawableString = request.Beatmap.HP.ToString("0.0");
+                x = stringLinker.SetStrings("HP:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                if (request.Beatmap.HP != request.BeatmapAttributes.HP)
+                {
+                    if (request.Beatmap.HP < request.BeatmapAttributes.HP)
+                        _paint.SetColor(_colorMisses);
+                    else
+                        _paint.SetColor(_color300);
+
+                    x += 2;
+                    drawableString = $"{request.BeatmapAttributes.HP:0.0}";
+                    _paint.SetTypeface(_rubikMediumTypeface).SetSize(16);
+                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    x += _paint.MeasureText(drawableString);
+
+                    if (request.Beatmap.HP < request.BeatmapAttributes.HP)
+                    {
+                        drawableString = "▲";
+                        _paint.SetTypeface(_triangleUpTypeface);
+                    }
+                    else
+                    {
+                        drawableString = "▼";
+                        _paint.SetTypeface(_triangleDownTypeface);
+                    }
+
+                    canvas.DrawText(drawableString, x, y - 4, _paint);
+                    x += _paint.MeasureText(drawableString);
+                }
+
+                x += columnSpacing;
+
+                drawableString = TimeSpan.FromSeconds(request.BeatmapAttributes.HitLength).ToString(@"mm\:ss");
+                x = stringLinker.SetStrings("Length:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                x += columnSpacing;
+
+                drawableString = request.BeatmapAttributes.BPM.ToString();
+                x = stringLinker.SetStrings("BPM:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                x += columnSpacing;
+
+                drawableString = $"{request.BeatmapAttributes.Stars:0.00}";
+                x = stringLinker.SetStrings("Stars:", drawableString)
+                    .SetPositions(x, y, y)
+                    .Draw(canvas);
+
+                drawableString = "★";
+                _paint.SetColor(_whiteColor).SetTypeface(_starTypeface).SetSize(20);
+                canvas.DrawText(drawableString, x, y, _paint);
+                #endregion
+
+                #region Request info
+                x = 300 + ((width - 300) / 2);
+                y += 20;
+                drawableString = request.IsOnlyMods ? "With only mods:" : "With any mod(-s):";
+                SKImage? modsImage = ModsConverter.ToImage(request.RequireMods);
+                if (modsImage != null)
+                {
+                    float centerX = x - (modsImage.Width / 2);
+                    canvas.DrawImage(modsImage, centerX, y + 15, _paint);
+                }
+                else
+                {
+                    drawableString += " " + ModsConverter.ToString(request.RequireMods);
+                }
+                _paint.SetTypeface(_rubikTypeface).SetSize(18);
+                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
+
+                y += 40;
+                drawableString = "REQUIRED TASK: ";
+
+                if (request.RequirePass)
+                    drawableString += "PASS BEATMAP";
+                else if (request.RequireFullCombo)
+                    drawableString += "FC BEATMAP";
+                else if (request.RequireSnipeScore)
+                    drawableString += $"GET MORE {request.Score.Separate(".")} SCORE";
+                else if (request.RequireSnipeAccuracy)
+                    drawableString += $"GET MORE {request.Accuracy} ACCURACY";
+                else if (request.RequireSnipeCombo)
+                    drawableString += $"GET MORE {request.Combo.Separate(".")}x COMBO";
+
+                canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
+                #endregion                
 
                 return surface.Snapshot();
             }

@@ -35,7 +35,7 @@ namespace osu_bot.Bot
         {
             if (callbackQuery.Data is { } data)
             {
-                string? callbackData = _callbacks.Keys.FirstOrDefault(s => data.Contains(s));
+                string? callbackData = _callbacks.Keys.FirstOrDefault(s => data.StartsWith(s));
                 if (callbackData != null)
                 {
                     await _callbacks[callbackData].Invoke(botClient, callbackQuery, cancellationToken);

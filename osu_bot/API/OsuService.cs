@@ -14,6 +14,7 @@ using osu_bot.Exceptions;
 using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.API
 {
@@ -38,7 +39,9 @@ namespace osu_bot.API
 
         public async Task<OsuBeatmap?> GetBeatmapAsync(long id)
         {
-            OsuBeatmap? beatmap = _database.Beatmaps.FindById(id);
+            OsuBeatmap? beatmap = _database.Beatmaps
+                .Include(b => b.Beatmapset)
+                .FindById(id);
 
             if (beatmap is null || !beatmap.IsScoreable)
                 beatmap = await _api.GetBeatmapAsync(id);
@@ -56,24 +59,28 @@ namespace osu_bot.API
             return beatmapset;
         }
 
-        public async Task<OsuBeatmapAttributes?> GetScoreBeatmapAttributesAsync(OsuScore score)
+        public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(OsuBeatmap beatmap, int mods)
         {
-            int mods = score.Mods;
-            if (score.Mods == NoMod.NUMBER)
+            if (mods == NoMod.NUMBER)
                 mods = 0;
 
             OsuBeatmapAttributes? attributes = _database.BeatmapAttributes
-                .FindOne(a => a.Id.BeatmapId == score.Beatmap.Id && a.Id.Mods == mods);
-            attributes ??= await _api.GetBeatmapAttributesAsync(score.Beatmap.Id, mods);
+                .FindOne(a => a.Id.BeatmapId == beatmap.Id && a.Id.Mods == mods);
+            attributes ??= await _api.GetBeatmapAttributesAsync(beatmap.Id, mods);
 
             if (attributes is null)
                 return null;
 
-            attributes.Id = new BeatmapAttributesKey(score.Beatmap.Id, score.Mods);
-            attributes.CopyBeatmapAttributes(score.Beatmap);
+            attributes.Id = new BeatmapAttributesKey(beatmap.Id, mods);
+            attributes.CopyBeatmapAttributes(beatmap);
             attributes.CalculateAttributesWithMods(ModsConverter.ToMods(mods));
-                
+
             return attributes;
+        }
+
+        public async Task<OsuBeatmapAttributes?> GetScoreBeatmapAttributesAsync(OsuScore score)
+        {
+            return await GetBeatmapAttributesAsync(score.Beatmap, score.Mods);
         }
 
         public async Task<OsuScore?> GetScoreAsync(long id)
