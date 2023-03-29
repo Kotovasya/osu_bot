@@ -29,6 +29,7 @@
     <None Remove="Assets\Images\Mods\HT.png" />
     <None Remove="Assets\Images\Mods\NC.png" />
     <None Remove="Assets\Images\Mods\NF.png" />
+    <None Remove="Assets\Images\Mods\NM.png" />
     <None Remove="Assets\Images\Mods\PF.png" />
     <None Remove="Assets\Images\Mods\RL.png" />
     <None Remove="Assets\Images\Mods\SD.png" />
@@ -95,6 +96,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Images\Mods\NF.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Images\Mods\NM.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Assets\Images\Mods\PF.png">

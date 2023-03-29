@@ -152,9 +152,7 @@ namespace osu_bot.Modules.Converters
         public static IEnumerable<string> ToStrings(IEnumerable<Mod> mods)
         {
             IEnumerable<string> stringsMods;
-            if (mods.Count() == 1 && mods.Any(m => m.Name == NoMod.NAME))
-                stringsMods = Array.Empty<string>();
-            else if (mods.Any(m => m.Name == AllMods.NAME))
+            if (mods.Any(m => m.Name == AllMods.NAME))
                 stringsMods = Array.Empty<string>();
             else
                 stringsMods = mods.Select(m => m.Name);
@@ -178,7 +176,7 @@ namespace osu_bot.Modules.Converters
 
         public static SKImage? ToImage(IEnumerable<Mod>? mods)
         {
-            if (mods == null || !mods.Any() || mods.Any(m => m.Name == NoMod.NAME || m.Name == AllMods.NAME))
+            if (mods == null || !mods.Any() || mods.Any(m => m.Name == AllMods.NAME))
             {
                 return null;
             }
@@ -202,11 +200,6 @@ namespace osu_bot.Modules.Converters
                 return AllMods.NUMBER;
             }
 
-            if (!mods.Any())
-            {
-                return NoMod.NUMBER;
-            }
-
             return mods.Sum(m => m.Number);
         }
 
@@ -215,11 +208,6 @@ namespace osu_bot.Modules.Converters
             if (mods is null)
             {
                 return AllMods.NUMBER;
-            }
-
-            if (!mods.Any())
-            {
-                return NoMod.NUMBER;
             }
 
             return ToInt(ToMods(mods));

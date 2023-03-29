@@ -55,5 +55,8 @@ namespace osu_bot.Resources
 
         [AllowNull]
         public SKImage SO { get; private set; }
+
+        [AllowNull]
+        public SKImage NM { get; private set; }
     }
 }
