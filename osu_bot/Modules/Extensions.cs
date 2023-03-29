@@ -98,34 +98,5 @@ namespace osu_bot.Modules
             };
             canvas.DrawText(drawableString, x, y, paint);
         }
-
-        public static InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId, long beatmapsetId)
-        {
-            return new InlineKeyboardMarkup(
-                new InlineKeyboardButton[][]
-                {
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "🎯 Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
-                        InlineKeyboardButton.WithCallbackData(text: "🏆 Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                        InlineKeyboardButton.WithCallbackData(text: "📌 Реквест", callbackData: $"{RequestCallback.DATA}:{beatmapId} A:{RequestAction.Create} P:1"),
-                    },
-                    new[]
-                    {
-                        InlineKeyboardButton.WithUrl(text: "🌐 Beatmap URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
-                        InlineKeyboardButton.WithUrl(text: "⬇️ Beatmap mirror", url: $"https://beatconnect.io/b/{beatmapsetId}"),
-                    }
-                });
-        }
-
-        public static InlineKeyboardMarkup RequestKeyboardMakrup(long beatmapId, long beatmapsetId)
-        {
-           return new InlineKeyboardMarkup(
-               new[]
-               {
-                   InlineKeyboardButton.WithUrl(text: "🌐 Beatmap URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
-                   InlineKeyboardButton.WithUrl(text: "⬇️ Beatmap mirror", url: $"https://beatconnect.io/b/{beatmapsetId}"),
-               });
-        }
     }
 }

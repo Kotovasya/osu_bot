@@ -42,9 +42,8 @@ namespace osu_bot.Bot.Callbacks
 
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
             if (!beatmapIdMatch.Success)
-            {
                 throw new Exception("При обработке запроса \"Мой скор\" произошла ошибка считывания ID карты");
-            }
+            
 
             long beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
             long userId = telegramUser.OsuUser.Id;
@@ -56,7 +55,7 @@ namespace osu_bot.Bot.Callbacks
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-            InlineKeyboardMarkup inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
+            InlineKeyboardMarkup inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
 
             await botClient.SendPhotoAsync(
                 chatId: callbackQuery.Message.Chat,

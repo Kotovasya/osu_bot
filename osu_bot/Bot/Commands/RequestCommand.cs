@@ -8,8 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using osu_bot.API;
 using osu_bot.Entites.Database;
+using osu_bot.Exceptions;
+using osu_bot.Modules;
+using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 
 namespace osu_bot.Bot.Commands
 {
@@ -18,7 +22,6 @@ namespace osu_bot.Bot.Commands
         public string CommandText => "/req";
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private readonly OsuService _service = OsuService.Instance;
 
         public async Task ActionAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
         {
@@ -28,9 +31,46 @@ namespace osu_bot.Bot.Commands
             if (message.From == null)
                 return;
 
-            IEnumerable<Request> requests = _database.Requests.Find(r => r.ToUser.Id== message.From.Id);
+            TelegramUser user = _database.TelegramUsers
+                .Include(u => u.OsuUser)
+                .FindById(message.From.Id);
+
+            if (user is null)
+                throw new UserNotRegisteredException();
+
+            List<Request> requests = _database.Requests
+                .Include(r => r.FromUser)
+                .Include(r => r.FromUser.OsuUser)
+                .Include(r => r.ToUser)
+                .Include(r => r.ToUser.OsuUser)
+                .Include(r => r.Beatmap)
+                .Include(r => r.Beatmap.Beatmapset)
+                .Include(r => r.BeatmapAttributes)
+                .Find(r => r.ToUser.Id == user.Id)
+                .ToList();
 
             if (!requests.Any())
+                throw new UserRequestsNotFoundException(user.OsuUser.Username);
+
+            int[] requestsId = new int[3];
+
+            if (requests.Count > 1)
+                requestsId[2] = requests[1].Id;
+
+            requestsId[1] = requests[0].Id;
+
+            Request request = requests[0];
+
+            SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
+
+            bool isDelete = !request.RequireSnipe;
+
+            await botClient.SendPhotoAsync(
+                chatId: message.Chat.Id,
+                photo: new InputOnlineFile(image.Encode().AsStream()),
+                replyToMessageId: message.MessageId,
+                replyMarkup: MarkupGenerator.Instance.RequestsKeyboardMarkup(requestsId, 0, requests.Count, isDelete),
+                cancellationToken: cancellationToken);
         }
     }
 }

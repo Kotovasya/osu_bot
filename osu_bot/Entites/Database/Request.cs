@@ -21,22 +21,25 @@ namespace osu_bot.Entites.Database
         private bool _requireSnipe;
 
         private bool _requireSnipeScore;
-        private bool _requireSnipeAccuracy;
+        private bool _requireSnipeAcc;
         private bool _requireSnipeCombo;
 
         private int _requireMods;
         private bool _isOnlyMods;
 
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         public bool RequirePass
         {
             get => _requirePass;
             set
-            {          
-                _requirePass = value;
-                _requireSnipe = false;
-                _requireFullCombo = false;
+            {
+                if (value)
+                {
+                    _requirePass = value;
+                    _requireSnipe = false;
+                    _requireFullCombo = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
@@ -45,10 +48,13 @@ namespace osu_bot.Entites.Database
         {
             get => _requireFullCombo;
             set
-            {              
-                _requireFullCombo = value;
-                _requireSnipe = false;
-                _requirePass = false;
+            {
+                if (value)
+                {
+                    _requireFullCombo = value;
+                    _requireSnipe = false;
+                    _requirePass = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
@@ -57,10 +63,13 @@ namespace osu_bot.Entites.Database
         {
             get => _requireSnipe;
             set
-            {                
-                _requireSnipe = value;
-                _requireFullCombo = false;
-                _requirePass = false;
+            {
+                if (value)
+                {
+                    _requireSnipe = value;
+                    _requireFullCombo = false;
+                    _requirePass = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
@@ -113,21 +122,27 @@ namespace osu_bot.Entites.Database
             get => _requireSnipeScore;
             set
             {
-                _requireSnipeScore = value;
-                _requireSnipeAccuracy = false;
-                _requireSnipeCombo = false;
+                if (value)
+                {
+                    _requireSnipeScore = value;
+                    _requireSnipeAcc = false;
+                    _requireSnipeCombo = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
 
-        public bool RequireSnipeAccuracy
+        public bool RequireSnipeAcc
         {
-            get => _requireSnipeAccuracy;
+            get => _requireSnipeAcc;
             set
             {
-                _requireSnipeAccuracy = value;
-                _requireSnipeScore = false;
-                _requireSnipeCombo = false;
+                if (value)
+                {
+                    _requireSnipeAcc = value;
+                    _requireSnipeScore = false;
+                    _requireSnipeCombo = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
@@ -137,9 +152,12 @@ namespace osu_bot.Entites.Database
             get => _requireSnipeCombo;
             set
             {
-                _requireSnipeCombo = value;
-                _requireSnipeScore = false;
-                _requireSnipeAccuracy = false;
+                if (value)
+                {
+                    _requireSnipeCombo = value;
+                    _requireSnipeScore = false;
+                    _requireSnipeAcc = false;
+                }
                 CheckRequrieTaskValid();
             }
         }
@@ -195,7 +213,7 @@ namespace osu_bot.Entites.Database
             if (!_requirePass && !_requireFullCombo && !_requireSnipe)
                 _requirePass = true;
 
-            if (!_requireSnipeScore && !_requireSnipeAccuracy && !_requireSnipeCombo)
+            if (!_requireSnipeScore && !_requireSnipeAcc && !_requireSnipeCombo)
                 _requireSnipeScore = true;
         }
     }

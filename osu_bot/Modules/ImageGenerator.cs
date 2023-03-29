@@ -1340,32 +1340,32 @@ namespace osu_bot.Modules
                 data = await _httpClient.GetByteArrayAsync(request.FromUser.OsuUser.AvatarUrl);
                 image = SKImage.FromEncodedData(data);
                 imageSize = new(0, 0, image.Width, image.Height);
-                destRect = new() { Location = new SKPoint(20, 240), Size = new SKSize(128, 128) };
+                destRect = new() { Location = new SKPoint(20, 272), Size = new SKSize(64, 64) };
                 image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
-                x = 188;
-                y = 304;
-                _paint.SetColor(_whiteColor).SetTypeface(_rightArrowTypeface).SetSize(64);
+                x = 148;
+                y = 328;
+                _paint.SetColor(_whiteColor).SetTypeface(_rightArrowTypeface).SetSize(92);
                 canvas.DrawAlignText("⇨", x, y, SKTextAlign.Center, _paint);
 
-                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(22);
-                drawableString = $"From: {request.FromUser.OsuUser.Username}";
-                canvas.DrawAlignText(drawableString, x, y - 32, SKTextAlign.Center, _paint);
-                drawableString = $"To: {request.ToUser.OsuUser.Username}";
-                canvas.DrawAlignText(drawableString, x, y + 32, SKTextAlign.Center, _paint);
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(18);
+                drawableString = $"{request.FromUser.OsuUser.Username}";
+                canvas.DrawAlignText(drawableString, x, y - 68, SKTextAlign.Center, _paint);
+                drawableString = $"{request.ToUser.OsuUser.Username}";
+                canvas.DrawAlignText(drawableString, x, y + 24, SKTextAlign.Center, _paint);
 
                 data = await _httpClient.GetByteArrayAsync(request.ToUser.OsuUser.AvatarUrl);
                 image = SKImage.FromEncodedData(data);
                 imageSize = new(0, 0, image.Width, image.Height);
-                destRect = new() { Location = new SKPoint(228, 240), Size = new SKSize(128, 128) };
+                destRect = new() { Location = new SKPoint(220, 272), Size = new SKSize(64, 64) };
                 image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
                 x = width / 2;
                 y = 300;
 
-                drawableString = "REQUIRED TASK:";
+                drawableString = "Required task:";
                 _paint.SetTypeface(_rubikTypeface).SetSize(18);
                 canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
 
@@ -1375,17 +1375,18 @@ namespace osu_bot.Modules
                     drawableString = "FC BEATMAP";
                 else if (request.RequireSnipeScore)
                     drawableString = $"GET MORE {request.Score.Separate(".")} SCORE";
-                else if (request.RequireSnipeAccuracy)
-                    drawableString = $"GET MORE {request.Accuracy} ACCURACY";
+                else if (request.RequireSnipeAcc)
+                    drawableString = $"GET MORE {request.Accuracy}% ACCURACY";
                 else if (request.RequireSnipeCombo)
                     drawableString = $"GET MORE {request.Combo.Separate(".")}/{request.BeatmapAttributes.MaxCombo}x COMBO";
 
+                _paint.SetColor(_whiteColor);
                 canvas.DrawAlignText(drawableString, x, y + 25, SKTextAlign.Center, _paint);
 
-                x = 670;
+                x = 727;
                 y = 300;
-                drawableString = request.IsOnlyMods ? "With only mods:" : "With any mod(-s):";
-                _paint.SetTypeface(_rubikTypeface).SetSize(18);
+                drawableString = request.IsOnlyMods ? "With ONLY mods:" : "With ANY mod(-s):";
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(18);
                 canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
                 SKImage? modsImage = ModsConverter.ToImage(request.RequireMods);
                 if (modsImage != null)
@@ -1396,6 +1397,7 @@ namespace osu_bot.Modules
                 else
                 {
                     drawableString = ModsConverter.ToString(request.RequireMods);
+                    _paint.SetColor(_whiteColor);
                     canvas.DrawAlignText(drawableString, x, y + 25, SKTextAlign.Center, _paint);
                 } 
                 #endregion                

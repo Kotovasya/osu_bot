@@ -20,7 +20,8 @@ namespace osu_bot.Bot
             new TopCommand(),
             new LastCommand(),
             new RegCommand(),
-            new StatsCommand()
+            new StatsCommand(),
+            new RequestCommand()
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, Message, CancellationToken, Task>> _commands = new();

@@ -67,7 +67,7 @@ namespace osu_bot.Bot.Commands
                 OsuScore score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
                 caption = score.Beatmap.Url;
-                inlineKeyboard = Extensions.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
+                inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
             }
 
             await botClient.SendPhotoAsync(

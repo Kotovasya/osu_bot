@@ -15,5 +15,7 @@ namespace osu_bot.Exceptions
         public string Username { get; set; }
 
         public override string Message => $"Реквестов для пользователя {Username} не найдено";
+
+        public UserRequestsNotFoundException(string username) => Username = username;
     }
 }
