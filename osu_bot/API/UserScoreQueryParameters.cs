@@ -18,11 +18,12 @@ namespace osu_bot.API
 
     public class UserScoreQueryParameters
     {
-        public UserScoreQueryParameters(ScoreType type, bool includeFails = false)
+        public UserScoreQueryParameters(ScoreType type, bool includeFails = false, int limitApi = 100)
         {
             Type = type;
             IncludeFails = includeFails;
             Mods = AllMods.NUMBER;
+            LimitApi = limitApi;
         }
 
         public string? Username { get; set; }
@@ -37,15 +38,15 @@ namespace osu_bot.API
 
         public int Limit { get; set; }
 
-        public ScoreType Type { get; set; }
+        public int LimitApi { get; set; }
 
-        public IEnumerable<OsuBeatmapStatus>? MapsStatusOnly { get; set; }
+        public ScoreType Type { get; set; }
 
         public string GetQueryString() => Type switch
         {
-            ScoreType.Best => $"/users/{UserId}/scores/best?limit=100",
-            ScoreType.Firsts => $"/users/{UserId}/scores/firsts?limit=100",
-            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails={ (IncludeFails ? 1 : 0) }&limit=100",
+            ScoreType.Best => $"/users/{UserId}/scores/best?limit={LimitApi}",
+            ScoreType.Firsts => $"/users/{UserId}/scores/firsts?limit={LimitApi}",
+            ScoreType.Recent => $"/users/{UserId}/scores/recent?include_fails={ (IncludeFails ? 1 : 0) }&limit={LimitApi}",
             _ => throw new ArgumentException()
         };
 

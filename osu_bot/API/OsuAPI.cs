@@ -27,6 +27,8 @@ namespace osu_bot.API
 
         public static OsuAPI Instance { get; } = new();
 
+        private OsuAPI() { }
+
         private async Task SetTokenAsync()
         {
             await s_sempahore.WaitAsync();

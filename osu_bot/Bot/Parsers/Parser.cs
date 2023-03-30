@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot;
 
 namespace osu_bot.Bot.Parsers
 {

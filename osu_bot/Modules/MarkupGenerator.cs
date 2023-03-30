@@ -129,10 +129,13 @@ namespace osu_bot.Modules
                 InlineKeyboardButton.WithCallbackData(
                         text: request.RequireFullCombo ? "🔥 FC 🟢" : "🔥 FC 🔴",
                         callbackData: GetRequireCallbackData(request.Id, nameof(request.RequireFullCombo), !request.RequireFullCombo)),
-                InlineKeyboardButton.WithCallbackData(
-                        text: request.RequireSnipe ? "🎯 Snipe 🟢" : "🎯 Snipe 🔴",
-                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.SnipeSelect}")
             };
+            if (request.ToUser.Id != request.FromUser.Id)
+            {
+                rowButtons1.Add(InlineKeyboardButton.WithCallbackData(
+                        text: request.RequireSnipe ? "🎯 Snipe 🟢" : "🎯 Snipe 🔴",
+                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.SnipeSelect}"));
+            }
             keyboard.Add(rowButtons1);
 
             List<InlineKeyboardButton> rowButtons2 = new();

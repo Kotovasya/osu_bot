@@ -93,5 +93,7 @@ namespace osu_bot.Entites
         [BsonIgnore]
         [JsonIgnore]
         public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
+
+        public bool IsFullCombo => MaxCombo / BeatmapAttributes.MaxCombo >= 0.99;
     }
 }

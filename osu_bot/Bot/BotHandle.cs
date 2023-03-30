@@ -25,49 +25,52 @@ namespace osu_bot.Bot
 
         #region Chats settings
 #if DEBUG
-        private readonly ChatId _chatId = new(-1001888790264);
-        private readonly ITelegramBotClient _botClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
+        public readonly ChatId ChatId = new(-1001888790264);
+        public readonly ITelegramBotClient BotClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
 #else
-        private readonly ChatId _chatId = new(-1001238663722);
-        private readonly ITelegramBotClient _botClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
+        public readonly ChatId ChatId = new(-1001238663722);
+        public readonly ITelegramBotClient BotClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
 #endif
         #endregion
 
-        private readonly List<Parser> _parsers = new()
-        {
-            new PlaysParser(),
-        };
 
         private readonly CallbacksManager _callbacksManager = new();
         private readonly CommandsManager _commandsManager = new();
 
+        private readonly List<Parser> _parsers = new()
+        {
+            new PlaysParser(this)
+        };
+
         public async Task Run()
         {
-            await OsuAPI.Instance.InitalizeAsync();
+            await OsuService.Instance.InitalizeAsync();
             using CancellationTokenSource cts = new();
-
-            foreach (Parser parser in _parsers)
-                parser.Run();
 
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
 
             Stream botStatusStream = ResourcesManager.BotStatusManager.Online.Encode().AsStream();
-            await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
+            await _botClient.SetChatPhotoAsync(ChatId, botStatusStream);
 #endif
             Console.WriteLine("Start listening...");
 
-            _botClient.StartReceiving(
+            BotClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
                 receiverOptions: _receiverOptions,
                 cancellationToken: cts.Token
-            );           
+            );
+
+            foreach (Parser parser in _parsers)
+                parser.Run();
+            
+
             Console.ReadLine();
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
             botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
-            await _botClient.SetChatPhotoAsync(_chatId, botStatusStream);
+            await _botClient.SetChatPhotoAsync(ChatId, botStatusStream);
 #endif
             cts.Cancel();
         }

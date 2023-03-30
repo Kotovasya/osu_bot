@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
+using osu_bot.API.Parsers;
+using osu_bot.Bot.Parsers;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -26,6 +28,11 @@ namespace osu_bot.API
 
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
+
+        public async Task InitalizeAsync()
+        {
+            await _api.InitalizeAsync();;
+        }
 
         public async Task<OsuUser?> GetUserAsync(long id)
         {
@@ -110,7 +117,6 @@ namespace osu_bot.API
                 return null;
 
             scores = scores.Where(s => parameters.Mods == AllMods.NUMBER || s.Mods == parameters.Mods)
-                .Where(s => parameters.MapsStatusOnly is null || parameters.MapsStatusOnly.Any(b => b == s.Beatmap.Status))
                 .Skip(parameters.Offset)
                 .Take(parameters.Limit)
                 .ToList();

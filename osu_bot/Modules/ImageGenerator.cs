@@ -1345,15 +1345,15 @@ namespace osu_bot.Modules
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
                 x = 148;
-                y = 328;
-                _paint.SetColor(_whiteColor).SetTypeface(_rightArrowTypeface).SetSize(92);
+                y = 318;
+                _paint.SetColor(_lightGrayColor).SetTypeface(_rightArrowTypeface).SetSize(72);
                 canvas.DrawAlignText("⇨", x, y, SKTextAlign.Center, _paint);
 
-                _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(18);
+                _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(18);
                 drawableString = $"{request.FromUser.OsuUser.Username}";
-                canvas.DrawAlignText(drawableString, x, y - 68, SKTextAlign.Center, _paint);
+                canvas.DrawAlignText(drawableString, x, y - 58, SKTextAlign.Center, _paint);
                 drawableString = $"{request.ToUser.OsuUser.Username}";
-                canvas.DrawAlignText(drawableString, x, y + 24, SKTextAlign.Center, _paint);
+                canvas.DrawAlignText(drawableString, x, y + 34, SKTextAlign.Center, _paint);
 
                 data = await _httpClient.GetByteArrayAsync(request.ToUser.OsuUser.AvatarUrl);
                 image = SKImage.FromEncodedData(data);
