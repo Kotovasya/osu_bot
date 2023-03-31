@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
-using osu_bot.API.Parsers;
+using osu_bot.API.Checkers;
+using osu_bot.Bot;
 using osu_bot.Bot.Parsers;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
@@ -29,9 +30,15 @@ namespace osu_bot.API
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public async Task InitalizeAsync()
+        private List<IChecker<IList<OsuScore>>> _scoresCheckers = new();
+
+        public async Task InitalizeAsync(BotHandle _botHandle)
         {
-            await _api.InitalizeAsync();;
+            await _api.InitalizeAsync();
+            _scoresCheckers = new()
+            {
+                new RequestsChecker(_botHandle)
+            };
         }
 
         public async Task<OsuUser?> GetUserAsync(long id)
@@ -132,6 +139,8 @@ namespace osu_bot.API
                     score.BeatmapAttributes = attributes;
                 }
             }
+
+            _scoresCheckers.ForEach(async c => await c.CheckAsync(scores));
 
             return scores;
         }

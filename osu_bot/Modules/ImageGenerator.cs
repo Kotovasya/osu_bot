@@ -882,7 +882,7 @@ namespace osu_bot.Modules
                 foreach (OsuScore score in scores)
                 {
                     float y = 136 + (i * 114);
-                    SKImage scoreImage = await CreateSmallCardAsync(score, false);
+                    using SKImage scoreImage = await CreateSmallCardAsync(score, false);
                     canvas.DrawImage(scoreImage, x, y);
                     _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(48);
                     if (showNumbers)

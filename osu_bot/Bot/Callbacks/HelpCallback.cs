@@ -93,17 +93,14 @@ SO - Spin Out",
 
         public string Data => DATA;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             if (callbackQuery.Data == null)
-            {
-                return;
-            }
+                return null;
 
             if (callbackQuery.Message == null)
-            {
-                return;
-            }
+                return null;
+            
 
             string data = callbackQuery.Data;
             Match pageMatch = new Regex(@"p(\d+)").Match(data);
@@ -150,6 +147,8 @@ SO - Spin Out",
                     text: _descriptions[_currentPage],
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
+
+            return CallbackResult.Empty();
         }
     }
 }

@@ -61,7 +61,7 @@ namespace osu_bot.Bot.Commands
 
             Request request = requests[0];
 
-            SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
+            using SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
 
             bool isDelete = !request.RequireSnipe;
 

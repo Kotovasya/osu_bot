@@ -39,12 +39,12 @@ namespace osu_bot.Bot
 
         private readonly List<Parser> _parsers = new()
         {
-            new PlaysParser(this)
+            new PlaysParser()
         };
 
         public async Task Run()
         {
-            await OsuService.Instance.InitalizeAsync();
+            await OsuService.Instance.InitalizeAsync(this);
             using CancellationTokenSource cts = new();
 
 #if !DEBUG
@@ -100,20 +100,6 @@ namespace osu_bot.Bot
                         text: ex.Message,
                         replyToMessageId: message.MessageId,
                         cancellationToken: cancellationToken);
-            }
-            finally
-            {
-                try
-                {
-                    if (update.CallbackQuery != null)
-                        await botClient.AnswerCallbackQueryAsync(
-                        callbackQueryId: update.CallbackQuery.Id,
-                        cancellationToken: cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
             }
             return;
         }

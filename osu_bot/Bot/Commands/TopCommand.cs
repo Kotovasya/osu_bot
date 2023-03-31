@@ -77,6 +77,8 @@ namespace osu_bot.Bot.Commands
                 replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
+
+            //image.Dispose();
         }
     }
 }

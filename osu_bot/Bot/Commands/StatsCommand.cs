@@ -51,7 +51,7 @@ namespace osu_bot.Bot.Commands
             if (user is null || user.Id == 0)
                 throw new UserNotFoundException(name);
 
-            SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(user);
+            using SKImage image = await ImageGenerator.Instance.CreateProfileCardAsync(user);
 
             await botClient.SendPhotoAsync(
                 chatId: message.Chat,

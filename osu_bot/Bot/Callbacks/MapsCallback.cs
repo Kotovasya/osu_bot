@@ -23,16 +23,18 @@ namespace osu_bot.Bot.Callbacks
 
         public string Data => DATA;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             if (callbackQuery.Message == null)
-                return;
+                return null;
             
 
             await botClient.SendTextMessageAsync(
                 chatId: callbackQuery.Message.Chat,
                 text: _text,
                 cancellationToken: cancellationToken);
+
+            return CallbackResult.Empty();
         }
     }
 }

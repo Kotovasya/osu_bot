@@ -10,6 +10,6 @@ namespace osu_bot.Bot.Callbacks
     {
         public abstract string Data { get; }
 
-        public abstract Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken);
+        public abstract Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken);
     }
 }

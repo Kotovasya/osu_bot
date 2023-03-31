@@ -24,7 +24,7 @@ namespace osu_bot.Bot
             new RequestsListCallback()
         };
 
-        private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task>> _callbacks = new();
+        private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task<CallbackResult?>>> _callbacks = new();
 
         public CallbacksManager()
         {
@@ -39,7 +39,16 @@ namespace osu_bot.Bot
                 string? callbackData = _callbacks.Keys.FirstOrDefault(s => data.StartsWith(s));
                 if (callbackData != null)
                 {
-                    await _callbacks[callbackData].Invoke(botClient, callbackQuery, cancellationToken);
+                    CallbackResult? result = await _callbacks[callbackData].Invoke(botClient, callbackQuery, cancellationToken);
+
+                    result ??= CallbackResult.Empty();
+
+                    await botClient.AnswerCallbackQueryAsync(
+                        callbackQueryId: callbackQuery.Id,
+                        text: result.Text,
+                        showAlert: result.ShowAlert,
+                        cacheTime: result.CacheTime,
+                        cancellationToken: cancellationToken);
                 }
             }
         }

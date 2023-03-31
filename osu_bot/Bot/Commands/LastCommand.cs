@@ -68,13 +68,15 @@ namespace osu_bot.Bot.Commands
                 caption = score.Beatmap.Url;
                 inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
             }
-            Message answer = await botClient.SendPhotoAsync(
+            await botClient.SendPhotoAsync(
                 chatId: message.Chat,
                 caption: caption,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
+
+            //image.Dispose();
         }
     }
 }

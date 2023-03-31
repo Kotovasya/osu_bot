@@ -84,19 +84,19 @@ namespace osu_bot.Bot.Callbacks
             return request;
         }
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
            if (callbackQuery.Data == null)
-                return;
+                return null;
 
             if (callbackQuery.Message == null)
-                return;
+                return null;
 
             string data = callbackQuery.Data;
 
             Match requestMatch = new Regex(@"RC:(\d+) A:(\w+)").Match(data);
             if (!requestMatch.Success)
-                throw new Exception("При обработке запроса на реквест произошла ошибка");
+                return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
 
             int requestId = int.Parse(requestMatch.Groups[1].Value);
             RequestAction actionRequest = (RequestAction)Enum.Parse(typeof(RequestAction), requestMatch.Groups[2].Value);
@@ -107,7 +107,7 @@ namespace osu_bot.Bot.Callbacks
                 OsuBeatmap? beatmap = await _service.GetBeatmapAsync(requestId);
 
                 if (beatmap is null)
-                    throw new Exception("При обработке запроса на реквест произошла ошибка");
+                    return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
 
                 _database.Beatmaps.Upsert(beatmap);
                 _database.Beatmapsets.Upsert(beatmap.Beatmapset);
@@ -135,19 +135,28 @@ namespace osu_bot.Bot.Callbacks
             }
 
             if (request is null)
-                throw new Exception("При обработке запроса на реквест произошла ошибка");
+                return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
 
             if (callbackQuery.From.Id != request.FromUser.Id)
-                return;
+                return null;
 
             if (actionRequest is RequestAction.RequireChange || actionRequest is RequestAction.SRC)
-                request = ChangeRequireFromData(request, data);
+            {
+                try
+                {
+                    request = ChangeRequireFromData(request, data);
+                }
+                catch (Exception)
+                {
+                    return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
+                }
+            }
 
             if (actionRequest is RequestAction.Snipe)
             {
                 Match scoreMatch = new Regex(@"M:(\d+) S:(\d+) C:(\d+) F:(\d+\D\d+)").Match(data);
                 if (!scoreMatch.Success)
-                    throw new Exception("При обработке запроса на реквест произошла ошибка");
+                    return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
 
                 int mods = int.Parse(scoreMatch.Groups[1].Value);
                 int score = int.Parse(scoreMatch.Groups[2].Value);
@@ -221,15 +230,17 @@ namespace osu_bot.Bot.Callbacks
                 _database.BeatmapAttributes.Upsert(attributes);
                 _database.Requests.Update(request);
 
-                SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
+                using SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
 
                 await botClient.SendPhotoAsync(
                     chatId: callbackQuery.Message.Chat,
                     photo: new InputOnlineFile(image.Encode().AsStream()),
                     caption: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте {request.Beatmap.Url}",
                     replyMarkup: MarkupGenerator.Instance.RequestKeyboardMakrup(request),
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken);   
             }
+
+            return CallbackResult.Empty();
         }
     }
 }

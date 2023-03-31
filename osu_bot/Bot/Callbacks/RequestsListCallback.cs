@@ -26,27 +26,27 @@ namespace osu_bot.Bot.Callbacks
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             if (callbackQuery.Data == null)
-                return;
+                return null;
 
             if (callbackQuery.Message == null)
-                return;
+                return null;
 
             string data = callbackQuery.Data;
 
             Match idMatch = new Regex(@"ID:(\d+)").Match(data);
             if (!idMatch.Success)
-                throw new NotImplementedException();
+                return new CallbackResult("При обработке запроса на реквест произошла ошибка");
 
             int requestId = int.Parse(idMatch.Groups[1].Value);
 
             Request request = _database.Requests.FindById(requestId);
             if (request is null)
-                return;
+                return new CallbackResult("При обработке запроса на реквест произошла ошибка"); ;
             if (request.ToUser.Id != callbackQuery.From.Id)
-                return;
+                return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500); ;
 
             List<Request> requests = _database.Requests
                 .Include(r => r.FromUser)
@@ -75,7 +75,7 @@ namespace osu_bot.Bot.Callbacks
                         chatId: callbackQuery.Message.Chat.Id,
                         messageId: callbackQuery.Message.MessageId,
                         cancellationToken: cancellationToken);
-                    return;
+                    return CallbackResult.Empty();
                 }
                 if (page != requestsCount - 1)
                     page += 1;
@@ -98,13 +98,15 @@ namespace osu_bot.Bot.Callbacks
 
             bool isDelete = !request.RequireSnipe;
 
-            SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
+            using SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
             await botClient.EditMessageMediaAsync(
                 chatId: callbackQuery.Message.Chat.Id,
                 messageId: callbackQuery.Message.MessageId,
                 media: new InputMediaPhoto(new InputMedia(image.Encode().AsStream(), page.ToString())),
                 replyMarkup: MarkupGenerator.Instance.RequestsKeyboardMarkup(requestsId, page, requestsCount, isDelete),
                 cancellationToken: cancellationToken);
+
+            return CallbackResult.Empty();
         }
     }
 }

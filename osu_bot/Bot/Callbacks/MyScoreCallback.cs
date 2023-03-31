@@ -23,26 +23,26 @@ namespace osu_bot.Bot.Callbacks
         private readonly DatabaseContext _database = DatabaseContext.Instance;
         private readonly OsuService _service = OsuService.Instance;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             if (callbackQuery.Data == null)
-                return;
+                return null;
 
             if (callbackQuery.Message == null)
-                return;
+                return null;
 
             TelegramUser telegramUser = _database.TelegramUsers
                 .Include(u => u.OsuUser)
                 .FindOne(u => u.Id == callbackQuery.From.Id);
 
             if (telegramUser == null)
-                throw new UserNotRegisteredException();
+                return new CallbackResult(new UserNotRegisteredException().Message, 500);
 
             string data = callbackQuery.Data;
 
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
             if (!beatmapIdMatch.Success)
-                throw new Exception("При обработке запроса \"Мой скор\" произошла ошибка считывания ID карты");
+                return new CallbackResult("При обработке запроса произошла ошибка считывания ID карты");
             
 
             long beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
@@ -51,9 +51,9 @@ namespace osu_bot.Bot.Callbacks
             OsuScore? score = await _service.GetUserBeatmapBestScoreAsync(beatmapId, userId);
 
             if (score is null)
-                throw new UserScoresNotFound(telegramUser.OsuUser.Username, beatmapId);
+                return new CallbackResult(new UserScoresNotFound(telegramUser.OsuUser.Username, beatmapId).Message, 500);
 
-            SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
+            using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
             InlineKeyboardMarkup inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
 
@@ -63,6 +63,8 @@ namespace osu_bot.Bot.Callbacks
                 replyToMessageId: callbackQuery.Message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
+
+            return CallbackResult.Empty();
         }
     }
 }

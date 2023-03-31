@@ -24,19 +24,19 @@ namespace osu_bot.Bot.Callbacks
         private readonly DatabaseContext _database = DatabaseContext.Instance;
         private readonly OsuService _service = OsuService.Instance;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        public async Task<CallbackResult?> ActionAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             if (callbackQuery.Data is null)
-                return;
+                return null;
 
             if (callbackQuery.Message is null)
-                return;
+                return null;
             
             string data = callbackQuery.Data;
             Match beatmapIdMatch = new Regex(@"beatmapId(\d+)").Match(data);
 
             if (!beatmapIdMatch.Success)
-                throw new Exception("При обработке запроса \"Топ конфы\" произошла ошибка считывания ID карты");
+                return new CallbackResult("При обработке запроса произошла ошибка считывания ID карты");
             
             int beatmapId = int.Parse(beatmapIdMatch.Groups[1].Value);
 
@@ -54,15 +54,17 @@ namespace osu_bot.Bot.Callbacks
             }
 
             if (result.Count == 0)
-                throw new Exception($"У игроков отсутствуют скоры на карте {beatmapId}");
+                return new CallbackResult($"У игроков отсутствуют скоры на карте {beatmapId}");
 
-            SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
+            using SKImage image = await ImageGenerator.Instance.CreateTableScoresCardAsync(result);
 
             await botClient.SendPhotoAsync(
                 chatId: callbackQuery.Message.Chat,
                 photo: new InputOnlineFile(image.Encode().AsStream()),
                 replyToMessageId: callbackQuery.Message.MessageId,
                 cancellationToken: cancellationToken);
+
+            return CallbackResult.Empty();
         }
     }
 }
