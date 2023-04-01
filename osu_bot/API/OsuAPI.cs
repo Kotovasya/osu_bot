@@ -23,8 +23,6 @@ namespace osu_bot.API
 
         private readonly HttpClient _httpClient = new();
 
-        private readonly DatabaseContext _database = DatabaseContext.Instance;
-
         public static OsuAPI Instance { get; } = new();
 
         private OsuAPI() { }
@@ -124,6 +122,9 @@ namespace osu_bot.API
 
         public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(long beatmapId, int mods = 0)
         {
+            if (mods == NoMod.NUMBER)
+                mods = 0;
+
             IEnumerable<string> m = ModsConverter.ToStrings(mods);
             JObject json = JObject.FromObject(new
             {

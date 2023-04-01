@@ -169,14 +169,19 @@ namespace osu_bot.Modules.Converters
             return ToString(ToMods(mods));
         }
 
-        public static SKImage? ToImage(int mods)
+        public static SKImage? ToImage(int mods, bool showNoMod = false)
         {
-            return ToImage(ToMods(mods));
+            return ToImage(ToMods(mods), showNoMod);
         }
 
-        public static SKImage? ToImage(IEnumerable<Mod>? mods)
+        public static SKImage? ToImage(IEnumerable<Mod>? mods, bool showNoMod = false)
         {
             if (mods == null || !mods.Any() || mods.Any(m => m.Name == AllMods.NAME))
+            {
+                return null;
+            }
+
+            if (!showNoMod && mods.Any(m => m.Name == NoMod.NAME))
             {
                 return null;
             }

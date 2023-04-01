@@ -16,20 +16,21 @@ using static System.Formats.Asn1.AsnWriter;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types;
 using Telegram.Bot;
+using osu_bot.Modules.Converters;
 
-namespace osu_bot.API.Checkers
+namespace osu_bot.API.Handlers
 {
-    public class RequestsChecker : IChecker<IList<OsuScore>>
+    public class RequestsHandler : IHandler<IList<OsuScore>>
     {
         private readonly DatabaseContext _database = DatabaseContext.Instance;
         private readonly BotHandle _botHandle;
 
-        public RequestsChecker(BotHandle botHandle)
+        public RequestsHandler(BotHandle botHandle)
         {
             _botHandle = botHandle;
         }
 
-        public async Task CheckAsync(IList<OsuScore> value)
+        public async Task HandlingAsync(IList<OsuScore> value)
         {
             if (value.Count == 0)
                 return;
@@ -72,6 +73,12 @@ namespace osu_bot.API.Checkers
                     {
                         isRequestMods = true;
                     }
+                }
+                else
+                {
+                    IEnumerable<Mod> scoreMods = ModsConverter.ToMods(score.Mods);
+                    IEnumerable<Mod> requestMods = ModsConverter.ToMods(request.RequireMods);
+                    isRequestMods = scoreMods.Union(requestMods).Any();
                 }
                 if (!isRequestMods)
                     continue;

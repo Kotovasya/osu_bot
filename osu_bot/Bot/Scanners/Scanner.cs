@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 
-namespace osu_bot.Bot.Parsers
+namespace osu_bot.Bot.Scanners
 {
-    public abstract class Parser
+    public abstract class Scanner
     {
         protected abstract TimeSpan Delay { get; }
 

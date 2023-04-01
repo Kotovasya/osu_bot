@@ -7,6 +7,8 @@ using osu_bot.Entites;
 using SkiaSharp;
 using osu_bot.Entites.Database;
 using osu_bot.Modules.Converters;
+using System.Net;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Modules
 {
@@ -78,6 +80,8 @@ namespace osu_bot.Modules
                 }
             }
         }
+
+        private const string DEFAULT_BEATMAP_BACKGROUND_URL = "https://raw.githubusercontent.com/ppy/osu-web/master/public/images/layout/beatmaps/default-bg%402x.png";
 
         private const int STAR_UNICODE = 9733;
         private const int TRIANGLEUP_UNICODE = 9650;
@@ -203,10 +207,22 @@ namespace osu_bot.Modules
 
                 float x = 100f;
 
-                
-                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.Beatmapset.CoverUrl);
-                SKImage image = SKImage.FromEncodedData(data);
-                SKRect sourceRect = new() { Location = new SKPoint((image.Width / 2) - 406, (image.Height / 2) - 250), Size = new SKSize(812, 500) };
+                byte[] data;
+                SKRect sourceRect;
+                SKImage image;
+                HttpResponseMessage response = await _httpClient.GetAsync(score.Beatmap.Beatmapset.CoverUrl);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    data = await _httpClient.GetByteArrayAsync(DEFAULT_BEATMAP_BACKGROUND_URL);
+                    sourceRect = new() { Location = new SKPoint(476, 0), Size = new SKSize(324, 200) };
+                    image = SKImage.FromEncodedData(data);
+                }
+                else
+                {
+                    data = await response.Content.ReadAsByteArrayAsync();
+                    image = SKImage.FromEncodedData(data);
+                    sourceRect = new() { Location = new SKPoint((image.Width / 2) - 406, (image.Height / 2) - 250), Size = new SKSize(812, 500) };
+                }
                 SKRect destRect = new() { Location = new SKPoint(x, 14), Size = new SKSize(146, 90) };
                 canvas.DrawImage(image, sourceRect, destRect, _paint);
 
@@ -323,8 +339,20 @@ namespace osu_bot.Modules
                 canvas.Clear(_backgroundColor);
 
                 #region Background map image
-                byte[] data = await _httpClient.GetByteArrayAsync(score.Beatmap.Beatmapset.CoverUrl);
-                SKRect sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
+
+                byte[] data;
+                SKRect sourceRect;
+                HttpResponseMessage response = await _httpClient.GetAsync(score.Beatmap.Beatmapset.CoverUrl);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    data = await _httpClient.GetByteArrayAsync(DEFAULT_BEATMAP_BACKGROUND_URL);
+                    sourceRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(800, 200) };
+                }
+                else
+                {
+                    data = await response.Content.ReadAsByteArrayAsync();
+                    sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
+                }
                 SKRect destRect = new() { Location = new SKPoint(204, 0), Size = new SKSize(876, 204) };
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRectI imageSize = new(0, 0, image.Width, image.Height);
@@ -914,12 +942,24 @@ namespace osu_bot.Modules
 
                 #region Map info
                 OsuBeatmap beatmap = scores.First().Beatmap;
-                byte[] data = await _httpClient.GetByteArrayAsync(beatmap.Beatmapset.CoverUrl);
+                byte[] data;
+                SKRect sourceRect;
+                HttpResponseMessage response = await _httpClient.GetAsync(beatmap.Beatmapset.CoverUrl);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    data = await _httpClient.GetByteArrayAsync(DEFAULT_BEATMAP_BACKGROUND_URL);
+                    sourceRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(800, 200) };
+                }
+                else
+                {
+                    data = await response.Content.ReadAsByteArrayAsync();
+                    sourceRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(1800, 500) };
+                }
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRectI imageSize = new(0, 0, image.Width, image.Height);
                 image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 SKRect dest = new(0, 0, 1080, 300);
-                canvas.DrawImage(image, dest, _paint);
+                canvas.DrawImage(image, sourceRect, dest, _paint);
 
                 string drawableString = $"{beatmap.Beatmapset.Title} - {beatmap.Beatmapset.Artist} [{beatmap.DifficultyName}]";
                 _paint.SetColor(_whiteColor).SetTypeface(_rubikTypeface).SetSize(20);
@@ -1138,8 +1178,19 @@ namespace osu_bot.Modules
                 canvas.Clear(_backgroundColor);
 
                 #region Map Info
-                byte[] data = await _httpClient.GetByteArrayAsync(request.Beatmap.Beatmapset.CoverUrl);
-                SKRect sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
+                byte[] data;
+                SKRect sourceRect;
+                HttpResponseMessage response = await _httpClient.GetAsync(request.Beatmap.Beatmapset.CoverUrl);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    data = await _httpClient.GetByteArrayAsync(DEFAULT_BEATMAP_BACKGROUND_URL);
+                    sourceRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(800, 200) };
+                }
+                else
+                {
+                    data = await response.Content.ReadAsByteArrayAsync();
+                    sourceRect = new() { Location = new SKPoint(0, 36), Size = new SKSize(1800, 428) };
+                }
                 SKRect destRect = new() { Location = new SKPoint(0, 0), Size = new SKSize(876, 204) };
                 SKImage image = SKImage.FromEncodedData(data);
                 SKRectI imageSize = new(0, 0, image.Width, image.Height);
@@ -1341,7 +1392,6 @@ namespace osu_bot.Modules
                 image = SKImage.FromEncodedData(data);
                 imageSize = new(0, 0, image.Width, image.Height);
                 destRect = new() { Location = new SKPoint(20, 272), Size = new SKSize(64, 64) };
-                image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
                 x = 148;
@@ -1359,7 +1409,6 @@ namespace osu_bot.Modules
                 image = SKImage.FromEncodedData(data);
                 imageSize = new(0, 0, image.Width, image.Height);
                 destRect = new() { Location = new SKPoint(220, 272), Size = new SKSize(64, 64) };
-                image = image.ApplyImageFilter(_imageDarkingFilter, imageSize, imageSize, out _, out SKPointI _);
                 canvas.DrawImage(image, imageSize, destRect, _paint);
 
                 x = width / 2;
@@ -1388,7 +1437,7 @@ namespace osu_bot.Modules
                 drawableString = request.IsOnlyMods ? "With ONLY mods:" : "With ANY mod(-s):";
                 _paint.SetColor(_lightGrayColor).SetTypeface(_rubikTypeface).SetSize(18);
                 canvas.DrawAlignText(drawableString, x, y, SKTextAlign.Center, _paint);
-                SKImage? modsImage = ModsConverter.ToImage(request.RequireMods);
+                SKImage? modsImage = ModsConverter.ToImage(request.RequireMods, true);
                 if (modsImage != null)
                 {
                     float centerX = x - (modsImage.Width / 2);

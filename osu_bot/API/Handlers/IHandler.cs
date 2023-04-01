@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu_bot.API.Checkers
+namespace osu_bot.API.Handlers
 {
-    public interface IChecker<in T>
+    public interface IHandler<in T>
     {
-        public Task CheckAsync(T value);
+        public Task HandlingAsync(T value);
     }
 }

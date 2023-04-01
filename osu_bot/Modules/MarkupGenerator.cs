@@ -308,29 +308,31 @@ namespace osu_bot.Modules
         {
             List<IEnumerable<InlineKeyboardButton>> keyboard = new();
 
-            if (isDelete)
+            List<InlineKeyboardButton> rowButtons1 = new()
             {
-                keyboard.Add(new InlineKeyboardButton[]
-                {
-                    InlineKeyboardButton.WithCallbackData("❌ Delete", $"{RequestsListCallback.DATA} ID:{requestsId[1]} P:{page} Delete")
-                });
-            }
+                InlineKeyboardButton.WithCallbackData("🚫 Hide", $"{RequestsListCallback.DATA} ID:{requestsId[1]} P:{page} Hide")
+            };
 
-            List<InlineKeyboardButton> rowButtons1 = new();
+            if (isDelete)
+                rowButtons1.Add(InlineKeyboardButton.WithCallbackData("❌ Delete", $"{RequestsListCallback.DATA} ID:{requestsId[1]} P:{page} Delete"));
+
+            keyboard.Add(rowButtons1);
+
+            List<InlineKeyboardButton> rowButtons2 = new();
 
             if (page != 0)
-                rowButtons1.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestsListCallback.DATA} ID:{requestsId[0]} P:{page - 1}"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestsListCallback.DATA} ID:{requestsId[0]} P:{page - 1}"));
             else
-                rowButtons1.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
 
-            rowButtons1.Add(InlineKeyboardButton.WithCallbackData($"Page {page + 1}/{pagesCount}"));
+            rowButtons2.Add(InlineKeyboardButton.WithCallbackData($"Page {page + 1}/{pagesCount}"));
 
             if (page != pagesCount - 1)
-                rowButtons1.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestsListCallback.DATA} ID:{requestsId[2]} P:{page + 1}"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestsListCallback.DATA} ID:{requestsId[2]} P:{page + 1}"));
             else
-                rowButtons1.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
 
-            keyboard.Add(rowButtons1);   
+            keyboard.Add(rowButtons2);   
 
             return new InlineKeyboardMarkup(keyboard);
         }

@@ -7,9 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
-using osu_bot.API.Checkers;
+using osu_bot.API.Handlers;
 using osu_bot.Bot;
-using osu_bot.Bot.Parsers;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -30,14 +29,15 @@ namespace osu_bot.API
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        private List<IChecker<IList<OsuScore>>> _scoresCheckers = new();
+        private List<IHandler<IList<OsuScore>>> _scoresHandlers = new();
 
         public async Task InitalizeAsync(BotHandle _botHandle)
         {
             await _api.InitalizeAsync();
-            _scoresCheckers = new()
+            _scoresHandlers = new()
             {
-                new RequestsChecker(_botHandle)
+                new RequestsHandler(_botHandle),
+                new ScoresDatabaseHandler()
             };
         }
 
@@ -75,19 +75,23 @@ namespace osu_bot.API
 
         public async Task<OsuBeatmapAttributes?> GetBeatmapAttributesAsync(OsuBeatmap beatmap, int mods)
         {
-            if (mods == NoMod.NUMBER)
-                mods = 0;
-
             OsuBeatmapAttributes? attributes = _database.BeatmapAttributes
                 .FindOne(a => a.Id.BeatmapId == beatmap.Id && a.Id.Mods == mods);
-            attributes ??= await _api.GetBeatmapAttributesAsync(beatmap.Id, mods);
 
             if (attributes is null)
-                return null;
+            {
+                attributes = await _api.GetBeatmapAttributesAsync(beatmap.Id, mods);
 
-            attributes.Id = new BeatmapAttributesKey(beatmap.Id, mods);
-            attributes.CopyBeatmapAttributes(beatmap);
-            attributes.CalculateAttributesWithMods(ModsConverter.ToMods(mods));
+                if (attributes is null)
+                    return null;
+
+                attributes.Id = new BeatmapAttributesKey(beatmap.Id, mods);
+                attributes.CopyBeatmapAttributes(beatmap);
+                attributes.CalculateAttributesWithMods(ModsConverter.ToMods(mods));
+
+                if (beatmap.Status is OsuBeatmapStatus.Ranked or OsuBeatmapStatus.Qualified or OsuBeatmapStatus.Loved)
+                    _database.BeatmapAttributes.Insert(attributes);
+            }
 
             return attributes;
         }
@@ -101,6 +105,9 @@ namespace osu_bot.API
         {
             OsuScore? score = _database.Scores.FindById(id);
             score ??= await _api.GetScoreAsync(id);
+
+            if (score is not null)
+                _scoresHandlers.ForEach(async h => await h.HandlingAsync(new List<OsuScore>() { score }));
 
             return score;
         }
@@ -140,7 +147,7 @@ namespace osu_bot.API
                 }
             }
 
-            _scoresCheckers.ForEach(async c => await c.CheckAsync(scores));
+            _scoresHandlers.ForEach(async c => await c.HandlingAsync(scores));
 
             return scores;
         }
@@ -172,7 +179,6 @@ namespace osu_bot.API
 
                 score.Beatmapset = beatmapset;
             }
-                
 
             if (includeBeatmapsAttributes)
             {
@@ -181,6 +187,8 @@ namespace osu_bot.API
                     throw new NotImplementedException();
                 score.BeatmapAttributes = attributes;
             }
+
+            _scoresHandlers.ForEach(async h => await h.HandlingAsync(new List<OsuScore>() { score }));
 
             return score;
         }
@@ -218,6 +226,8 @@ namespace osu_bot.API
                     score.BeatmapAttributes = attributes;
                 }
             }
+
+            _scoresHandlers.ForEach(async h => await h.HandlingAsync(scores));
 
             return scores;
         }

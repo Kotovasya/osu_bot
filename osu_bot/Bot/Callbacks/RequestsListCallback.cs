@@ -48,6 +48,15 @@ namespace osu_bot.Bot.Callbacks
             if (request.ToUser.Id != callbackQuery.From.Id)
                 return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500); ;
 
+            if (data.Contains("Hide"))
+            {
+                await botClient.DeleteMessageAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    messageId: callbackQuery.Message.MessageId,
+                    cancellationToken: cancellationToken);
+                return CallbackResult.Empty();
+            }
+
             List<Request> requests = _database.Requests
                 .Include(r => r.FromUser)
                 .Include(r => r.FromUser.OsuUser)

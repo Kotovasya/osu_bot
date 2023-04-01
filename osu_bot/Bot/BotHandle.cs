@@ -5,7 +5,7 @@ using LiteDB;
 using osu_bot.API;
 using osu_bot.Bot.Callbacks;
 using osu_bot.Bot.Commands;
-using osu_bot.Bot.Parsers;
+using osu_bot.Bot.Scanners;
 using osu_bot.Resources;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -37,9 +37,9 @@ namespace osu_bot.Bot
         private readonly CallbacksManager _callbacksManager = new();
         private readonly CommandsManager _commandsManager = new();
 
-        private readonly List<Parser> _parsers = new()
+        private readonly List<Scanner> _scanners = new()
         {
-            new PlaysParser()
+            new PlaysScanner()
         };
 
         public async Task Run()
@@ -62,8 +62,8 @@ namespace osu_bot.Bot
                 cancellationToken: cts.Token
             );
 
-            foreach (Parser parser in _parsers)
-                parser.Run();
+            foreach (Scanner scanner in _scanners)
+                scanner.Run();
             
 
             Console.ReadLine();
@@ -112,6 +112,23 @@ namespace osu_bot.Bot
                     => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
                 _ => exception.ToString()
             };
+
+            BotClient.SendTextMessageAsync(
+                chatId: ChatId,
+                text: "Произошла ошибка (возможно превышен лимит запросов), бот перезапустится в течении 2-х секунд...");
+
+            Task.Delay(5000).Wait();
+
+            BotClient.StartReceiving(
+                updateHandler: HandleUpdateAsync,
+                pollingErrorHandler: HandlePollingErrorAsync,
+                receiverOptions: _receiverOptions,
+                cancellationToken: cancellationToken
+            );
+
+            BotClient.SendTextMessageAsync(
+                chatId: ChatId,
+                text: "Бот перезапущен и готов к работе.");
 
             Console.WriteLine(ErrorMessage);
             return Task.CompletedTask;
