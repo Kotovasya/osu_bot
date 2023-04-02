@@ -172,15 +172,15 @@ namespace osu_bot.Modules
                         return $"{diff.Days} days ago";
                 }
                 else
-                    date.ToString("dd.MMMM.yyyy г.");
+                    return date.ToString("dd MMMM yyyy г.");
             }
 
-            if (diff.Hours > 0)
+            else if (diff.Hours > 0)
             {
                 return diff.Hours == 1 ? "1 hour ago" : $"{diff.Hours} hours ago";
             }
 
-            if (diff.Minutes > 0)
+            else if (diff.Minutes > 0)
             {
                 if (diff.Minutes == 1)
                     return "1 minute ago";

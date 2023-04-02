@@ -51,7 +51,7 @@ namespace osu_bot.Bot
             Console.WriteLine("Update chat photo...");
 
             Stream botStatusStream = ResourcesManager.BotStatusManager.Online.Encode().AsStream();
-            await _botClient.SetChatPhotoAsync(ChatId, botStatusStream);
+            await BotClient.SetChatPhotoAsync(ChatId, botStatusStream);
 #endif
             Console.WriteLine("Start listening...");
 
@@ -70,7 +70,7 @@ namespace osu_bot.Bot
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
             botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
-            await _botClient.SetChatPhotoAsync(ChatId, botStatusStream);
+            await BotClient.SetChatPhotoAsync(ChatId, botStatusStream);
 #endif
             cts.Cancel();
         }
