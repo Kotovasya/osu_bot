@@ -14,7 +14,6 @@ using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -66,6 +65,7 @@ namespace osu_bot.Bot.Callbacks
                 .Include(r => r.Beatmap.Beatmapset)
                 .Include(r => r.BeatmapAttributes)
                 .Find(r => r.ToUser.Id == callbackQuery.From.Id)
+                .Where(r => !r.IsTemporary && !r.IsComplete)
                 .ToList();
 
             int requestsCount = requests.Count;
@@ -111,7 +111,7 @@ namespace osu_bot.Bot.Callbacks
             await botClient.EditMessageMediaAsync(
                 chatId: callbackQuery.Message.Chat.Id,
                 messageId: callbackQuery.Message.MessageId,
-                media: new InputMediaPhoto(new InputMedia(image.Encode().AsStream(), page.ToString())),
+                media: new InputMediaPhoto(new InputFile(image.Encode().AsStream(), page.ToString())),
                 replyMarkup: MarkupGenerator.Instance.RequestsKeyboardMarkup(requestsId, page, requestsCount, isDelete),
                 cancellationToken: cancellationToken);
 

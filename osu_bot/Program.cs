@@ -11,8 +11,8 @@ namespace osu_bot
     {
         private static async Task Main(string[] args)
         {
-            BotHandle bot = new();
-            await bot.Run();
+            TelegramBot bot = new();
+            await bot.RunAsync();
         }
     }
 }

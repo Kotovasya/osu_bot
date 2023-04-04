@@ -13,7 +13,6 @@ using osu_bot.Entites.Mods;
 using osu_bot.Modules;
 using SkiaSharp;
 using static System.Formats.Asn1.AsnWriter;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using osu_bot.Modules.Converters;
@@ -23,9 +22,9 @@ namespace osu_bot.API.Handlers
     public class RequestsHandler : IHandler<IList<OsuScore>>
     {
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private readonly BotHandle _botHandle;
+        private readonly TelegramBot _botHandle;
 
-        public RequestsHandler(BotHandle botHandle)
+        public RequestsHandler(TelegramBot botHandle)
         {
             _botHandle = botHandle;
         }
@@ -103,11 +102,11 @@ namespace osu_bot.API.Handlers
 
                 _database.Requests.Upsert(request);
 
-                ChatMember fromMember = await _botHandle.BotClient.GetChatMemberAsync(
+                ChatMember fromMember = await _botHandle._botClient.GetChatMemberAsync(
                     chatId: _botHandle.ChatId,
                     userId: request.FromUser.Id);
 
-                ChatMember toMember = await _botHandle.BotClient.GetChatMemberAsync(
+                ChatMember toMember = await _botHandle._botClient.GetChatMemberAsync(
                     chatId: _botHandle.ChatId,
                     userId: request.ToUser.Id);
 
@@ -141,10 +140,10 @@ namespace osu_bot.API.Handlers
 
                 using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-                await _botHandle.BotClient.SendPhotoAsync(
+                await _botHandle._botClient.SendPhotoAsync(
                     chatId: _botHandle.ChatId,
                     caption: textMessage,
-                    photo: new InputOnlineFile(image.Encode().AsStream()));
+                    photo: new InputFile(image.Encode().AsStream()));
 
                 Task.Delay(300).Wait();
             }

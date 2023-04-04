@@ -13,7 +13,6 @@ using osu_bot.Modules;
 using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 
 namespace osu_bot.Bot.Commands
 {
@@ -47,6 +46,7 @@ namespace osu_bot.Bot.Commands
                 .Include(r => r.Beatmap.Beatmapset)
                 .Include(r => r.BeatmapAttributes)
                 .Find(r => r.ToUser.Id == user.Id)
+                .Where(r => !r.IsTemporary && !r.IsComplete)
                 .ToList();
 
             if (!requests.Any())
@@ -67,7 +67,7 @@ namespace osu_bot.Bot.Commands
 
             await botClient.SendPhotoAsync(
                 chatId: message.Chat.Id,
-                photo: new InputOnlineFile(image.Encode().AsStream()),
+                photo: new InputFile(image.Encode().AsStream()),
                 replyToMessageId: message.MessageId,
                 replyMarkup: MarkupGenerator.Instance.RequestsKeyboardMarkup(requestsId, 0, requests.Count, isDelete),
                 cancellationToken: cancellationToken);

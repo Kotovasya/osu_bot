@@ -31,7 +31,7 @@ namespace osu_bot.API
 
         private List<IHandler<IList<OsuScore>>> _scoresHandlers = new();
 
-        public async Task InitalizeAsync(BotHandle _botHandle)
+        public async Task InitalizeAsync(TelegramBot _botHandle)
         {
             await _api.InitalizeAsync();
             _scoresHandlers = new()
@@ -163,13 +163,16 @@ namespace osu_bot.API
                        .Include(s => s.Beatmapset)
                        .Find(s => s.Beatmap.Id == beatmapId && s.User.Id == userId)
                        .MaxBy(s => s.Score);
-
-                if (score is not null)
-                    score.User = await GetUserAsync(userId);
             }
 
             if (score is null)
                 return null;
+
+            OsuUser? user = await GetUserAsync(userId);
+            if (user is null)
+                throw new NotImplementedException();
+
+            score.User = user;
 
             if (score.Beatmapset is null)
             {

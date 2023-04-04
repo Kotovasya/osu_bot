@@ -11,7 +11,6 @@ using osu_bot.Modules.Converters;
 using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Commands
@@ -71,7 +70,7 @@ namespace osu_bot.Bot.Commands
             await botClient.SendPhotoAsync(
                 chatId: message.Chat,
                 caption: caption,
-                photo: new InputOnlineFile(image.Encode().AsStream()),
+                photo: new InputFile(image.Encode().AsStream()),
                 replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);

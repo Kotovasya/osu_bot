@@ -98,5 +98,10 @@ namespace osu_bot.Modules
             };
             canvas.DrawText(drawableString, x, y, paint);
         }
+
+        public static InputFile ToInputFile(this SKImage image)
+        {
+            return new InputFile(image.Encode().AsStream());
+        }
     }
 }

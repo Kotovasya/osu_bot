@@ -12,7 +12,6 @@ using osu_bot.Modules.Converters;
 using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
@@ -234,7 +233,7 @@ namespace osu_bot.Bot.Callbacks
 
                 await botClient.SendPhotoAsync(
                     chatId: callbackQuery.Message.Chat,
-                    photo: new InputOnlineFile(image.Encode().AsStream()),
+                    photo: new InputFile(image.Encode().AsStream()),
                     caption: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте {request.Beatmap.Url}",
                     replyMarkup: MarkupGenerator.Instance.RequestKeyboardMakrup(request),
                     cancellationToken: cancellationToken);   

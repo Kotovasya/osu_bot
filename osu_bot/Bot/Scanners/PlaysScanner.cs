@@ -19,7 +19,6 @@ using osu_bot.Modules.Converters;
 using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace osu_bot.Bot.Scanners
