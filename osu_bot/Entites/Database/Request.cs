@@ -197,7 +197,7 @@ namespace osu_bot.Entites.Database
             ToUser = toUser;
             DateCreate = DateTime.Now;
             IsTemporary = true;
-            _requireMods = NoMod.NUMBER + ModHidden.NUMBER + ModHardRock.NUMBER + ModDoubleTime.NUMBER + ModFlashlight.NUMBER;
+            IsOnlyMods = true;
             _requirePass = true;
             _requireSnipeScore = true;
         }

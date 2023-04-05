@@ -22,11 +22,11 @@ namespace osu_bot.API.Handlers
     public class RequestsHandler : IHandler<IList<OsuScore>>
     {
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private readonly TelegramBot _botHandle;
+        private readonly TelegramBot _bot;
 
-        public RequestsHandler(TelegramBot botHandle)
+        public RequestsHandler(TelegramBot bot)
         {
-            _botHandle = botHandle;
+            _bot = bot;
         }
 
         public async Task HandlingAsync(IList<OsuScore> value)
@@ -102,12 +102,12 @@ namespace osu_bot.API.Handlers
 
                 _database.Requests.Upsert(request);
 
-                ChatMember fromMember = await _botHandle._botClient.GetChatMemberAsync(
-                    chatId: _botHandle.ChatId,
+                ChatMember fromMember = await _bot.BotClient.GetChatMemberAsync(
+                    chatId: _bot.ChatId,
                     userId: request.FromUser.Id);
 
-                ChatMember toMember = await _botHandle._botClient.GetChatMemberAsync(
-                    chatId: _botHandle.ChatId,
+                ChatMember toMember = await _bot.BotClient.GetChatMemberAsync(
+                    chatId: _bot.ChatId,
                     userId: request.ToUser.Id);
 
                 int fromRequestsCompleteCount = _database.Requests
@@ -140,10 +140,20 @@ namespace osu_bot.API.Handlers
 
                 using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-                await _botHandle._botClient.SendPhotoAsync(
-                    chatId: _botHandle.ChatId,
-                    caption: textMessage,
+                await _bot.BotClient.SendPhotoAsync(
+                    chatId: _bot.ChatId,
+                    messageThreadId: TelegramBot.REQUESTS_THREAD_ID,
                     photo: new InputFile(image.Encode().AsStream()));
+
+                Message message = await _bot.BotClient.SendTextMessageAsync(
+                    chatId: _bot.ChatId,
+                    messageThreadId: TelegramBot.REQUESTS_THREAD_ID,
+                    text: textMessage);
+
+                await _bot.BotClient.ForwardMessageAsync(
+                    chatId: _bot.ChatId,
+                    fromChatId: _bot.ChatId,
+                    messageId: message.MessageId);
 
                 Task.Delay(300).Wait();
             }

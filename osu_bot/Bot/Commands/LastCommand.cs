@@ -67,13 +67,22 @@ namespace osu_bot.Bot.Commands
                 caption = score.Beatmap.Url;
                 inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
             }
-            await botClient.SendPhotoAsync(
+
+            Message newMessage = await botClient.SendPhotoAsync(
                 chatId: message.Chat,
                 caption: caption,
                 photo: new InputFile(image.Encode().AsStream()),
                 replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
+
+            if (scores.Count == 1)
+                await botClient.ForwardMessageAsync(
+                    chatId: newMessage.Chat,
+                    fromChatId: newMessage.Chat,
+                    newMessage.MessageId,
+                    messageThreadId: TelegramBot.SCORES_THREAD_ID,
+                    cancellationToken: cancellationToken);
 
             image.Dispose();
         }

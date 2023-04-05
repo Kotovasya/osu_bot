@@ -176,6 +176,14 @@ namespace osu_bot.Bot.Callbacks
                 request.IsOnlyMods = false;
             }
 
+            if (actionRequest is RequestAction.Save)
+            {
+                Request similarRequest = _database.Requests.FindOne(r =>
+                    r.Beatmap.Id == request.Beatmap.Id
+                    && r.ToUser.Id == request.ToUser.Id
+                    && !r.IsTemporary);
+            }
+
             if (_actions.TryGetValue(actionRequest, out Action<Request>? action))
                 action.Invoke(request);
 
@@ -198,6 +206,7 @@ namespace osu_bot.Bot.Callbacks
 
             if (actionRequest == RequestAction.Save)
             {
+
                 ChatMember fromMember = await botClient.GetChatMemberAsync(
                     chatId: callbackQuery.Message.Chat,
                     userId: request.FromUser.Id,

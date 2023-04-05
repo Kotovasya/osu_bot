@@ -31,12 +31,12 @@ namespace osu_bot.API
 
         private List<IHandler<IList<OsuScore>>> _scoresHandlers = new();
 
-        public async Task InitalizeAsync(TelegramBot _botHandle)
+        public async Task InitalizeAsync(TelegramBot bot)
         {
             await _api.InitalizeAsync();
             _scoresHandlers = new()
             {
-                new RequestsHandler(_botHandle),
+                new RequestsHandler(bot),
                 new ScoresDatabaseHandler()
             };
         }

@@ -23,6 +23,10 @@ namespace osu_bot.Bot
 {
     public class TelegramBot
     {
+        public const int REPLAYS_THREAD_ID = 1007;
+        public const int REQUESTS_THREAD_ID = 1009;
+        public const int BEATMAPS_THREAD_ID = 1011;
+        public const int SCORES_THREAD_ID = 1024;
 
         private readonly ReceiverOptions _receiverOptions = new()
         {
@@ -32,10 +36,7 @@ namespace osu_bot.Bot
         #region Chats settings
 #if DEBUG
         public readonly ChatId ChatId = new(-1001888790264);
-        public readonly int ReplaysThreadId = 1007;
-        public readonly int RequestsThreadId = 1009;
-        public readonly int BeatmapsThreadId = 1011;
-        public readonly ITelegramBotClient _botClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
+        public readonly ITelegramBotClient BotClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
 #else
         public readonly ChatId ChatId = new(-1001238663722);
         //public readonly int ReplaysThreadId = 1007;
@@ -67,7 +68,7 @@ namespace osu_bot.Bot
 #endif
             Console.WriteLine("Start listening...");
 
-            _botClient.StartReceiving(
+            BotClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
                 receiverOptions: _receiverOptions,
@@ -125,48 +126,25 @@ namespace osu_bot.Bot
                 _ => exception.ToString()
             };
 
-            _botClient.SendTextMessageAsync(
+            BotClient.SendTextMessageAsync(
                 chatId: ChatId,
                 text: "Произошла ошибка (возможно превышен лимит запросов), бот перезапустится в течении 2-х секунд...");
 
             Task.Delay(5000).Wait();
 
-            _botClient.StartReceiving(
+            BotClient.StartReceiving(
                 updateHandler: HandleUpdateAsync,
                 pollingErrorHandler: HandlePollingErrorAsync,
                 receiverOptions: _receiverOptions,
                 cancellationToken: cancellationToken
             );
 
-            _botClient.SendTextMessageAsync(
+            BotClient.SendTextMessageAsync(
                 chatId: ChatId,
                 text: "Бот перезапущен и готов к работе.");
 
             Console.WriteLine(ErrorMessage);
             return Task.CompletedTask;
-        }
-
-        public async Task SendScoreAsync(OsuScore score)
-        {
-            using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
-
-            InlineKeyboardMarkup inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
-
-            await _botClient.SendPhotoAsync(
-                chatId: callbackQuery.Message.Chat,
-                photo: image.ToInputFile(),
-                replyToMessageId: callbackQuery.Message.MessageId,
-                replyMarkup: inlineKeyboard);
-        }
-
-        public async Task SendScoresAsync(IEnumerable<OsuScore> scores)
-        {
-
-        }
-
-        public async Task SendRequestAsync(Request request)
-        {
-
         }
     }
 }
