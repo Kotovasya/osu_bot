@@ -35,6 +35,15 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
+            if (data.Contains("Hide"))
+            {
+                await botClient.DeleteMessageAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    messageId: callbackQuery.Message.MessageId,
+                    cancellationToken: cancellationToken);
+                return CallbackResult.Empty();
+            }
+
             Match idMatch = new Regex(@"ID:(\d+)").Match(data);
             if (!idMatch.Success)
                 return new CallbackResult("При обработке запроса на реквест произошла ошибка");
@@ -45,16 +54,7 @@ namespace osu_bot.Bot.Callbacks
             if (request is null)
                 return new CallbackResult("При обработке запроса на реквест произошла ошибка"); ;
             if (request.ToUser.Id != callbackQuery.From.Id)
-                return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500); ;
-
-            if (data.Contains("Hide"))
-            {
-                await botClient.DeleteMessageAsync(
-                    chatId: callbackQuery.Message.Chat.Id,
-                    messageId: callbackQuery.Message.MessageId,
-                    cancellationToken: cancellationToken);
-                return CallbackResult.Empty();
-            }
+                return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500); ;       
 
             List<Request> requests = _database.Requests
                 .Include(r => r.FromUser)

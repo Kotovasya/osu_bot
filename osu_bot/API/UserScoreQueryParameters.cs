@@ -57,6 +57,9 @@ namespace osu_bot.API
             else
                 Limit = 5;
 
+            if (input.StartsWith('@'))
+                return;
+
             int endIndex = 0;
 
             for (int i = 0; i < input.Length; i++)

@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 using osu_bot.API;
+using osu_bot.API.Handlers;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
@@ -178,10 +179,53 @@ namespace osu_bot.Bot.Callbacks
 
             if (actionRequest is RequestAction.Save)
             {
-                Request similarRequest = _database.Requests.FindOne(r =>
+                IEnumerable<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(request.Beatmap.Id, request.ToUser.OsuUser.Id);
+
+                if (scores != null)
+                {
+                    if (scores.Any(s => RequestsHandler.CheckRequestComplete(s, request)))
+                        return new CallbackResult("У игрока на карте уже имеется скор, выполняющий этот реквест");
+                }
+
+                IEnumerable<Request> similarRequests = _database.Requests.Find(r =>
                     r.Beatmap.Id == request.Beatmap.Id
                     && r.ToUser.Id == request.ToUser.Id
-                    && !r.IsTemporary);
+                    && r.IsOnlyMods == request.IsOnlyMods
+                    && !r.IsTemporary && !r.IsComplete);
+
+                foreach (Request similarRequest in similarRequests)
+                {
+                    if (similarRequest.IsOnlyMods)
+                    {
+                        if (similarRequest.RequireMods != request.RequireMods)
+                            continue;
+                    }
+                    else
+                    {
+                        IEnumerable<Mod>? similarMods = ModsConverter.ToMods(similarRequest.RequireMods);
+                        IEnumerable<Mod>? requestMods = ModsConverter.ToMods(request.RequireMods);
+
+                        if (!requestMods.Any(m => similarMods.Contains(m)))
+                            continue;
+                    }
+                    bool isSimilarRequest = false;
+                    if (similarRequest.RequirePass && request.RequirePass)
+                        isSimilarRequest = true;
+                    else if (similarRequest.RequireFullCombo && request.RequireFullCombo)
+                        isSimilarRequest = true;
+                    else if (similarRequest.RequireSnipe && request.RequireSnipe)
+                    {
+                        if (request.RequireSnipeAcc && request.RequireSnipeAcc)
+                            isSimilarRequest = true;
+                        else if (request.RequireSnipeCombo && request.RequireSnipeCombo)
+                            isSimilarRequest = true;
+                        else if (request.RequireSnipeScore && request.RequireSnipeScore)
+                            isSimilarRequest = true;
+                    }
+
+                    if (isSimilarRequest)
+                        return new CallbackResult("Похожий реквест для этого игрока уже существует");
+                }
             }
 
             if (_actions.TryGetValue(actionRequest, out Action<Request>? action))

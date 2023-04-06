@@ -10,6 +10,7 @@ using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 using SkiaSharp;
 using Telegram.Bot;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -54,7 +55,6 @@ namespace osu_bot.Bot.Commands
                 throw new UserScoresNotFound(parameters.Username, ScoreType.Recent, parameters.Mods);
 
             SKImage image;
-            string? caption = null;
             InlineKeyboardMarkup? inlineKeyboard = null;
             if (scores.Count > 1)
             {
@@ -64,23 +64,22 @@ namespace osu_bot.Bot.Commands
             {
                 OsuScore score = scores.First();
                 image = await ImageGenerator.Instance.CreateFullCardAsync(score);
-                caption = score.Beatmap.Url;
                 inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
             }
 
             Message newMessage = await botClient.SendPhotoAsync(
                 chatId: message.Chat,
-                caption: caption,
                 photo: new InputFile(image.Encode().AsStream()),
                 replyToMessageId: message.MessageId,
                 replyMarkup: inlineKeyboard,
                 cancellationToken: cancellationToken);
 
             if (scores.Count == 1)
-                await botClient.ForwardMessageAsync(
+                await botClient.CopyMessageAsync(
                     chatId: newMessage.Chat,
                     fromChatId: newMessage.Chat,
                     newMessage.MessageId,
+                    caption: scores.First().Beatmap.Url,
                     messageThreadId: TelegramBot.SCORES_THREAD_ID,
                     cancellationToken: cancellationToken);
 

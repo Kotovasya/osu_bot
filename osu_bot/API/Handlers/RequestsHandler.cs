@@ -29,6 +29,60 @@ namespace osu_bot.API.Handlers
             _bot = bot;
         }
 
+        public static bool CheckRequestComplete(OsuScore score, Request request)
+        {
+            if (score is null || request is null)
+                return false;
+
+            if (score.Beatmap.Id != request.Beatmap.Id)
+                return false;
+
+            bool isRequestMods = false;
+            if (request.IsOnlyMods)
+            {
+                int requestModsWithoutHidden = request.RequireMods - ModHidden.NUMBER;
+                int requestModsWithHidden = request.RequireMods + ModHidden.NUMBER;
+                if (request.RequireMods == score.Mods)
+                    isRequestMods = true;
+                else if ((requestModsWithoutHidden == ModHardRock.NUMBER || requestModsWithoutHidden == ModDoubleTime.NUMBER)
+                        && score.Mods == requestModsWithoutHidden)
+                {
+                    isRequestMods = true;
+                }
+                else if ((requestModsWithHidden == ModHardRock.NUMBER + ModHidden.NUMBER || requestModsWithHidden == ModDoubleTime.NUMBER + ModHidden.NUMBER)
+                    && score.Mods == requestModsWithHidden)
+                {
+                    isRequestMods = true;
+                }
+            }
+            else
+            {
+                IEnumerable<Mod> scoreMods = ModsConverter.ToMods(score.Mods);
+                IEnumerable<Mod> requestMods = ModsConverter.ToMods(request.RequireMods);
+                List<Mod> result = scoreMods.Intersect(requestMods).ToList();
+                isRequestMods = result.Any();
+            }
+            if (!isRequestMods)
+                return false;
+
+            bool isRequestComplete = false;
+            if (request.RequirePass && score.IsPassed)
+                isRequestComplete = true;
+            else if (request.RequireFullCombo && score.IsFullCombo)
+                isRequestComplete = true;
+            else if (request.RequireSnipeScore && score.Score >= request.Score)
+                isRequestComplete = true;
+            else if (request.RequireSnipeAcc && score.Accuracy >= request.Accuracy)
+                isRequestComplete = true;
+            else if (request.RequireSnipeCombo && score.MaxCombo >= request.Combo)
+                isRequestComplete = true;
+
+            if (!isRequestComplete)
+                return false;
+
+            return true;
+        }
+
         public async Task HandlingAsync(IList<OsuScore> value)
         {
             if (value.Count == 0)
@@ -51,111 +105,66 @@ namespace osu_bot.API.Handlers
 
             foreach (Request request in requests)
             {
-                OsuScore? score = value.FirstOrDefault(s => s.Beatmap.Id == request.Beatmap.Id);
-                if (score is null)
-                    continue;
-
-                bool isRequestMods = false;
-                if (request.IsOnlyMods)
+                foreach (OsuScore score in value.Where(s => CheckRequestComplete(s, request)))
                 {
-                    int requestModsWithoutHidden = request.RequireMods - ModHidden.NUMBER;
-                    int requestModsWithHidden = request.RequireMods + ModHidden.NUMBER;
-                    if (request.RequireMods == score.Mods)
-                        isRequestMods = true;
-                    else if ((requestModsWithoutHidden == ModHardRock.NUMBER || requestModsWithoutHidden == ModDoubleTime.NUMBER)
-                            && score.Mods == requestModsWithoutHidden)
-                    {
-                        isRequestMods = true;
-                    }
-                    else if ((requestModsWithHidden == ModHardRock.NUMBER + ModHidden.NUMBER || requestModsWithHidden == ModDoubleTime.NUMBER + ModHidden.NUMBER)
-                        && score.Mods == requestModsWithHidden)
-                    {
-                        isRequestMods = true;
-                    }
-                }
-                else
-                {
-                    IEnumerable<Mod> scoreMods = ModsConverter.ToMods(score.Mods);
-                    IEnumerable<Mod> requestMods = ModsConverter.ToMods(request.RequireMods);
-                    isRequestMods = scoreMods.Union(requestMods).Any();
-                }
-                if (!isRequestMods)
-                    continue;
+                    request.IsComplete = true;
+                    request.DateComplete = DateTime.Now;
 
-                bool isRequestComplete = false;
-                if (request.RequirePass && score.IsPassed)
-                    isRequestComplete = true;
-                else if (request.RequireFullCombo && score.IsFullCombo)
-                    isRequestComplete = true;
-                else if (request.RequireSnipeScore && score.Score > request.Score)
-                    isRequestComplete = true;
-                else if (request.RequireSnipeAcc && score.Accuracy > request.Accuracy)
-                    isRequestComplete = true;
-                else if (request.RequireSnipeCombo && score.MaxCombo > request.Combo)
-                    isRequestComplete = true;
+                    _database.Requests.Upsert(request);
 
-                if (!isRequestComplete)
-                    continue;
+                    ChatMember fromMember = await _bot.BotClient.GetChatMemberAsync(
+                        chatId: _bot.ChatId,
+                        userId: request.FromUser.Id);
 
-                request.IsComplete = true;
-                request.DateComplete = DateTime.Now;
+                    ChatMember toMember = await _bot.BotClient.GetChatMemberAsync(
+                        chatId: _bot.ChatId,
+                        userId: request.ToUser.Id);
 
-                _database.Requests.Upsert(request);
+                    int fromRequestsCompleteCount = _database.Requests
+                        .Find(r => r.IsComplete && r.RequireSnipe)
+                        .Where(r => r.FromUser.Id == request.ToUser.Id && r.ToUser.Id == request.FromUser.Id)
+                        .Count();
 
-                ChatMember fromMember = await _bot.BotClient.GetChatMemberAsync(
-                    chatId: _bot.ChatId,
-                    userId: request.FromUser.Id);
+                    int toRequestsCompleteCount = _database.Requests
+                        .Find(r => r.IsComplete && r.RequireSnipe)
+                        .Where(r => r.FromUser.Id == request.FromUser.Id && r.ToUser.Id == request.ToUser.Id)
+                        .Count();
 
-                ChatMember toMember = await _bot.BotClient.GetChatMemberAsync(
-                    chatId: _bot.ChatId,
-                    userId: request.ToUser.Id);
-
-                int fromRequestsCompleteCount = _database.Requests
-                    .Find(r => r.IsComplete)
-                    .Where(r => r.FromUser.Id == request.ToUser.Id && r.ToUser.Id == request.FromUser.Id)
-                    .Count();
-
-                int toRequestsCompleteCount = _database.Requests
-                    .Find(r => r.IsComplete)
-                    .Where(r => r.FromUser.Id == request.FromUser.Id && r.ToUser.Id == request.ToUser.Id)
-                    .Count();
-
-                string textMessage;
-                if (request.RequirePass)
-                    textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест на пасс от @{fromMember.User.Username}";
-                else if (request.RequireFullCombo)
-                    textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест на фк от @{fromMember.User.Username}";
-                else
-                {
-                    textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест снайпа от @{fromMember.User.Username} выбив";
-                    if (request.RequireSnipeScore)
-                        textMessage += $"скор выше заданного {request.Score.Separate(".")}";
-                    else if (request.RequireSnipeAcc)
-                        textMessage += $"аккураси выше заданной {request.Accuracy}%";
+                    string textMessage;
+                    if (request.RequirePass)
+                        textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест на пасс от @{fromMember.User.Username}";
+                    else if (request.RequireFullCombo)
+                        textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест на фк от @{fromMember.User.Username}";
                     else
-                        textMessage += $"комбо выше заданного {request.Combo}x";
+                    {
+                        textMessage = $"{request.ToUser.OsuUser.Username} выполнил реквест снайпа от @{fromMember.User.Username} выбив ";
+                        if (request.RequireSnipeScore)
+                            textMessage += $"скор выше заданного {request.Score.Separate(".")}";
+                        else if (request.RequireSnipeAcc)
+                            textMessage += $"аккураси выше заданной {request.Accuracy}%";
+                        else
+                            textMessage += $"комбо выше заданного {request.Combo}x";
 
-                    textMessage += $"\nСчёт реквестов:\n{request.ToUser.OsuUser.Username} {toRequestsCompleteCount} - {fromRequestsCompleteCount} {request.FromUser.OsuUser.Username}";
-                }
+                        textMessage += $"\nСчёт реквестов:\n{request.ToUser.OsuUser.Username} {toRequestsCompleteCount} - {fromRequestsCompleteCount} {request.FromUser.OsuUser.Username}";
+                    }
 
-                using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
+                    using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-                await _bot.BotClient.SendPhotoAsync(
-                    chatId: _bot.ChatId,
-                    messageThreadId: TelegramBot.REQUESTS_THREAD_ID,
-                    photo: new InputFile(image.Encode().AsStream()));
 
-                Message message = await _bot.BotClient.SendTextMessageAsync(
-                    chatId: _bot.ChatId,
-                    messageThreadId: TelegramBot.REQUESTS_THREAD_ID,
-                    text: textMessage);
 
-                await _bot.BotClient.ForwardMessageAsync(
-                    chatId: _bot.ChatId,
-                    fromChatId: _bot.ChatId,
-                    messageId: message.MessageId);
+                    Message message = await _bot.BotClient.SendPhotoAsync(
+                        chatId: _bot.ChatId,
+                        caption: textMessage,
+                        photo: new InputFile(image.Encode().AsStream()));
 
-                Task.Delay(300).Wait();
+                    await _bot.BotClient.ForwardMessageAsync(
+                        chatId: _bot.ChatId,
+                        fromChatId: _bot.ChatId,
+                        messageId: message.MessageId,
+                        messageThreadId: TelegramBot.REQUESTS_THREAD_ID);
+
+                    Task.Delay(300).Wait();
+                }           
             }
         }
     }
