@@ -52,9 +52,9 @@ namespace osu_bot.Bot.Callbacks
 
             Request request = _database.Requests.FindById(requestId);
             if (request is null)
-                return new CallbackResult("При обработке запроса на реквест произошла ошибка"); ;
+                return new CallbackResult("При обработке запроса на реквест произошла ошибка");
             if (request.ToUser.Id != callbackQuery.From.Id)
-                return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500); ;       
+                return new CallbackResult("Нельзя редактировать реквест, созданный другим пользователем", 500);       
 
             List<Request> requests = _database.Requests
                 .Include(r => r.FromUser)
@@ -97,11 +97,15 @@ namespace osu_bot.Bot.Callbacks
             int[] requestsId = new int[3];
             if (page != 0)
                 requestsId[0] = requests[page - 1].Id;
+            else
+                requestsId[0] = requests[requestsCount - 1].Id;
 
             requestsId[1] = requests[page].Id;
 
             if (page != requestsCount - 1)
                 requestsId[2] = requests[page + 1].Id;
+            else
+                requestsId[2] = requests[0].Id;
 
             request = requests[page];
 

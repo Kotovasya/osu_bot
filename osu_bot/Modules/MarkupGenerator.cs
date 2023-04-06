@@ -323,14 +323,14 @@ namespace osu_bot.Modules
             if (page != 0)
                 rowButtons2.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestsListCallback.DATA} ID:{requestsId[0]} P:{page - 1}"));
             else
-                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestsListCallback.DATA} ID:{requestsId[0]} P:{pagesCount - 1}"));
 
             rowButtons2.Add(InlineKeyboardButton.WithCallbackData($"Page {page + 1}/{pagesCount}"));
 
             if (page != pagesCount - 1)
                 rowButtons2.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestsListCallback.DATA} ID:{requestsId[2]} P:{page + 1}"));
             else
-                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
+                rowButtons2.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestsListCallback.DATA} ID:{requestsId[2]} P:0"));
 
             keyboard.Add(rowButtons2);   
 

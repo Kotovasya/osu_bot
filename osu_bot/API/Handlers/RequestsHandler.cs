@@ -70,13 +70,15 @@ namespace osu_bot.API.Handlers
                 isRequestComplete = true;
             else if (request.RequireFullCombo && score.IsFullCombo)
                 isRequestComplete = true;
-            else if (request.RequireSnipeScore && score.Score >= request.Score)
-                isRequestComplete = true;
-            else if (request.RequireSnipeAcc && score.Accuracy >= request.Accuracy)
-                isRequestComplete = true;
-            else if (request.RequireSnipeCombo && score.MaxCombo >= request.Combo)
-                isRequestComplete = true;
-
+            else if (request.RequireSnipe)
+            {
+                if (request.RequireSnipeScore && score.Score >= request.Score)
+                    isRequestComplete = true;
+                else if (request.RequireSnipeAcc && score.Accuracy >= request.Accuracy)
+                    isRequestComplete = true;
+                else if (request.RequireSnipeCombo && score.MaxCombo >= request.Combo)
+                    isRequestComplete = true;
+            }
             if (!isRequestComplete)
                 return false;
 

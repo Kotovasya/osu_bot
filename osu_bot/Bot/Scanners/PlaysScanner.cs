@@ -37,13 +37,15 @@ namespace osu_bot.Bot.Scanners
 
         protected override async Task ActionAsync()
         {
-            IEnumerable<TelegramUser> users = _database.TelegramUsers.FindAll();
+            List<TelegramUser> users = _database.TelegramUsers.FindAll().ToList();
 
             foreach(TelegramUser user in users)
             {
                 _parameters.UserId = user.OsuUser.Id;
                 await _service.GetUserScoresAsync(_parameters);
             }
+
+            return;
         }
     }
 }

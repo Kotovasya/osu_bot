@@ -54,10 +54,13 @@ namespace osu_bot.Bot.Commands
 
             int[] requestsId = new int[3];
 
+            requestsId[0] = requests.Last().Id;
+            requestsId[1] = requests[0].Id;
+
             if (requests.Count > 1)
                 requestsId[2] = requests[1].Id;
-
-            requestsId[1] = requests[0].Id;
+            else
+                requestsId[2] = requests[0].Id;
 
             Request request = requests[0];
 

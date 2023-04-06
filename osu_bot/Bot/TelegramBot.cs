@@ -23,29 +23,28 @@ namespace osu_bot.Bot
 {
     public class TelegramBot
     {
+#if DEBUG
         public const int REPLAYS_THREAD_ID = 1007;
         public const int REQUESTS_THREAD_ID = 1009;
         public const int BEATMAPS_THREAD_ID = 1011;
         public const int SCORES_THREAD_ID = 1024;
 
+        public readonly ChatId ChatId = new(-1001888790264);
+        public readonly ITelegramBotClient BotClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
+#else
+        public const int REPLAYS_THREAD_ID = 799;
+        public const int REQUESTS_THREAD_ID = 801;
+        public const int BEATMAPS_THREAD_ID = 805;
+        public const int SCORES_THREAD_ID = 1132;
+
+        public readonly ChatId ChatId = new(-1001238663722);
+        public readonly ITelegramBotClient BotClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
+#endif
+
         private readonly ReceiverOptions _receiverOptions = new()
         {
             AllowedUpdates = Array.Empty<UpdateType>()
         };
-
-        #region Chats settings
-#if DEBUG
-        public readonly ChatId ChatId = new(-1001888790264);
-        public readonly ITelegramBotClient BotClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
-#else
-        public readonly ChatId ChatId = new(-1001238663722);
-        //public readonly int ReplaysThreadId = 1007;
-        //public readonly int RequestsThreadId = 1009;
-        //public readonly int BeatmapsThreadId = 1011;
-        public readonly ITelegramBotClient BotClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
-#endif
-        #endregion
-
 
         private readonly CallbacksManager _callbacksManager = new();
         private readonly CommandsManager _commandsManager = new();
@@ -62,9 +61,7 @@ namespace osu_bot.Bot
 
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
-
-            Stream botStatusStream = ResourcesManager.BotStatusManager.Online.Encode().AsStream();
-            await BotClient.SetChatPhotoAsync(ChatId, botStatusStream);
+            await BotClient.SetChatPhotoAsync(ChatId, ResourcesManager.BotStatusManager.Online.ToInputFile());
 #endif
             Console.WriteLine("Start listening...");
 
@@ -82,8 +79,7 @@ namespace osu_bot.Bot
             Console.ReadLine();
 #if !DEBUG
             Console.WriteLine("Update chat photo...");
-            botStatusStream = ResourcesManager.BotStatusManager.Offline.Encode().AsStream();
-            await BotClient.SetChatPhotoAsync(ChatId, botStatusStream);
+            await BotClient.SetChatPhotoAsync(ChatId, ResourcesManager.BotStatusManager.Offline.ToInputFile());
 #endif
             cts.Cancel();
         }
