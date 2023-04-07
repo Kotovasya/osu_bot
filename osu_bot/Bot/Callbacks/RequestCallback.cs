@@ -179,6 +179,9 @@ namespace osu_bot.Bot.Callbacks
 
             if (actionRequest is RequestAction.Save)
             {
+                if (request.RequireMods == 0)
+                    return new CallbackResult("Должен быть выбран хотя бы один из модов");
+
                 IEnumerable<OsuScore>? scores = await _service.GetUserBeatmapAllScoresAsync(request.Beatmap.Id, request.ToUser.OsuUser.Id);
 
                 if (scores != null)
