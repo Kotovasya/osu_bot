@@ -152,8 +152,6 @@ namespace osu_bot.API.Handlers
 
                     using SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
-
-
                     Message message = await _bot.BotClient.SendPhotoAsync(
                         chatId: _bot.ChatId,
                         caption: textMessage,

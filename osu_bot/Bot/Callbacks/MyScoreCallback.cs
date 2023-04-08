@@ -11,6 +11,7 @@ using SkiaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -52,7 +53,16 @@ namespace osu_bot.Bot.Callbacks
             if (score is null)
                 return new CallbackResult(new UserScoresNotFound(telegramUser.OsuUser.Username, beatmapId).Message, 500);
 
+            SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
 
+            await botClient.SendPhotoAsync(
+                chatId: callbackQuery.Message.Chat,
+                photo: new InputFile(image.Encode().AsStream()),
+                replyToMessageId: callbackQuery.Message.MessageId,
+                replyMarkup: MarkupGenerator.Instance.ScoreKeyboardMarkup(beatmapId, score.Beatmapset.Id),
+                cancellationToken: cancellationToken);
+
+            image.Dispose();
 
             return CallbackResult.Empty();
         }
