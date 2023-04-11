@@ -561,7 +561,7 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = score.BeatmapAttributes.BPM.ToString();
+                drawableString = ((int)score.BeatmapAttributes.BPM).ToString();
                 x = stringLinker.SetStrings("BPM:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
@@ -1370,7 +1370,7 @@ namespace osu_bot.Modules
 
                 x += columnSpacing;
 
-                drawableString = request.BeatmapAttributes.BPM.ToString();
+                drawableString = ((int)request.BeatmapAttributes.BPM).ToString();
                 x = stringLinker.SetStrings("BPM:", drawableString)
                     .SetPositions(x, y, y)
                     .Draw(canvas);
