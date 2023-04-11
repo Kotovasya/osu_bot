@@ -40,7 +40,7 @@ namespace osu_bot.API
             using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("https://osu.ppy.sh/oauth/token", json);
             JToken jsonResponse = JToken.Parse(await response.Content.ReadAsStringAsync());
             _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse["access_token"].ToString());
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse?["access_token"]?.ToString());
             s_sempahore.Release();
         }
 
