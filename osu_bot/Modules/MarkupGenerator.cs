@@ -14,6 +14,7 @@ using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Modules.Converters;
 using Telegram.Bot.Requests.Abstractions;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Modules
@@ -354,6 +355,15 @@ namespace osu_bot.Modules
                         InlineKeyboardButton.WithUrl(text: "⬇️ Beatmap mirror", url: $"https://beatconnect.io/b/{beatmapsetId}"),
                     }
                 });
+        }
+
+        public InlineKeyboardMarkup AuthMarkup()
+        {
+            WebAppInfo webApp = new()
+            {
+                Url = "https://kotovasya.github.io/osu_bot_web/Authentification.html",
+            };
+            return new InlineKeyboardMarkup(InlineKeyboardButton.WithWebApp("Авторизоваться", webApp));
         }
     }
 }

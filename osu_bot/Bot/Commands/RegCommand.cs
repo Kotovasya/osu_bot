@@ -5,6 +5,7 @@ using osu_bot.API;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
 using osu_bot.Exceptions;
+using osu_bot.Modules;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 

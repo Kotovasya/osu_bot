@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq.Expressions;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using LiteDB;
@@ -17,6 +19,9 @@ namespace osu_bot.API
 {
     public class OsuAPI
     {
+        private const string CLIENT_ID = "20064";
+        private const string CLIENT_SECRET = "nHW8IEnoFRuXtjFMZxwpEMInlQ9klam5BCApCVC0";
+
         public const string BASE_URL = "https://osu.ppy.sh/api/v2"; 
 
         private static readonly SemaphoreSlim s_sempahore = new(1);
@@ -30,17 +35,30 @@ namespace osu_bot.API
         private async Task SetTokenAsync()
         {
             await s_sempahore.WaitAsync();
-            var json = new
+            string? refreshFileToken;
+            using (StreamReader reader = new("RefreshToken.txt"))
             {
-                client_id = 20064,
-                client_secret = "nHW8IEnoFRuXtjFMZxwpEMInlQ9klam5BCApCVC0",
-                grant_type = "client_credentials",
-                scope = "public"
+                refreshFileToken = await reader.ReadLineAsync();
+            }
+            if (refreshFileToken is null)
+                throw new NotImplementedException("Пустой файл RefreshToken");
+            KeyValuePair<string, string>[] contentValues = new KeyValuePair<string, string>[]
+            {
+                new ("client_id", CLIENT_ID),
+                new ("client_secret", CLIENT_SECRET),
+                new ("grant_type", "refresh_token"),
+                new ("refresh_token", refreshFileToken)
             };
-            using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("https://osu.ppy.sh/oauth/token", json);
+            FormUrlEncodedContent content = new(contentValues);
+            using HttpResponseMessage response = await _httpClient.PostAsync("https://osu.ppy.sh/oauth/token", content);
             JToken jsonResponse = JToken.Parse(await response.Content.ReadAsStringAsync());
             _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jsonResponse?["access_token"]?.ToString());
+                new AuthenticationHeaderValue("Bearer", jsonResponse?["access_token"]?.ToString());
+            using (StreamWriter writer = new("RefreshToken.txt", false))
+            {
+                await writer.WriteLineAsync(jsonResponse?["refresh_token"]?.ToString());
+                await writer.WriteLineAsync(jsonResponse?["access_token"]?.ToString());
+            }
             s_sempahore.Release();
         }
 

@@ -42,6 +42,9 @@ namespace osu_bot.Entites
         [JsonProperty("passed")]
         public bool IsPassed { get; set; }
 
+        [JsonProperty("replay")]
+        public bool IsReplay { get; set; }
+
         [JsonProperty("pp")]
         public float? PP { get; set; }
 
