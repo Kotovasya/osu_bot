@@ -133,6 +133,11 @@ namespace osu_bot.API
             return await GetAsync<OsuBeatmap>($"/beatmaps/{id}");
         }
 
+        public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmaphash)
+        {
+            return await GetAsync<OsuBeatmap>($"/beatmaps/lookup?checksum={beatmaphash}");
+        }
+
         public async Task<OsuBeatmapset?> GetBeatmapsetAsync(long id)
         {
             return await GetAsync<OsuBeatmapset>($"/beatmapsets/{id}");

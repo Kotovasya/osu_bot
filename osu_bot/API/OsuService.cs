@@ -63,6 +63,18 @@ namespace osu_bot.API
             return beatmap;
         }
 
+        public async Task<OsuBeatmap?> GetBeatmapAsync(string beatmapHash)
+        {
+            OsuBeatmap? beatmap = _database.Beatmaps
+                .Include(b => b.Beatmapset)
+                .FindOne(b => b.Hash == beatmapHash);
+
+            if (beatmap is null || !beatmap.IsScoreable)
+                beatmap = await _api.GetBeatmapAsync(beatmapHash);
+
+            return beatmap;
+        }
+
         public async Task<OsuBeatmapset?> GetBeatmapsetAsync(long id)
         {
             OsuBeatmapset? beatmapset = _database.Beatmapsets.FindById(id);

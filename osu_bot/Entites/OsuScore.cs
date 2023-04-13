@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using Newtonsoft.Json;
+using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 
 namespace osu_bot.Entites
@@ -98,5 +99,16 @@ namespace osu_bot.Entites
         public int HitObjects => Count300 + Count100 + Count50 + CountMisses;
 
         public bool IsFullCombo => MaxCombo / BeatmapAttributes.MaxCombo >= 0.99;
+
+        public string CalculateRank()
+        {
+            if ()
+        }
+
+        public float CalculateAccuracy()
+        {
+            Accuracy = (float)PerfomanceCalculator.CalculateAccuracyFromHits(Count300, Count100, Count50, CountMisses);
+            return Accuracy;
+        }
     }
 }

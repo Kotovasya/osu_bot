@@ -289,7 +289,7 @@ namespace osu_bot.Modules
             return Math.Max(s_countMiss, comboBasedMissCount);
         }
 
-        private static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss) => ((300.0 * count300) + (100.0 * count100) + (50.0 * count50)) / (300.0 * (count300 + count100 + count50 + countMiss));
+        public static double CalculateAccuracyFromHits(int count300, int count100, int count50, int countMiss) => ((300.0 * count300) + (100.0 * count100) + (50.0 * count50)) / (300.0 * (count300 + count100 + count50 + countMiss));
 
         private static (int, int) CalculateHitsFromAccuracy(double accuracy, int totalObjects)
         {

@@ -19,6 +19,9 @@ namespace osu_bot.Entites
         [JsonProperty("id")]
         public int Id { get; set; }
 
+        [JsonProperty("checksum")]
+        public string Hash { get; set; }
+
         [JsonProperty("difficulty_rating")]
         public float Stars { get; set; }
 
