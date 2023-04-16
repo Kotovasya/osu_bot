@@ -48,6 +48,7 @@ namespace osu_bot.Bot
 
         private readonly CallbacksManager _callbacksManager = new();
         private readonly CommandsManager _commandsManager = new();
+        private readonly DocumentsManager _documentsManager = new();
 
         private readonly List<Scanner> _scanners = new()
         {
@@ -98,7 +99,12 @@ namespace osu_bot.Bot
                 else if (update.Message != null)
                 {
                     message = update.Message;
-                    await _commandsManager.HandlingAsync(botClient, update.Message, cancellationToken);        
+                    await _commandsManager.HandlingAsync(botClient, message, cancellationToken);
+
+                    if (update.Message.Document != null)
+                    {
+                        await _documentsManager.HandlingAsync(botClient, message, cancellationToken);
+                    }
                 }
             }
             catch (Exception ex)

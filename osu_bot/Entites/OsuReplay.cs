@@ -7,13 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using osu_bot.API;
+using osu_bot.Entites.Database;
 using osu_bot.Entites.Enums;
+using Telegram.Bot.Requests;
 
 namespace osu_bot.Entites
 {
     public class OsuReplay
     {
         private readonly OsuService _service = OsuService.Instance;
+        private ReplayInfo? _replayInfo = null;
 
         public PlayMode PlayMode { get; set; }
         public int Version { get; set; }
@@ -38,23 +41,36 @@ namespace osu_bot.Entites
         public byte[] CompressedReplay { get; set; }
         public long OnlineScoreId { get; set; } = -1;
 
-        public async Task<OsuScore?> ToScore()
+        public ReplayInfo ReplayInfo
         {
+            get => _replayInfo ??= ToReplayInfo();
+            set => _replayInfo = value;
+        }
+
+        public async Task<OsuScore?> ToOsuScore()
+        {
+            if (PlayMode is not PlayMode.Osu)
+                return null;
+
             OsuScore? score = null;
-            if (OnlineScoreId != -1)
+            if (OnlineScoreId is not 0 or -1)
                 score = await _service.GetScoreAsync(OnlineScoreId);
 
             if (score is not null)
                 return score;
 
-            score = new OsuScore();
-            score.Id = OnlineScoreId;
-            score.Mods = Mods;
-            score.Score = TotalScore;
-            score.Count300 = Count300;
-            score.Count100 = Count100;
-            score.Count50 = Count50;
-            score.CountMisses = Count
+            score = new OsuScore
+            {
+                Id = OnlineScoreId,
+                Mods = Mods,
+                Score = TotalScore,
+                Count300 = Count300,
+                Count100 = Count100,
+                Count50 = Count50,
+                CountMisses = CountMisses,
+                CreatedAt = Date,
+                MaxCombo = MaxCombo,
+            };
 
             OsuBeatmap? beatmap = await _service.GetBeatmapAsync(MapHash);
             if (beatmap is not null)
@@ -65,20 +81,43 @@ namespace osu_bot.Entites
                 if (attributes is not null)
                     score.BeatmapAttributes = attributes;
             }
-            
+
+            OsuUser? user = await _service.GetUserAsync(PlayerName);
+            if (user is not null)
+                score.User = user;
+            else
+                throw new NotImplementedException();
+
             if (LifeBarData != null)
             {
-                int indexLastHPInfo = LifeBarData.LastIndexOf("/");
-                float hp = float.Parse(LifeBarData[indexLastHPInfo..]);
-                if (hp > 0.0)
-                    score.IsPassed = true;
+                int indexLastHPInfo = LifeBarData.LastIndexOf("|") + 1;
+                if (indexLastHPInfo != 0)
+                {
+                    string str = LifeBarData[indexLastHPInfo..];
+                    float hp = float.Parse(str);
+                    if (hp > 0.0 && score.HitObjects == score.Beatmap.TotalObjects)
+                        score.IsPassed = true;
+                    else
+                        score.IsPassed = false;
+                }
                 else
                     score.IsPassed = false;
             }
             else
                 score.IsPassed = false;
 
+            score.Accuracy = score.CalculateAccuracy();
+            score.Rank = score.CalculateRank();
+
             return score;
+        }
+
+        private ReplayInfo ToReplayInfo()
+        {
+            return new ReplayInfo(ReplayHash)
+            {
+                ScoreId = OnlineScoreId,
+            };
         }
     }
 }

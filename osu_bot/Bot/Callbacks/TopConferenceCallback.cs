@@ -63,7 +63,7 @@ namespace osu_bot.Bot.Callbacks
                 replyToMessageId: callbackQuery.Message.MessageId,
                 cancellationToken: cancellationToken);
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

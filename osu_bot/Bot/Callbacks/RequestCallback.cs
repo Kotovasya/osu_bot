@@ -287,15 +287,22 @@ namespace osu_bot.Bot.Callbacks
 
                 using SKImage image = await ImageGenerator.Instance.CreateRequestCardAsync(request);
 
-                await botClient.SendPhotoAsync(
+                Message message = await botClient.SendPhotoAsync(
                     chatId: callbackQuery.Message.Chat,
                     photo: new InputFile(image.Encode().AsStream()),
                     caption: $"@{fromMember.User.Username} создал реквест для @{toMember.User.Username} на карте {request.Beatmap.Url}",
                     replyMarkup: MarkupGenerator.Instance.RequestKeyboardMakrup(request),
-                    cancellationToken: cancellationToken);   
+                    cancellationToken: cancellationToken);
+
+                await botClient.ForwardMessageAsync(
+                    chatId: TelegramBot.REQUESTS_THREAD_ID,
+                    fromChatId: callbackQuery.Message.Chat,
+                    messageId: message.MessageId,
+                    messageThreadId: TelegramBot.REQUESTS_THREAD_ID,
+                    cancellationToken: cancellationToken);
             }
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

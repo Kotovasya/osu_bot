@@ -31,5 +31,7 @@ namespace osu_bot.Entites.Database
         public ILiteCollection<OsuBeatmapset> Beatmapsets => _database.GetCollection<OsuBeatmapset>();
 
         public ILiteCollection<OsuBeatmap> Beatmaps => _database.GetCollection<OsuBeatmap>();
+
+        public ILiteCollection<ReplayInfo> Replays => _database.GetCollection<ReplayInfo>();
     }
 }

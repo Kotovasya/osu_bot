@@ -31,7 +31,7 @@ namespace osu_bot.Bot
             CacheTime = cacheTime;
         }
 
-        public static CallbackResult Empty()
+        public static CallbackResult Success()
         {
             return new CallbackResult();
         }

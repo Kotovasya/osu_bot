@@ -21,7 +21,8 @@ namespace osu_bot.Bot
             new MyScoreCallback(),
             new TopConferenceCallback(),
             new RequestCallback(),
-            new RequestsListCallback()
+            new RequestsListCallback(),
+            new ReplayCallback()
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task<CallbackResult?>>> _callbacks = new();
@@ -41,7 +42,7 @@ namespace osu_bot.Bot
                 {
                     CallbackResult? result = await _callbacks[callbackData].Invoke(botClient, callbackQuery, cancellationToken);
 
-                    result ??= CallbackResult.Empty();
+                    result ??= CallbackResult.Success();
 
                     await botClient.AnswerCallbackQueryAsync(
                         callbackQueryId: callbackQuery.Id,

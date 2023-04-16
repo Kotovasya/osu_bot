@@ -64,7 +64,7 @@ namespace osu_bot.Bot.Callbacks
 
             image.Dispose();
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

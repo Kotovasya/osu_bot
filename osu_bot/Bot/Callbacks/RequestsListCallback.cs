@@ -41,7 +41,7 @@ namespace osu_bot.Bot.Callbacks
                     chatId: callbackQuery.Message.Chat.Id,
                     messageId: callbackQuery.Message.MessageId,
                     cancellationToken: cancellationToken);
-                return CallbackResult.Empty();
+                return CallbackResult.Success();
             }
 
             Match idMatch = new Regex(@"ID:(\d+)").Match(data);
@@ -84,7 +84,7 @@ namespace osu_bot.Bot.Callbacks
                         chatId: callbackQuery.Message.Chat.Id,
                         messageId: callbackQuery.Message.MessageId,
                         cancellationToken: cancellationToken);
-                    return CallbackResult.Empty();
+                    return CallbackResult.Success();
                 }
                 if (page != requestsCount - 1)
                     page += 1;
@@ -119,7 +119,7 @@ namespace osu_bot.Bot.Callbacks
                 replyMarkup: MarkupGenerator.Instance.RequestsKeyboardMarkup(requestsId, page, requestsCount, isDelete),
                 cancellationToken: cancellationToken);
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

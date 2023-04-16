@@ -128,6 +128,13 @@ namespace osu_bot.API
             return await GetAsync<OsuScore>($"/scores/osu/{id}");
         }
 
+        public async Task<string?> GetReplayData(long id)
+        {
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, $"/scores/osu/{id}/download");
+            using HttpResponseMessage response = await SendAsync(request);
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public async Task<OsuBeatmap?> GetBeatmapAsync(long id)
         {
             return await GetAsync<OsuBeatmap>($"/beatmaps/{id}");

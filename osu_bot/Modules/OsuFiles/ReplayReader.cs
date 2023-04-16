@@ -17,9 +17,50 @@ namespace osu_bot.Modules.OsuFiles
 {
     public class ReplayReader
     {
-        private OsuBinaryReader _reader;
+        private static OsuBinaryReader s_reader;
 
-        public async Task<OsuReplay> FromString(string data, bool minimalLoad = true)
+        public static OsuReplay FromStream(Stream stream, bool minimalLoad = true)
+        {
+            s_reader = new OsuBinaryReader(stream);
+            OsuReplay replay = new();
+
+            replay.PlayMode = (PlayMode)s_reader.ReadByte();
+            replay.Version = s_reader.ReadInt32();
+            replay.MapHash = s_reader.ReadString();
+            replay.PlayerName = s_reader.ReadString();
+            replay.ReplayHash = s_reader.ReadString();
+            replay.Count300 = s_reader.ReadInt16();
+            replay.Count100 = s_reader.ReadInt16();
+            replay.Count50 = s_reader.ReadInt16();
+            replay.Geki = s_reader.ReadInt16();
+            replay.Katu = s_reader.ReadInt16();
+            replay.CountMisses = s_reader.ReadInt16();
+            replay.TotalScore = s_reader.ReadInt32();
+            replay.MaxCombo = s_reader.ReadInt16();
+            replay.IsFullCombo = s_reader.ReadBoolean();
+            replay.Mods = s_reader.ReadInt32();
+            replay.LifeBarData = s_reader.ReadString();
+            replay.DateTicks = s_reader.ReadInt64();
+            replay.Date = GetDate(replay.DateTicks);
+            replay.CompressedReplayLength = s_reader.ReadInt32();
+
+            if (replay.CompressedReplayLength > 0)
+            {
+                if (minimalLoad)
+                    s_reader.ReadBytes(replay.CompressedReplayLength);
+                else
+                    replay.CompressedReplay = s_reader.ReadBytes(replay.CompressedReplayLength);
+            }
+
+            if (replay.Version >= 20140721)
+                replay.OnlineScoreId = s_reader.ReadInt64();
+            else if (replay.Version >= 20121008)
+                replay.OnlineScoreId = s_reader.ReadInt32();
+
+            return replay;
+        }
+
+        public static async Task<OsuReplay> FromStringAsync(string data, bool minimalLoad = true)
         {
             using MemoryStream stream = new();
             using StreamWriter writer = new(stream);
@@ -27,43 +68,7 @@ namespace osu_bot.Modules.OsuFiles
             writer.Flush();
             stream.Position = 0;
 
-            _reader = new OsuBinaryReader(stream);
-            OsuReplay replay = new();
-
-            replay.PlayMode = (PlayMode)_reader.ReadByte();
-            replay.Version = _reader.ReadInt32();
-            replay.MapHash = _reader.ReadString();
-            replay.PlayerName = _reader.ReadString();
-            replay.ReplayHash = _reader.ReadString();
-            replay.Count300 = _reader.ReadInt16();
-            replay.Count100 = _reader.ReadInt16();
-            replay.Count50 = _reader.ReadInt16();
-            replay.Geki = _reader.ReadInt16();
-            replay.Katu = _reader.ReadInt16();
-            replay.Miss = _reader.ReadInt16();
-            replay.TotalScore = _reader.ReadInt32();
-            replay.MaxCombo = _reader.ReadInt16();
-            replay.IsFullCombo = _reader.ReadBoolean();
-            replay.Mods = _reader.ReadInt32();
-            replay.LifeBarData = _reader.ReadString();
-            replay.DateTicks = _reader.ReadInt64();
-            replay.Date = GetDate(replay.DateTicks);
-            replay.CompressedReplayLength = _reader.ReadInt32();
-
-            if (replay.CompressedReplayLength > 0)
-            {
-                if (minimalLoad)
-                    _reader.ReadBytes(replay.CompressedReplayLength);
-                else
-                    replay.CompressedReplay = _reader.ReadBytes(replay.CompressedReplayLength);
-            }
-
-            if (replay.Version >= 20140721)
-                replay.OnlineScoreId = _reader.ReadInt64();
-            else if (replay.Version >= 20121008)
-                replay.OnlineScoreId = _reader.ReadInt32();
-
-            return replay;
+            return FromStream(stream, minimalLoad);
         }
 
         private static DateTime GetDate(long ticks)
@@ -72,11 +77,12 @@ namespace osu_bot.Modules.OsuFiles
             {
                 return new DateTime();
             }
+
             try
             {
                 return new DateTime(ticks, DateTimeKind.Utc);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return new DateTime();
             }

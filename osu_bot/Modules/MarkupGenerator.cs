@@ -338,32 +338,39 @@ namespace osu_bot.Modules
             return new InlineKeyboardMarkup(keyboard);
         }
 
-        public InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId, long beatmapsetId)
+        public InlineKeyboardMarkup ScoreKeyoboardMarkup(OsuScore score)
         {
-            return new InlineKeyboardMarkup(
-                new InlineKeyboardButton[][]
-                {
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(text: "🎯 Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
-                        InlineKeyboardButton.WithCallbackData(text: "🏆 Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                        InlineKeyboardButton.WithCallbackData(text: "📌 Реквест", callbackData: $"{RequestCallback.DATA}:{beatmapId} A:{RequestAction.Create} P:1"),
-                    },
-                    new[]
-                    {
-                        InlineKeyboardButton.WithUrl(text: "🌐 Beatmap URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
-                        InlineKeyboardButton.WithUrl(text: "⬇️ Beatmap mirror", url: $"https://beatconnect.io/b/{beatmapsetId}"),
-                    }
-                });
+            if (score.Id is not -1 or 0)
+                return ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id, score.Id.ToString());
+            else
+                return ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id);
         }
 
-        public InlineKeyboardMarkup AuthMarkup()
+        public InlineKeyboardMarkup ScoreKeyboardMarkup(long beatmapId, long beatmapsetId, string? scoreId = null)
         {
-            WebAppInfo webApp = new()
+            List<IEnumerable<InlineKeyboardButton>> keyboardButtons = new();
+            keyboardButtons.Add(new[]
             {
-                Url = "https://kotovasya.github.io/osu_bot_web/Authentification.html",
-            };
-            return new InlineKeyboardMarkup(InlineKeyboardButton.WithWebApp("Авторизоваться", webApp));
+                InlineKeyboardButton.WithCallbackData(text: "🎯 Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
+                InlineKeyboardButton.WithCallbackData(text: "🏆 Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
+                InlineKeyboardButton.WithCallbackData(text: "📌 Реквест", callbackData: $"{RequestCallback.DATA}:{beatmapId} A:{RequestAction.Create} P:1"),
+            });
+
+            if (scoreId is not null)
+            {
+                keyboardButtons.Add(new[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "🎬 Реплей", callbackData: $"{ReplayCallback.DATA} id:{scoreId}")
+                });
+            }
+
+            keyboardButtons.Add(new[]
+                {
+                    InlineKeyboardButton.WithUrl(text: "🌐 Beatmap URL", url: $"https://osu.ppy.sh/beatmaps/{beatmapId}"),
+                    InlineKeyboardButton.WithUrl(text: "⬇️ Beatmap mirror", url: $"https://beatconnect.io/b/{beatmapsetId}"),
+                });
+
+            return new InlineKeyboardMarkup(keyboardButtons);
         }
     }
 }

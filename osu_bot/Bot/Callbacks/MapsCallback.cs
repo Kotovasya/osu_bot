@@ -34,7 +34,7 @@ namespace osu_bot.Bot.Callbacks
                 text: _text,
                 cancellationToken: cancellationToken);
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

@@ -148,7 +148,7 @@ SO - Spin Out",
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
 
-            return CallbackResult.Empty();
+            return CallbackResult.Success();
         }
     }
 }

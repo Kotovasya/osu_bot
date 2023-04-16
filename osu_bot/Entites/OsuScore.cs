@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using Newtonsoft.Json;
+using osu_bot.Entites.Mods;
 using osu_bot.Modules;
 using osu_bot.Modules.Converters;
 
@@ -102,7 +103,33 @@ namespace osu_bot.Entites
 
         public string CalculateRank()
         {
-            if ()
+            string resultRank;
+            float procent300 = Count300 / HitObjects;
+            float procent50 = Count50 / HitObjects;
+
+            if (!IsPassed)
+                resultRank = "F";
+            else if (Accuracy == 100)
+                resultRank = "X";
+            else if (procent300 > 0.9 && procent50 < 0.01 && CountMisses == 0)
+                resultRank = "S";
+            else if ((procent300 > 0.8 && CountMisses == 0) || (procent300 > 0.9))
+                resultRank = "A";
+            else if ((procent300 > 0.7 && CountMisses == 0) || (procent300 > 0.8))
+                resultRank = "B";
+            else if (procent300 > 0.6)
+                resultRank = "C";
+            else
+                resultRank = "D";
+
+            if (resultRank is "X" or "S")
+            {
+                IEnumerable<Mod> mods = ModsConverter.ToMods(Mods);
+                if (mods.Any(m => m.Number is ModHidden.NUMBER or ModFlashlight.NUMBER))
+                    resultRank += "H";
+            }
+            Rank = resultRank;
+            return resultRank;    
         }
 
         public float CalculateAccuracy()

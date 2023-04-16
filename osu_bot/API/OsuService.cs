@@ -14,6 +14,8 @@ using osu_bot.Entites.Database;
 using osu_bot.Entites.Mods;
 using osu_bot.Exceptions;
 using osu_bot.Modules.Converters;
+using osu_bot.Modules.OsuFiles;
+using Telegram.Bot;
 using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using static System.Formats.Asn1.AsnWriter;
@@ -28,12 +30,14 @@ namespace osu_bot.API
 
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
+        private TelegramBot _telegramBot;
 
         private List<IHandler<IList<OsuScore>>> _scoresHandlers = new();
 
         public async Task InitalizeAsync(TelegramBot bot)
         {
             await _api.InitalizeAsync();
+            _telegramBot = bot;
             _scoresHandlers = new()
             {
                 new RequestsHandler(bot),
@@ -118,13 +122,34 @@ namespace osu_bot.API
             OsuScore? score = _database.Scores.FindById(id);
             score ??= await _api.GetScoreAsync(id);
 
-            if (score is not null)
-                _scoresHandlers.ForEach(async h => await h.HandlingAsync(new List<OsuScore>() { score }));
+            if (score is null)
+                return null;
+
+            OsuUser? user = await GetUserAsync(score.User.Id);
+            if (user is null)
+                throw new NotImplementedException();
+
+            score.User = user;
+
+            if (score.Beatmapset is null)
+            {
+                OsuBeatmapset? beatmapset = await _api.GetBeatmapsetAsync(score.Beatmap.BeatmapsetId);
+                if (beatmapset is null)
+                    throw new NotImplementedException();
+                score.Beatmapset = beatmapset;
+            }
+
+            OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
+            if (attributes is null)
+                throw new NotImplementedException();
+            score.BeatmapAttributes = attributes;
+
+            _scoresHandlers.ForEach(async h => await h.HandlingAsync(new List<OsuScore>() { score }));
 
             return score;
         }
 
-        public async Task<IList<OsuScore>?> GetUserScoresAsync(UserScoreQueryParameters parameters, bool includeBeatmapsAttributes = true)
+        public async Task<IList<OsuScore>?> GetUserScoresAsync(UserScoreQueryParameters parameters)
         {
             OsuUser? user = null;
             if (parameters.UserId is not null)
@@ -150,13 +175,10 @@ namespace osu_bot.API
             foreach (OsuScore score in scores)
             {
                 score.User = user;
-                if (includeBeatmapsAttributes)
-                {
-                    OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
-                    if (attributes is null)
-                        throw new NotImplementedException();
-                    score.BeatmapAttributes = attributes;
-                }
+                OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
+                if (attributes is null)
+                    throw new NotImplementedException();
+                score.BeatmapAttributes = attributes;
             }
 
             _scoresHandlers.ForEach(async c => await c.HandlingAsync(scores));
@@ -164,7 +186,7 @@ namespace osu_bot.API
             return scores;
         }
 
-        public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long beatmapId, long userId, bool includeBeatmapsAttributes = true)
+        public async Task<OsuScore?> GetUserBeatmapBestScoreAsync(long beatmapId, long userId)
         {
             OsuScore? score = await _api.GetUserBeatmapBestScoreAsync(beatmapId, userId);
 
@@ -195,20 +217,18 @@ namespace osu_bot.API
                 score.Beatmapset = beatmapset;
             }
 
-            if (includeBeatmapsAttributes)
-            {
-                OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
-                if (attributes is null)
-                    throw new NotImplementedException();
-                score.BeatmapAttributes = attributes;
-            }
+
+            OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
+            if (attributes is null)
+                throw new NotImplementedException();
+            score.BeatmapAttributes = attributes;
 
             _scoresHandlers.ForEach(async h => await h.HandlingAsync(new List<OsuScore>() { score }));
 
             return score;
         }
 
-        public async Task<IList<OsuScore>?> GetUserBeatmapAllScoresAsync(long beatmapId, long userId, bool includeBeatmapsAttributes = true)
+        public async Task<IList<OsuScore>?> GetUserBeatmapAllScoresAsync(long beatmapId, long userId, bool includeBeatmapAttributes = true)
         {
             OsuBeatmap? beatmap = await GetBeatmapAsync(beatmapId);
             if (beatmap is null)
@@ -232,19 +252,50 @@ namespace osu_bot.API
                 score.User = user;
                 score.Beatmap = beatmap;
                 score.Beatmapset = beatmap.Beatmapset;
-                if (includeBeatmapsAttributes)
-                {
-                    OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
-                    if (attributes is null)
-                        throw new NotImplementedException();
-
-                    score.BeatmapAttributes = attributes;
-                }
+                OsuBeatmapAttributes? attributes = await GetScoreBeatmapAttributesAsync(score);
+                if (attributes is null)
+                    throw new NotImplementedException();
+                score.BeatmapAttributes = attributes;
             }
 
             _scoresHandlers.ForEach(async h => await h.HandlingAsync(scores));
 
             return scores;
+        }
+
+        public async Task<OsuReplay?> DownloadReplayAsync(string hash)
+        {
+            OsuReplay? replay = null;
+            ReplayInfo? replayInfo;
+            if (long.TryParse(hash, out long scoreId))
+            {
+                string? data = await _api.GetReplayData(scoreId);
+                if (data != null)
+                {
+                    replay = await ReplayReader.FromStringAsync(data);
+                    replayInfo = replay.ReplayInfo;
+                    _database.Replays.Upsert(replayInfo);
+                }
+            }
+            else
+            {
+                replayInfo = _database.Replays.FindById(hash);
+                if (replayInfo != null)
+                {
+                    if (replayInfo.ScoreId != null)
+                        replay = await DownloadReplayAsync(replayInfo.ScoreId.Value.ToString());
+                    else if (replayInfo.TelegramFileId != null)
+                    {
+                        using MemoryStream stream = new();
+                        await _telegramBot.BotClient.GetInfoAndDownloadFileAsync(replayInfo.TelegramFileId, stream);
+                        stream.Position = 0;
+                        replay = ReplayReader.FromStream(stream);
+                        replay.ReplayInfo = replayInfo;
+                    }
+                }
+            }
+
+            return replay;
         }
     }
 }
