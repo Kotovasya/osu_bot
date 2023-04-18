@@ -22,6 +22,14 @@ namespace osu_bot.Modules
             return number.ToString("N", format)[..^3];
         }
 
+        public static string FirstCharToLower(this string str)
+        {
+            if (!string.IsNullOrEmpty(str))
+                return str.Length == 1 ? char.ToLower(str[0]).ToString() : char.ToLower(str[0]) + str[1..];
+
+            return str;
+        }
+
         public static IEnumerable<string> Split(this string str, int n)
         {
             if (string.IsNullOrEmpty(str) || n < 1)

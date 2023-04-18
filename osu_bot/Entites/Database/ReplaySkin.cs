@@ -12,6 +12,8 @@ namespace osu_bot.Entites.Database
 {
     public class ReplaySkin
     {
+        public int Id { get; set; }
+
         public string Name { get; set; }
 
         public SKImage PreviewImage { get; set; }

@@ -34,7 +34,6 @@ namespace osu_bot.API
 
         private async Task SetTokenAsync()
         {
-            await s_sempahore.WaitAsync();
             string? refreshFileToken;
             using (StreamReader reader = new("RefreshToken.txt"))
             {
@@ -59,13 +58,13 @@ namespace osu_bot.API
                 await writer.WriteLineAsync(jsonResponse?["refresh_token"]?.ToString());
                 await writer.WriteLineAsync(jsonResponse?["access_token"]?.ToString());
             }
-            s_sempahore.Release();
         }
 
         public async Task InitalizeAsync() => await SetTokenAsync();
 
         private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
+            await s_sempahore.WaitAsync();
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -73,7 +72,7 @@ namespace osu_bot.API
                 await SetTokenAsync();
                 response = await _httpClient.SendAsync(request);
             }
-
+            s_sempahore.Release();
             return response;
         }
 

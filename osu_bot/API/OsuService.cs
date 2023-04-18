@@ -30,7 +30,6 @@ namespace osu_bot.API
 
         private readonly OsuAPI _api = OsuAPI.Instance;
         private readonly DatabaseContext _database = DatabaseContext.Instance;
-        private TelegramBot _telegramBot;
 
         private List<IHandler<IList<OsuScore>>> _scoresHandlers = new();
 
@@ -263,39 +262,36 @@ namespace osu_bot.API
             return scores;
         }
 
-        public async Task<OsuReplay?> DownloadReplayAsync(string hash)
+        public async Task<MemoryStream> GetReplayDataAsync(string hash)
         {
-            OsuReplay? replay = null;
-            ReplayInfo? replayInfo;
+            using MemoryStream replayDataStream = new();
+
             if (long.TryParse(hash, out long scoreId))
             {
-                string? data = await _api.GetReplayData(scoreId);
-                if (data != null)
+                IEnumerable<LiteFileInfo<string>> replays = _database.FileStorage.Find(f => f.Filename == hash);
+                if (replays.Any())
+                    _database.FileStorage.Download(replays.First().Id, replayDataStream);
+                else
                 {
-                    replay = await ReplayReader.FromStringAsync(data);
-                    replayInfo = replay.ReplayInfo;
-                    _database.Replays.Upsert(replayInfo);
-                }
-            }
-            else
-            {
-                replayInfo = _database.Replays.FindById(hash);
-                if (replayInfo != null)
-                {
-                    if (replayInfo.ScoreId != null)
-                        replay = await DownloadReplayAsync(replayInfo.ScoreId.Value.ToString());
-                    else if (replayInfo.TelegramFileId != null)
+                    string? replayData = await _api.GetReplayData(scoreId);
+                    if (replayData is not null)
                     {
-                        using MemoryStream stream = new();
-                        await _telegramBot.BotClient.GetInfoAndDownloadFileAsync(replayInfo.TelegramFileId, stream);
-                        stream.Position = 0;
-                        replay = ReplayReader.FromStream(stream);
-                        replay.ReplayInfo = replayInfo;
+                        using StreamWriter writer = new(replayDataStream);
+                        await writer.WriteAsync(replayData);
+                        replayDataStream.Position = 0;
+                        OsuReplay replay = ReplayReader.FromStream(replayDataStream);
+                        if (!_database.FileStorage.Exists(replay.ReplayHash))
+                            _database.FileStorage.Upload(replay.ReplayHash, $"{scoreId}.osr", replayDataStream);
+
+                        if (!_database.Replays.Exists(replay.ReplayHash))
+                            _database.Replays.Insert(new ReplayUpload(replay.ReplayHash, replay.OnlineScoreId));
                     }
                 }
             }
+            else if (_database.FileStorage.Exists(hash))
+                _database.FileStorage.Download(hash, replayDataStream);
 
-            return replay;
+            return replayDataStream;
         }
     }
 }

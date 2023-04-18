@@ -32,6 +32,10 @@ namespace osu_bot.Entites.Database
 
         public ILiteCollection<OsuBeatmap> Beatmaps => _database.GetCollection<OsuBeatmap>();
 
-        public ILiteCollection<ReplayInfo> Replays => _database.GetCollection<ReplayInfo>();
+        public ILiteCollection<ReplayUpload> Replays => _database.GetCollection<ReplayUpload>();
+
+        public ILiteCollection<ReplaySkin> Skins => _database.GetCollection<ReplaySkin>();
+
+        public ILiteStorage<string> FileStorage => _database.FileStorage;
     }
 }

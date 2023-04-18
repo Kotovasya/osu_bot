@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using LiteDB;
 using osu_bot.API;
 using osu_bot.Entites;
 using osu_bot.Entites.Database;
+using osu_bot.Modules.OsuFiles;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -40,21 +42,24 @@ namespace osu_bot.Bot.Callbacks
                 return new CallbackResult("При обработке запроса на реплей произошла ошибка", 500);
 
             string hash = requestMatch.Groups[1].Value;
+            using MemoryStream replayDataStream = new();
 
-            ReplayInfo? replayInfo = null;
+            ReplayUpload? replay = _database.Replays.FindById(hash);
 
-            if (long.TryParse(hash, out long scoreId))
-                replayInfo = _database.Replays.FindOne(r => r.ScoreId == scoreId);
-            else
-                replayInfo = _database.Replays.FindById(hash);
+            if (replay is null && long.TryParse(hash, out long scoreId))
+                replay = _database.Replays.FindOne(r => r.ScoreId == scoreId);
 
-            if (replayInfo is not null && replayInfo.ReplayUrl is not null)
+            if (replay is not null && replay.Url is not null)
                 return new CallbackResult(ALREADY_EXIST);
 
-            OsuReplay? replay = await _service.DownloadReplayAsync(hash);
+            MemoryStream replayData = await _service.GetReplayDataAsync(hash);
+            if (replayData.Length == 0)
+                return new CallbackResult("Не удалось получить реплей из локальной и osu! БД");
 
             if (replay is null)
                 return new CallbackResult("Невозможно загрузить реплей");        
+
+
 
             return CallbackResult.Success();
         }

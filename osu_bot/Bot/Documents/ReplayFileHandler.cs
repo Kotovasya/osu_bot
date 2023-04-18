@@ -24,23 +24,28 @@ namespace osu_bot.Bot.Documents
 
         private readonly DatabaseContext _database = DatabaseContext.Instance;
 
-        public async Task ActionAsync(ITelegramBotClient botClient, Message message, Stream fileStream, CancellationToken cancellationToken)
+        public async Task ActionAsync(ITelegramBotClient botClient, Message message, Stream replayDataStream, CancellationToken cancellationToken)
         {
             if (message.Document is null)
                 return;
 
-            OsuReplay replay = ReplayReader.FromStream(fileStream);
+            OsuReplay replay = ReplayReader.FromStream(replayDataStream);
             OsuScore? score = await replay.ToOsuScore();
 
             if (score is null)
                 throw new NotImplementedException();
 
-            ReplayInfo replayInfo = replay.ReplayInfo;
-            replayInfo.TelegramFileId = message.Document.FileId;
-            _database.Replays.Insert(replayInfo);
+            long? scoreId = replay.OnlineScoreId is -1 or 0 ? replay.OnlineScoreId : null;
+            string fileName = scoreId is null ? replay.ReplayHash : replay.OnlineScoreId.ToString();
+
+            if (!_database.FileStorage.Exists(replay.ReplayHash))
+                _database.FileStorage.Upload(replay.ReplayHash, $"{fileName}.osr", replayDataStream);
+
+            if (scoreId is not null && !_database.Replays.Exists(replay.ReplayHash))
+                _database.Replays.Insert(new ReplayUpload(replay.ReplayHash, replay.OnlineScoreId));
 
             SKImage image = await ImageGenerator.Instance.CreateFullCardAsync(score);
-            InlineKeyboardMarkup inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id, replayInfo.ReplayHash);
+            InlineKeyboardMarkup inlineKeyboard = MarkupGenerator.Instance.ScoreKeyboardMarkup(score.Beatmap.Id, score.Beatmapset.Id, replay.ReplayHash);
 
             await botClient.SendPhotoAsync(
                 chatId: message.Chat,

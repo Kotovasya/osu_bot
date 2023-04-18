@@ -41,12 +41,6 @@ namespace osu_bot.Entites
         public byte[] CompressedReplay { get; set; }
         public long OnlineScoreId { get; set; } = -1;
 
-        public ReplayInfo ReplayInfo
-        {
-            get => _replayInfo ??= ToReplayInfo();
-            set => _replayInfo = value;
-        }
-
         public async Task<OsuScore?> ToOsuScore()
         {
             if (PlayMode is not PlayMode.Osu)
@@ -110,14 +104,6 @@ namespace osu_bot.Entites
             score.Rank = score.CalculateRank();
 
             return score;
-        }
-
-        private ReplayInfo ToReplayInfo()
-        {
-            return new ReplayInfo(ReplayHash)
-            {
-                ScoreId = OnlineScoreId,
-            };
         }
     }
 }

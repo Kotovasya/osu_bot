@@ -21,7 +21,7 @@ namespace osu_bot.Entites.Database
 
         public bool ShowUnstableRate { get; set; }
 
-        public int Score { get; set; }
+        public bool ShowScore { get; set; }
 
         public bool ShowHPBar { get; set; }
 
@@ -93,7 +93,7 @@ namespace osu_bot.Entites.Database
 
         public bool SliderShakingOut { get; set; }
 
-        //public string VerificationKey { get; set; }
+        public string? VerificationKey { get; set; }
 
         public bool ShowHitCounter { get; set; }
 

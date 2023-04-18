@@ -57,6 +57,8 @@ namespace osu_bot.Modules.OsuFiles
             else if (replay.Version >= 20121008)
                 replay.OnlineScoreId = s_reader.ReadInt32();
 
+            stream.Position = 0;
+
             return replay;
         }
 
