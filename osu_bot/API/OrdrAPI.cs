@@ -11,42 +11,77 @@ using System.Threading.Tasks;
 using osu_bot.Entites.Database;
 using System.Reflection;
 using osu_bot.Modules;
+using System.Collections;
+using Newtonsoft.Json;
 
 namespace osu_bot.API
 {
+    public enum OrdrVerificationMode
+    {
+        DevSuccess,
+        DevFail,
+        DevWSFail,
+        Release
+    }
+
     public class OrdrAPI
     {
-        private const string BOT_NAME = "KS!Bot";
-        private const string DEFAULT_RESOLUTION = "1280x720";
-        private const int DEFAULT_SKIN = 0;
-        public string? DefaultVerificationKey { get; set; }
+        private const string DEVMODE_SUCCESS = "devmode_success";
+        private const string DEVMODE_FAIL = "devmode_fail";
+        private const string DEVMODE_WSFAIL = "devmode_wsfail";
+        private const string RELEASEMODE = "B83bB8mY9mLsQqLM";
 
+        private const string DEFAULT_RESOLUTION = "1280x720";
+        private const int DEFAULT_SKIN_ID = 0;
+
+        private readonly string _verificationKey;
         private readonly HttpClient _httpClient = new();
 
-        public async Task<HttpResponseMessage> SendRender(ReplaySettings settings, MemoryStream replayDataStream)
+        public OrdrAPI(OrdrVerificationMode mode)
+        {
+            _verificationKey = mode switch
+            {
+                OrdrVerificationMode.DevSuccess => DEVMODE_SUCCESS,
+                OrdrVerificationMode.DevFail => DEVMODE_FAIL,
+                OrdrVerificationMode.DevWSFail => DEVMODE_WSFAIL,
+                OrdrVerificationMode.Release => RELEASEMODE,
+                _ => ""
+            };
+        }
+
+        public async Task<IList<ReplaySkin>?> GetAllSkinsAsync()
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("https://apis.issou.best/ordr/skins/?page=1&pageSize=452");
+            string content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<IList<ReplaySkin>>(content);
+        }
+
+        public async Task<HttpResponseMessage> SendRenderAsync(string username, ReplaySettings settings, MemoryStream replayDataStream)
         {
             using MultipartFormDataContent data = new();
             using StreamContent streamContent = new(replayDataStream);
 
-            int skinId = settings.Skin is null ? DEFAULT_SKIN : settings.Skin.Id;
-
-            if (DefaultVerificationKey != null)
-                settings.VerificationKey = DefaultVerificationKey;
+            int skinId = settings.Skin is null ? DEFAULT_SKIN_ID : settings.Skin.Id;
             
             data.Add(streamContent, name: "replayFile");
-            data.Add(new StringContent(BOT_NAME), name: "username");
             data.Add(new StringContent(DEFAULT_RESOLUTION), name: "resolution");
+            data.Add(new StringContent(_verificationKey), name: "verificationKey");
             data.Add(new StringContent(skinId.ToString()), name: "skin");
+            data.Add(new StringContent(username), name: "username");
 
             Type type = settings.GetType();
             PropertyInfo[] properties = type.GetProperties();
+            string requestName;
+            string? requestValue;
             foreach (PropertyInfo property in properties)
             {
-                string requestName = property.Name.FirstCharToLower();
-                string? requestValue = property.GetValue(settings)?.ToString();
+                requestName = property.Name.FirstCharToLower();
+                requestValue = property.GetValue(settings)?.ToString();
                 if (requestValue is not null)
                     data.Add(new StringContent(requestValue), name: requestName);
             }
+
+            return await _httpClient.PostAsync("https://apis.issou.best/ordr/renders", data);
         }
     }
 }

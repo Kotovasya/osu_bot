@@ -93,8 +93,6 @@ namespace osu_bot.Entites.Database
 
         public bool SliderShakingOut { get; set; }
 
-        public string? VerificationKey { get; set; }
-
         public bool ShowHitCounter { get; set; }
 
         public bool ShowKeyOverlay { get; set; }
