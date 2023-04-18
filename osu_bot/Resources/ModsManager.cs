@@ -13,7 +13,7 @@ namespace osu_bot.Resources
         protected override string FileFormat => "png";
 
         protected override SKImage ConvertFile(FileStream stream) => SKImage.FromEncodedData(stream);
-        
+
         [AllowNull]
         public SKImage AP { get; private set; }
 
@@ -58,5 +58,8 @@ namespace osu_bot.Resources
 
         [AllowNull]
         public SKImage NM { get; private set; }
+
+        [AllowNull]
+        public SKImage V2 { get; private set; }
     }
 }
