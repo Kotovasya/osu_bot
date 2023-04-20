@@ -17,7 +17,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
 {
-    public enum RequestAction
+    public enum RequestCallbackAction
     {
         Create,
         Cancel,
@@ -41,18 +41,18 @@ namespace osu_bot.Bot.Callbacks
         private readonly DatabaseContext _database = DatabaseContext.Instance;
         private readonly OsuService _service = OsuService.Instance;
 
-        private readonly Dictionary<RequestAction, Action<Request>> _actions;
+        private readonly Dictionary<RequestCallbackAction, Action<Request>> _actions;
 
         public RequestCallback()
         {
             _actions = new()
             {
-                { RequestAction.Create, (request) => _database.Requests.Insert(request) },
-                { RequestAction.Cancel, (request) => _database.Requests.Delete(request.Id) },
-                { RequestAction.Delete, (request) => _database.Requests.Delete(request.Id) },  
-                { RequestAction.RequireChange, (request) => _database.Requests.Update(request) },
-                { RequestAction.Snipe, (request) => _database.Requests.Update(request) },
-                { RequestAction.SRC, (request) => _database.Requests.Update(request) },
+                { RequestCallbackAction.Create, (request) => _database.Requests.Insert(request) },
+                { RequestCallbackAction.Cancel, (request) => _database.Requests.Delete(request.Id) },
+                { RequestCallbackAction.Delete, (request) => _database.Requests.Delete(request.Id) },  
+                { RequestCallbackAction.RequireChange, (request) => _database.Requests.Update(request) },
+                { RequestCallbackAction.Snipe, (request) => _database.Requests.Update(request) },
+                { RequestCallbackAction.SRC, (request) => _database.Requests.Update(request) },
             };
         }
 
@@ -99,10 +99,10 @@ namespace osu_bot.Bot.Callbacks
                 return new CallbackResult("При обработке запроса на реквест произошла ошибка", 500);
 
             int requestId = int.Parse(requestMatch.Groups[1].Value);
-            RequestAction actionRequest = (RequestAction)Enum.Parse(typeof(RequestAction), requestMatch.Groups[2].Value);
+            RequestCallbackAction actionRequest = (RequestCallbackAction)Enum.Parse(typeof(RequestCallbackAction), requestMatch.Groups[2].Value);
 
             Request? request;
-            if (actionRequest is RequestAction.Create)
+            if (actionRequest is RequestCallbackAction.Create)
             {
                 OsuBeatmap? beatmap = await _service.GetBeatmapAsync(requestId);
 
@@ -115,7 +115,7 @@ namespace osu_bot.Bot.Callbacks
                 TelegramUser fromUser = _database.TelegramUsers.FindById(callbackQuery.From.Id);
                 request = new Request(fromUser, beatmap);
             }
-            else if (actionRequest is RequestAction.Save)
+            else if (actionRequest is RequestCallbackAction.Save)
             {
                 request = _database.Requests
                     .Include(r => r.FromUser)
@@ -140,7 +140,7 @@ namespace osu_bot.Bot.Callbacks
             if (callbackQuery.From.Id != request.FromUser.Id)
                 return null;
 
-            if (actionRequest is RequestAction.RequireChange || actionRequest is RequestAction.SRC)
+            if (actionRequest is RequestCallbackAction.RequireChange || actionRequest is RequestCallbackAction.SRC)
             {
                 try
                 {
@@ -152,7 +152,7 @@ namespace osu_bot.Bot.Callbacks
                 }
             }
 
-            if (actionRequest is RequestAction.Snipe)
+            if (actionRequest is RequestCallbackAction.Snipe)
             {
                 Match scoreMatch = new Regex(@"M:(\d+) S:(\d+) C:(\d+) F:(\d+\D\d+)").Match(data);
                 if (!scoreMatch.Success)
@@ -171,13 +171,13 @@ namespace osu_bot.Bot.Callbacks
                 request.RequireMods = mods; 
             }
 
-            if (actionRequest is RequestAction.SnipeCancel)
+            if (actionRequest is RequestCallbackAction.SnipeCancel)
             {
                 request.RequirePass = true;
                 request.IsOnlyMods = false;
             }
 
-            if (actionRequest is RequestAction.Save)
+            if (actionRequest is RequestCallbackAction.Save)
             {
                 if (request.RequireMods == 0)
                     return new CallbackResult("Должен быть выбран хотя бы один из модов");
@@ -251,7 +251,7 @@ namespace osu_bot.Bot.Callbacks
                     throw;
             }
 
-            if (actionRequest == RequestAction.Save)
+            if (actionRequest == RequestCallbackAction.Save)
             {
 
                 ChatMember fromMember = await botClient.GetChatMemberAsync(

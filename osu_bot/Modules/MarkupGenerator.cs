@@ -31,12 +31,12 @@ namespace osu_bot.Modules
         #region Request callback markups
         private string GetRequireCallbackData(long requestId, string propertyName, object? newValue)
         {
-            return $"{RequestCallback.DATA}:{requestId} A:{RequestAction.RequireChange} R:{propertyName} V:{newValue}";
+            return $"{RequestCallback.DATA}:{requestId} A:{RequestCallbackAction.RequireChange} R:{propertyName} V:{newValue}";
         }
 
         private string GetSnipeRequireCallbackData(long requestId, string propertyName, object? newValue)
         {
-            return $"{RequestCallback.DATA}:{requestId} A:{RequestAction.SRC} R:{propertyName} V:{newValue}";
+            return $"{RequestCallback.DATA}:{requestId} A:{RequestCallbackAction.SRC} R:{propertyName} V:{newValue}";
         }
 
         private InlineKeyboardMarkup CreateUserSelectMarkup(Request request, string data, long chatId)
@@ -57,7 +57,7 @@ namespace osu_bot.Modules
             keyboard.Add(new InlineKeyboardButton[]
             {
                 InlineKeyboardButton.WithCallbackData("Выбери своего бойца:"),
-                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.Cancel}")
+                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.Cancel}")
             });
             for (int i = 0; i < 4; i++)
             {
@@ -77,14 +77,14 @@ namespace osu_bot.Modules
 
             List<InlineKeyboardButton> buttons = new();
             if (page != 1)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.PageChange} P:{page - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.PageChange} P:{page - 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
 
             buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
 
             if (page != pagesCount)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.PageChange} P:{page + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.PageChange} P:{page + 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
 
@@ -105,7 +105,7 @@ namespace osu_bot.Modules
             keyboard.Add(new InlineKeyboardButton[]
             {
                 InlineKeyboardButton.WithCallbackData("Выбери свое позорище:"),
-                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.SnipeCancel}")
+                InlineKeyboardButton.WithCallbackData("❌ Cancel", $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.SnipeCancel}")
             });
             foreach (OsuScore score in scores)
             {
@@ -113,7 +113,7 @@ namespace osu_bot.Modules
                 {
                     InlineKeyboardButton.WithCallbackData(
                         text: $"{ModsConverter.ToString(score.Mods)} Score: 💎{score.Score.Separate(".")} 🎯{score.Accuracy:0.00}% 🏆{score.MaxCombo}/{score.BeatmapAttributes.MaxCombo}x",
-                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.Snipe} M:{score.Mods} S:{score.Score} C:{score.MaxCombo} F:{score.Accuracy:0.00}")
+                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.Snipe} M:{score.Mods} S:{score.Score} C:{score.MaxCombo} F:{score.Accuracy:0.00}")
                 });
             }
             return new InlineKeyboardMarkup(keyboard);
@@ -135,7 +135,7 @@ namespace osu_bot.Modules
             {
                 rowButtons1.Add(InlineKeyboardButton.WithCallbackData(
                         text: request.RequireSnipe ? "🎯 Snipe 🟢" : "🎯 Snipe 🔴",
-                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.SnipeSelect}"));
+                        callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.SnipeSelect}"));
             }
             keyboard.Add(rowButtons1);
 
@@ -220,11 +220,11 @@ namespace osu_bot.Modules
             {
                 InlineKeyboardButton.WithCallbackData(
                     text: "✅ Send",
-                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.Save}"),
+                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.Save}"),
 
                 InlineKeyboardButton.WithCallbackData(
                     text: "❌ Cancel",
-                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.Cancel}")
+                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.Cancel}")
             };
             keyboard.Add(rowButtons4);
 
@@ -268,28 +268,28 @@ namespace osu_bot.Modules
             {
                 InlineKeyboardButton.WithCallbackData(
                     text: "✅ Send",
-                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.Save}"),
+                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.Save}"),
 
                 InlineKeyboardButton.WithCallbackData(
                     text: "❌ Cancel",
-                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestAction.SnipeRequireCancel}")
+                    callbackData: $"{RequestCallback.DATA}:{request.Id} A:{RequestCallbackAction.SnipeRequireCancel}")
             });
 
             return new InlineKeyboardMarkup(keyboard);
         }
 
-        public async Task<InlineKeyboardMarkup> CreateRequestCallbackMarkup(RequestAction action, Request request, string callbackQueryData, long chatId)
+        public async Task<InlineKeyboardMarkup> CreateRequestCallbackMarkup(RequestCallbackAction action, Request request, string callbackQueryData, long chatId)
         {
             return action switch
             {
-                RequestAction.Create => CreateUserSelectMarkup(request, callbackQueryData, chatId),
-                RequestAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData, chatId),
-                RequestAction.RequireChange => CreateRequireEditMarkup(request),
-                RequestAction.SnipeSelect => await CreateSnipeSelectMarkup(request),
-                RequestAction.SnipeCancel => CreateRequireEditMarkup(request),
-                RequestAction.Snipe => CreateSnipeRequireEditMarkup(request),
-                RequestAction.SRC => CreateSnipeRequireEditMarkup(request),
-                RequestAction.SnipeRequireCancel => await CreateSnipeSelectMarkup(request),
+                RequestCallbackAction.Create => CreateUserSelectMarkup(request, callbackQueryData, chatId),
+                RequestCallbackAction.PageChange => CreateUserSelectMarkup(request, callbackQueryData, chatId),
+                RequestCallbackAction.RequireChange => CreateRequireEditMarkup(request),
+                RequestCallbackAction.SnipeSelect => await CreateSnipeSelectMarkup(request),
+                RequestCallbackAction.SnipeCancel => CreateRequireEditMarkup(request),
+                RequestCallbackAction.Snipe => CreateSnipeRequireEditMarkup(request),
+                RequestCallbackAction.SRC => CreateSnipeRequireEditMarkup(request),
+                RequestCallbackAction.SnipeRequireCancel => await CreateSnipeSelectMarkup(request),
                 _ => ScoreKeyboardMarkup(request.Beatmap.Id, request.Beatmap.BeatmapsetId)
             };
         }
@@ -353,14 +353,14 @@ namespace osu_bot.Modules
             {
                 InlineKeyboardButton.WithCallbackData(text: "🎯 Мой скор", callbackData: $"{MyScoreCallback.DATA} beatmapId{beatmapId}"),
                 InlineKeyboardButton.WithCallbackData(text: "🏆 Топ конфы", callbackData: $"{TopConferenceCallback.DATA} beatmapId{beatmapId}"),
-                InlineKeyboardButton.WithCallbackData(text: "📌 Реквест", callbackData: $"{RequestCallback.DATA}:{beatmapId} A:{RequestAction.Create} P:1"),
+                InlineKeyboardButton.WithCallbackData(text: "📌 Реквест", callbackData: $"{RequestCallback.DATA}:{beatmapId} A:{RequestCallbackAction.Create} P:1"),
             });
 
             if (scoreId is not null)
             {
                 keyboardButtons.Add(new[]
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "🎬 Реплей", callbackData: $"{ReplayCallback.DATA} id:{scoreId}")
+                    InlineKeyboardButton.WithCallbackData(text: "🎬 Реплей", callbackData: $"{ReplayCallback.DATA} id:{scoreId} A:{ReplayCallbackAction.PressButton}")
                 });
             }
 
@@ -371,6 +371,67 @@ namespace osu_bot.Modules
                 });
 
             return new InlineKeyboardMarkup(keyboardButtons);
+        }
+
+        public InlineKeyboardMarkup ReplayExistMarkup(string hash)
+        {
+            return new InlineKeyboardMarkup(new InlineKeyboardButton[][]
+            {
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "🔂 Существующий", callbackData: $"{ReplayCallback.DATA} id:{hash} A:{ReplayCallbackAction.SendExisting}"),
+                    InlineKeyboardButton.WithCallbackData(text: "🆕 Новый", callbackData: $"{ReplayCallback.DATA} id:{hash} A:{ReplayCallbackAction.SendAgain}")
+                },
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "❌ Cancel", callbackData : $"{ReplayCallback.DATA} id:{hash} A:{ReplayCallbackAction.Cancel}")
+                }
+            });
+        }
+
+        public InlineKeyboardMarkup ReplaySkinChoose(long userId, int page, string hash)
+        {
+            IEnumerable<ReplaySettings> replaySettings = _database.ReplaySettings.Find(r => r.Owner.Id == userId);
+            int pagesCount = replaySettings.Count() / 6 + 1;
+            replaySettings = replaySettings.Skip((page - 1) * 6).Take(6);
+            IEnumerator<ReplaySettings> enumerator = replaySettings.GetEnumerator();
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            for (int i = 0; i < 4; i++)
+            {
+                List<InlineKeyboardButton> rowButtons = new();
+                int j = 0;
+                while (j < 2 && enumerator.MoveNext())
+                {
+                    ReplaySettings settings = enumerator.Current;
+                    rowButtons.Add(InlineKeyboardButton.WithCallbackData(
+                        text: settings.Name,
+                        callbackData: $"{ReplayCallback.DATA} id:{hash} A:{ReplayCallbackAction.Send} settings:{settings.Id}"));
+                    j++;
+                }
+                if (rowButtons.Any())
+                    keyboard.Add(rowButtons);
+            }
+            keyboard.Add(new[]
+            {
+                InlineKeyboardButton.WithCallbackData(text: "❌ Cancel", callbackData : $"{ReplayCallback.DATA} id:{hash} A:{ReplayCallbackAction.Cancel}")
+            });
+
+            List<InlineKeyboardButton> buttons = new();
+            if (page != 1)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{RequestCallback.DATA}:{hash} A:{ReplayCallbackAction.PageChange} P:{page - 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
+
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
+
+            if (page != pagesCount)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{RequestCallback.DATA}:{hash} A:{RequestCallbackAction.PageChange} P:{page + 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
+
+            keyboard.Add(buttons);
+
+            return new InlineKeyboardMarkup(keyboard);
         }
     }
 }

@@ -17,11 +17,15 @@ namespace osu_bot.Entites.Database
 
         public long? ScoreId { get; set; }
 
-        public string? Url { get; set; }
-
         public ReplaySkin Skin { get; set; }
 
         public DateTime? UploadDate { get; set; }
+
+        public int RenderId { get; set; }
+
+        public string? Url { get; set; }
+
+        public int? MessageId { get; set; }
 
         public ReplayUpload()
         { }

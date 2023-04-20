@@ -34,7 +34,9 @@ namespace osu_bot.Entites.Database
 
         public ILiteCollection<ReplayUpload> Replays => _database.GetCollection<ReplayUpload>();
 
-        public ILiteCollection<ReplaySkin> Skins => _database.GetCollection<ReplaySkin>();
+        public ILiteCollection<ReplaySkin> ReplaySkins => _database.GetCollection<ReplaySkin>();
+
+        public ILiteCollection<ReplaySettings> ReplaySettings => _database.GetCollection<ReplaySettings>();
 
         public ILiteStorage<string> FileStorage => _database.FileStorage;
     }

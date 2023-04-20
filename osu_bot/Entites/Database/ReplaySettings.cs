@@ -11,6 +11,10 @@ namespace osu_bot.Entites.Database
 {
     public class ReplaySettings
     {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
         public int GlobalVolume { get; set; }
 
         public int MusicVolume { get; set; }
@@ -102,5 +106,7 @@ namespace osu_bot.Entites.Database
         public bool ShowAimErrorMeter { get; set; }
 
         public bool PlayNightcoreSamples { get; set; }
+
+        public TelegramUser Owner { get; set; }
     }
 }

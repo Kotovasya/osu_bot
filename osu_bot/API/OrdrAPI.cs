@@ -13,6 +13,7 @@ using System.Reflection;
 using osu_bot.Modules;
 using System.Collections;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace osu_bot.API
 {
@@ -37,7 +38,9 @@ namespace osu_bot.API
         private readonly string _verificationKey;
         private readonly HttpClient _httpClient = new();
 
-        public OrdrAPI(OrdrVerificationMode mode)
+        public static OrdrAPI Instance { get; } = new(OrdrVerificationMode.DevSuccess);
+
+        private OrdrAPI(OrdrVerificationMode mode)
         {
             _verificationKey = mode switch
             {
@@ -56,7 +59,7 @@ namespace osu_bot.API
             return JsonConvert.DeserializeObject<IList<ReplaySkin>>(content);
         }
 
-        public async Task<HttpResponseMessage> SendRenderAsync(string username, ReplaySettings settings, MemoryStream replayDataStream)
+        public async Task<JObject> SendRenderAsync(string username, ReplaySettings settings, MemoryStream replayDataStream)
         {
             using MultipartFormDataContent data = new();
             using StreamContent streamContent = new(replayDataStream);
@@ -81,7 +84,10 @@ namespace osu_bot.API
                     data.Add(new StringContent(requestValue), name: requestName);
             }
 
-            return await _httpClient.PostAsync("https://apis.issou.best/ordr/renders", data);
+            HttpResponseMessage response = await _httpClient.PostAsync("https://apis.issou.best/ordr/renders", data);
+            string content = await response.Content.ReadAsStringAsync();
+
+            return JObject.Parse(content);
         }
     }
 }
