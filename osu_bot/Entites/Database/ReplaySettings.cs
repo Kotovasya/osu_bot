@@ -15,97 +15,97 @@ namespace osu_bot.Entites.Database
 
         public string Name { get; set; }
 
-        public int GlobalVolume { get; set; }
+        public int GlobalVolume { get; set; } = 50;
 
-        public int MusicVolume { get; set; }
+        public int MusicVolume { get; set; } = 50;
 
-        public int HitsoundVolume { get; set; }
+        public int HitsoundVolume { get; set; } = 50;
 
-        public bool ShowHitErrorMeter { get; set; }
+        public bool ShowHitErrorMeter { get; set; } = true;
 
-        public bool ShowUnstableRate { get; set; }
+        public bool ShowUnstableRate { get; set; } = true;
 
-        public bool ShowScore { get; set; }
+        public bool ShowScore { get; set; } = true;
 
-        public bool ShowHPBar { get; set; }
+        public bool ShowHPBar { get; set; } = true;
 
-        public bool ShowComboCounter { get; set; }
+        public bool ShowComboCounter { get; set; } = true;
 
-        public bool ShowPPCounter { get; set; }
+        public bool ShowPPCounter { get; set; } = true;
 
-        public bool ShowScoreboard { get; set; }
+        public bool ShowScoreboard { get; set; } = false;
 
-        public bool ShowBorders { get; set; }
+        public bool ShowBorders { get; set; } = false;
 
-        public bool ShowMods { get; set; }
+        public bool ShowMods { get; set; } = true;
 
-        public bool ShowResultScreen { get; set; }
+        public bool ShowResultScreen { get; set; } = true;
 
         public ReplaySkin Skin { get; set; }
 
-        public bool UseSkinColors { get; set; }
+        public bool UseSkinCursor { get; set; } = true;
 
-        public bool UseSkinHitsounds { get; set; }
+        public bool UseSkinColors { get; set; } = false;
 
-        public bool UseBeatmapColors { get; set; }
+        public bool UseSkinHitsounds { get; set; } = true;
 
-        public bool CursorScaleToCS { get; set; }
+        public bool UseBeatmapColors { get; set; } = true;
 
-        public bool CursorRainbow { get; set; }
+        public bool CursorScaleToCS { get; set; } = false;
 
-        public bool CursorTrailGlow { get; set; }
+        public bool CursorRainbow { get; set; } = false;
 
-        public bool DrawFollowPoints { get; set; }
+        public bool CursorTrailGlow { get; set; } = false;
 
-        public bool ScaleToTheBeat { get; set; }
+        public bool DrawFollowPoints { get; set; } = true;
 
-        public bool SliderMerge { get; set; }
+        public bool ScaleToTheBeat { get; set; } = false;
 
-        public bool ObjectsRainbow { get; set; }
+        public bool SliderMerge { get; set; } = false;
 
-        public bool ObjectsFlashToTheBeat { get; set; }
+        public bool ObjectsRainbow { get; set; } = false;
 
-        public bool UseHitCircleColor { get; set; }
+        public bool ObjectsFlashToTheBeat { get; set; } = false;
 
-        public bool SeizureWarning { get; set; }
+        public bool UseHitCircleColor { get; set; } = true;
 
-        public bool LoadStoryBoard { get; set; }
+        public bool SeizureWarning { get; set; } = false;
 
-        public bool LoadVideo { get;  set; }
+        public bool LoadStoryBoard { get; set; } = true;
 
-        public int IntroBGDim { get; set; }
+        public int IntroBGDim { get; set; } = 0;
 
-        public int InGameBGDim { get; set; }
+        public int InGameBGDim { get; set; } = 75;
 
-        public int BreakBGDim { get; set; }
+        public int BreakBGDim { get; set; } = 30;
 
-        public bool BGParallax { get; set; }
+        public bool BGParallax { get; set; } = false;
 
-        public bool ShowDancerLogo { get; set; }
+        public bool ShowDancerLogo { get; set; } = true;
 
-        public bool Skip { get; set; }
+        public bool Skip { get; set; } = true;
 
-        public bool CursorRipples { get; set; }
+        public bool CursorRipples { get; set; } = false;
 
-        public int CursorSize { get; set; }
+        public int CursorSize { get; set; } = 1;
 
-        public bool CursorTrail { get; set; }
+        public bool CursorTrail { get; set; } = true;
 
-        public bool DrawComboNumbers { get; set; }
+        public bool DrawComboNumbers { get; set; } = true;
 
-        public bool SliderShakingIn { get; set; }
+        public bool SliderShakingIn { get; set; } = true;
 
-        public bool SliderShakingOut { get; set; }
+        public bool SliderShakingOut { get; set; } = true;
 
-        public bool ShowHitCounter { get; set; }
+        public bool ShowHitCounter { get; set; } = false;
 
-        public bool ShowKeyOverlay { get; set; }
+        public bool ShowKeyOverlay { get; set; } = true;
 
-        public bool ShowAvatarsOnScoreboard { get; set; }
+        public bool ShowAvatarsOnScoreboard { get; set; } = false;
 
-        public bool ShowAimErrorMeter { get; set; }
+        public bool ShowAimErrorMeter { get; set; } = true;
 
-        public bool PlayNightcoreSamples { get; set; }
+        public bool PlayNightcoreSamples { get; set; } = true;
 
         public TelegramUser Owner { get; set; }
     }

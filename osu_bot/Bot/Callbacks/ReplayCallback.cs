@@ -51,7 +51,7 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
-            Match replayMatch = new Regex(@"Replay id:(\w+) A:(\w+)").Match(data);
+            Match replayMatch = new Regex(@"Replay:(\w+) A:(\w+)").Match(data);
             if (!replayMatch.Success)
                 return new CallbackResult("При обработке запроса на реплей произошла ошибка", 500);
 
@@ -78,7 +78,7 @@ namespace osu_bot.Bot.Callbacks
                     await botClient.SendTextMessageAsync(
                         chatId: callbackQuery.Message.Chat,
                         text: $"Выбери один из пресетов, на котором нужно зарендерить видео",
-                        replyMarkup: MarkupGenerator.Instance.ReplaySkinChoose(callbackQuery.From.Id, 1, hash),
+                        replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, 1, hash, DATA),
                         cancellationToken: cancellationToken);
                 }
             }
@@ -105,7 +105,7 @@ namespace osu_bot.Bot.Callbacks
 
                 await botClient.EditMessageReplyMarkupAsync(
                     chatId: callbackQuery.Message.Chat.Id,
-                    replyMarkup: MarkupGenerator.Instance.ReplaySkinChoose(callbackQuery.From.Id, page, hash),
+                    replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, page, hash, DATA),
                     messageId: callbackQuery.Message.MessageId,
                     cancellationToken: cancellationToken);
             }
