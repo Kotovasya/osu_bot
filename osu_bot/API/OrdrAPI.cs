@@ -69,11 +69,11 @@ namespace osu_bot.API
             data.Add(streamContent, name: "replayFile");
             data.Add(new StringContent(DEFAULT_RESOLUTION), name: "resolution");
             data.Add(new StringContent(_verificationKey), name: "verificationKey");
-            data.Add(new StringContent(skinId.ToString()), name: "skin");
             data.Add(new StringContent(username), name: "username");
 
             Type type = settings.GetType();
-            PropertyInfo[] properties = type.GetProperties();
+            IEnumerable<PropertyInfo> properties =
+                type.GetProperties().Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() is null);
             string requestName;
             string? requestValue;
             foreach (PropertyInfo property in properties)
@@ -81,7 +81,11 @@ namespace osu_bot.API
                 requestName = property.Name.FirstCharToLower();
                 requestValue = property.GetValue(settings)?.ToString();
                 if (requestValue is not null)
+                {
+                    if (requestName == "skin")
+                        requestValue = skinId.ToString();
                     data.Add(new StringContent(requestValue), name: requestName);
+                }
             }
 
             HttpResponseMessage response = await _httpClient.PostAsync("https://apis.issou.best/ordr/renders", data);

@@ -78,7 +78,7 @@ namespace osu_bot.Bot.Callbacks
                     await botClient.SendTextMessageAsync(
                         chatId: callbackQuery.Message.Chat,
                         text: $"Выбери один из пресетов, на котором нужно зарендерить видео",
-                        replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, 1, hash, DATA),
+                        replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, 1, hash),
                         cancellationToken: cancellationToken);
                 }
             }
@@ -105,7 +105,7 @@ namespace osu_bot.Bot.Callbacks
 
                 await botClient.EditMessageReplyMarkupAsync(
                     chatId: callbackQuery.Message.Chat.Id,
-                    replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, page, hash, DATA),
+                    replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, page, hash),
                     messageId: callbackQuery.Message.MessageId,
                     cancellationToken: cancellationToken);
             }

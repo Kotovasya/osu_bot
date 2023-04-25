@@ -21,7 +21,8 @@ namespace osu_bot.Bot
             new LastCommand(),
             new RegCommand(),
             new StatsCommand(),
-            new RequestCommand()
+            new RequestCommand(),
+            new ReplaySettingsCommand()
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, Message, CancellationToken, Task>> _commands = new();

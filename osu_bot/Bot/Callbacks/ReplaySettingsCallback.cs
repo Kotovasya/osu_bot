@@ -11,6 +11,7 @@ using osu_bot.Entites.Database;
 using osu_bot.Modules;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace osu_bot.Bot.Callbacks
 {
@@ -21,12 +22,14 @@ namespace osu_bot.Bot.Callbacks
         Delete,
         Select,
         Cancel,
+        Hide,
+        PageChange,
         Save
     }
 
     public class ReplaySettingsCallback : ICallback
     {
-        public const string DATA = "ReplayS";
+        public const string DATA = "RS";
 
         public string Data => DATA;
 
@@ -42,7 +45,7 @@ namespace osu_bot.Bot.Callbacks
 
             string data = callbackQuery.Data;
 
-            Match replayMatch = new Regex(@"ReplayS:(\d+) A:(\w+)").Match(data);
+            Match replayMatch = new Regex(@"RS:(\d+) A:(\w+)").Match(data);
             if (!replayMatch.Success)
                 return new CallbackResult("При обработке запроса на реплей произошла ошибка", 500);
 
@@ -61,10 +64,53 @@ namespace osu_bot.Bot.Callbacks
             {
                 await botClient.EditMessageReplyMarkupAsync(
                     chatId: callbackQuery.Message.Chat.Id,
-                    replyMarkup: MarkupGenerator.Instance.ReplaySettingsChoose(callbackQuery.From.Id, 1, id.ToString(), DATA),
+                    replyMarkup: MarkupGenerator.Instance.ReplaySettingsList(callbackQuery.From.Id, 1),
                     messageId: callbackQuery.Message.MessageId,
                     cancellationToken: cancellationToken);
             }
+            else if (action is ReplaySettingsCallbackAction.Hide)
+            {
+                await botClient.DeleteMessageAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    messageId: callbackQuery.Message.MessageId,
+                    cancellationToken: cancellationToken);
+            }
+            else if (action is ReplaySettingsCallbackAction.Create)
+            {
+                WebAppInfo webApp = new() { Url = new ReplaySettings().GetWebPageString() };
+                ReplyKeyboardMarkup markup = new(new KeyboardButton[]
+                {
+                    KeyboardButton.WithWebApp("🆕 Создать пресет", webApp),
+                    new KeyboardButton("❌ Отмена"),
+                })
+                {
+                    OneTimeKeyboard = true,
+                    ResizeKeyboard = true,
+                };
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    text: "Для создания пресета, нажмите кнопку внизу экрана",
+                    replyMarkup: markup,
+                    cancellationToken: cancellationToken);
+            }
+            else if (action is ReplaySettingsCallbackAction.Delete)
+            {
+                try
+                {
+                    _database.ReplaySettings.Delete(id);
+                    await botClient.EditMessageReplyMarkupAsync(
+                        chatId: callbackQuery.Message.Chat.Id,
+                        replyMarkup: MarkupGenerator.Instance.ReplaySettingsList(callbackQuery.From.Id, 1),
+                        messageId: callbackQuery.Message.MessageId,
+                        cancellationToken: cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    if (!ex.Message.Contains("message is not modified"))
+                        throw;
+                }
+            }
+            return CallbackResult.Success();
         }
     }
 }

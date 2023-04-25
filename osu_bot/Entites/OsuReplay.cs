@@ -16,7 +16,6 @@ namespace osu_bot.Entites
     public class OsuReplay
     {
         private readonly OsuService _service = OsuService.Instance;
-        private ReplayInfo? _replayInfo = null;
 
         public PlayMode PlayMode { get; set; }
         public int Version { get; set; }

@@ -36,7 +36,6 @@ namespace osu_bot.API
         public async Task InitalizeAsync(TelegramBot bot)
         {
             await _api.InitalizeAsync();
-            _telegramBot = bot;
             _scoresHandlers = new()
             {
                 new RequestsHandler(bot),

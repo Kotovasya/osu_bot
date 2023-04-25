@@ -28,16 +28,18 @@ namespace osu_bot.Bot
         public const int REQUESTS_THREAD_ID = 1009;
         public const int BEATMAPS_THREAD_ID = 1011;
         public const int SCORES_THREAD_ID = 1024;
+        public const long CHAT_ID = -1001888790264;
 
-        public readonly ChatId ChatId = new(-1001888790264);
+        public readonly ChatId ChatId = new(CHAT_ID);
         public readonly ITelegramBotClient BotClient = new TelegramBotClient("6287803710:AAFgsXlWVeh2QOtvsBymmnG87bNDXX7XqTg");
 #else
         public const int REPLAYS_THREAD_ID = 799;
         public const int REQUESTS_THREAD_ID = 801;
         public const int BEATMAPS_THREAD_ID = 805;
         public const int SCORES_THREAD_ID = 1132;
+        public const long CHAT_ID = -1001238663722;
 
-        public readonly ChatId ChatId = new(-1001238663722);
+        public readonly ChatId ChatId = new(CHAT_ID);
         public readonly ITelegramBotClient BotClient = new TelegramBotClient("5701573101:AAESrGE-4nLNjqXTcWHvnQcBDkQG0pgP2IE");
 #endif
 
@@ -49,6 +51,7 @@ namespace osu_bot.Bot
         private readonly CallbacksManager _callbacksManager = new();
         private readonly CommandsManager _commandsManager = new();
         private readonly DocumentsManager _documentsManager = new();
+        private readonly WebAppsManager _webAppsManager = new();
 
         private readonly List<Scanner> _scanners = new()
         {
@@ -105,6 +108,10 @@ namespace osu_bot.Bot
                     {
                         await _documentsManager.HandlingAsync(botClient, message, cancellationToken);
                     }
+                    if (update.Message.WebAppData != null)
+                    {
+                        await _webAppsManager.HandlingAsync(botClient, message, cancellationToken);
+                    }
                 }
             }
             catch (Exception ex)
@@ -128,24 +135,9 @@ namespace osu_bot.Bot
                 _ => exception.ToString()
             };
 
-            BotClient.SendTextMessageAsync(
-                chatId: ChatId,
-                text: "Произошла ошибка (возможно превышен лимит запросов), бот перезапустится в течении 2-х секунд...");
-
-            Task.Delay(5000).Wait();
-
-            BotClient.StartReceiving(
-                updateHandler: HandleUpdateAsync,
-                pollingErrorHandler: HandlePollingErrorAsync,
-                receiverOptions: _receiverOptions,
-                cancellationToken: cancellationToken
-            );
-
-            BotClient.SendTextMessageAsync(
-                chatId: ChatId,
-                text: "Бот перезапущен и готов к работе.");
-
             Console.WriteLine(ErrorMessage);
+            Task.Delay(20000).Wait();
+            Environment.Exit(1);
             return Task.CompletedTask;
         }
     }

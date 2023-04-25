@@ -22,7 +22,8 @@ namespace osu_bot.Bot
             new TopConferenceCallback(),
             new RequestCallback(),
             new RequestsListCallback(),
-            new ReplayCallback()
+            new ReplayCallback(),
+            new ReplaySettingsCallback()
         };
 
         private readonly Dictionary<string, Func<ITelegramBotClient, CallbackQuery, CancellationToken, Task<CallbackResult?>>> _callbacks = new();

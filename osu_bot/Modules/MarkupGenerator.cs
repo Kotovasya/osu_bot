@@ -390,7 +390,7 @@ namespace osu_bot.Modules
             });
         }
 
-        public InlineKeyboardMarkup ReplaySettingsChoose(long userId, int page, string hash, string callbackData)
+        public InlineKeyboardMarkup ReplaySettingsChoose(long userId, int page, string hash)
         {
             IEnumerable<ReplaySettings> replaySettings = _database.ReplaySettings.Find(r => r.Owner.Id == userId);
             int pagesCount = replaySettings.Count() / 6 + 1;
@@ -406,27 +406,80 @@ namespace osu_bot.Modules
                     ReplaySettings settings = enumerator.Current;
                     rowButtons.Add(InlineKeyboardButton.WithCallbackData(
                         text: settings.Name,
-                        callbackData: $"{callbackData}:{hash} A:{ReplayCallbackAction.Send} settings:{settings.Id}"));
+                        callbackData: $"{ReplayCallback.DATA}:{hash} A:{ReplayCallbackAction.Send} settings:{settings.Id}"));
                     j++;
                 }
                 if (rowButtons.Any())
                     keyboard.Add(rowButtons);
             }
+
             keyboard.Add(new[]
             {
-                InlineKeyboardButton.WithCallbackData(text: "❌ Cancel", callbackData : $"{callbackData}:{hash} A:{ReplayCallbackAction.Cancel}")
+                InlineKeyboardButton.WithCallbackData(text: "❌ Cancel", callbackData: $"{ReplayCallback.DATA}:{hash} A:{ReplayCallbackAction.Cancel}")
             });
 
             List<InlineKeyboardButton> buttons = new();
             if (page != 1)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{callbackData}:{hash} A:{ReplayCallbackAction.PageChange} P:{page - 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{ReplayCallback.DATA}:{hash} A:{ReplayCallbackAction.PageChange} P:{page - 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
 
             buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
 
             if (page != pagesCount)
-                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{callbackData}:{hash} A:{RequestCallbackAction.PageChange} P:{page + 1}"));
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{ReplayCallback.DATA}:{hash} A:{ReplayCallbackAction.PageChange} P:{page + 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
+
+            keyboard.Add(buttons);
+
+            return new InlineKeyboardMarkup(keyboard);
+        }
+
+        public InlineKeyboardMarkup ReplaySettingsList(long userId, int page)
+        {
+            IEnumerable<ReplaySettings> replaySettings = _database.ReplaySettings.Find(r => r.Owner.Id == userId);
+            int pagesCount = replaySettings.Count() / 6 + 1;
+            replaySettings = replaySettings.Skip((page - 1) * 6).Take(6);
+            IEnumerator<ReplaySettings> enumerator = replaySettings.GetEnumerator();
+            List<IEnumerable<InlineKeyboardButton>> keyboard = new();
+            for (int i = 0; i < 4; i++)
+            {
+                List<InlineKeyboardButton> rowButtons = new();
+                int j = 0;
+                while (j < 2 && enumerator.MoveNext())
+                {
+                    ReplaySettings settings = enumerator.Current;
+                    rowButtons.Add(InlineKeyboardButton.WithCallbackData(
+                        text: settings.Name,
+                        callbackData: $"{ReplaySettingsCallback.DATA}:{settings.Id} A:{ReplaySettingsCallbackAction.Select}"));
+                    j++;
+                }
+                if (rowButtons.Any())
+                    keyboard.Add(rowButtons);
+            }
+
+            WebAppInfo webApp = new()
+            {
+                Url = new ReplaySettings().GetWebPageString()
+            };
+
+            keyboard.Add(new[]
+            {
+                InlineKeyboardButton.WithCallbackData(text: "🆕 Create", callbackData: $"{ReplaySettingsCallback.DATA}:0 A:{ReplaySettingsCallbackAction.Create}"),
+                InlineKeyboardButton.WithCallbackData(text: "🚫 Hide", callbackData: $"{ReplaySettingsCallback.DATA}:0 A:{ReplaySettingsCallbackAction.Hide}")
+            });
+
+            List<InlineKeyboardButton> buttons = new();
+            if (page != 1)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back", $"{ReplaySettingsCallback.DATA}:0 A:{ReplaySettingsCallbackAction.PageChange} P:{page - 1}"));
+            else
+                buttons.Add(InlineKeyboardButton.WithCallbackData("◀️ Back"));
+
+            buttons.Add(InlineKeyboardButton.WithCallbackData($"Page {page}/{pagesCount}"));
+
+            if (page != pagesCount)
+                buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️", $"{ReplaySettingsCallback.DATA}:0 A:{ReplaySettingsCallbackAction.PageChange} P:{page + 1}"));
             else
                 buttons.Add(InlineKeyboardButton.WithCallbackData("Next ▶️"));
 
@@ -438,7 +491,11 @@ namespace osu_bot.Modules
         public InlineKeyboardMarkup ReplaySettingsSelect(int id)
         {
             ReplaySettings settings = _database.ReplaySettings.FindById(id);
-            WebAppInfo webApp = new WebAppInfo() { Url = "" };
+            WebAppInfo webApp = new()
+            {
+                Url = settings.GetWebPageString()
+            };
+
             return new InlineKeyboardMarkup(new InlineKeyboardButton[][]
             {
                 new InlineKeyboardButton[]
