@@ -25,9 +25,15 @@ namespace osu_bot.Bot.WebApps
             if (message.WebAppData is null)
                 return;
 
+            if (message.From is null)
+                return;
+
             ReplaySettings? settings = JsonConvert.DeserializeObject<ReplaySettings>(message.WebAppData.Data);
             if (settings is null)
                 return;
+
+            TelegramUser user = _database.TelegramUsers.FindById(message.From.Id);
+            settings.Owner = user;
 
             bool result = _database.ReplaySettings.Upsert(settings);
             string text = result ? "Пресет успешно сохранен" : "Не удалось сохранить пресет";

@@ -491,10 +491,6 @@ namespace osu_bot.Modules
         public InlineKeyboardMarkup ReplaySettingsSelect(int id)
         {
             ReplaySettings settings = _database.ReplaySettings.FindById(id);
-            WebAppInfo webApp = new()
-            {
-                Url = settings.GetWebPageString()
-            };
 
             return new InlineKeyboardMarkup(new InlineKeyboardButton[][]
             {
@@ -504,7 +500,7 @@ namespace osu_bot.Modules
                 },
                 new InlineKeyboardButton[]
                 {
-                    InlineKeyboardButton.WithWebApp("🖋 Edit", webApp),
+                    InlineKeyboardButton.WithCallbackData("🖋 Edit", $"{ReplaySettingsCallback.DATA}:{id} A:{ReplaySettingsCallbackAction.Update}"),
                     InlineKeyboardButton.WithCallbackData("❌ Delete", $"{ReplaySettingsCallback.DATA}:{id} A:{ReplaySettingsCallbackAction.Delete}")
                 },
                 new InlineKeyboardButton[]

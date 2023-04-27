@@ -93,6 +93,28 @@ namespace osu_bot.Bot.Callbacks
                     replyMarkup: markup,
                     cancellationToken: cancellationToken);
             }
+            else if (action is ReplaySettingsCallbackAction.Update)
+            {
+                ReplaySettings settings = _database.ReplaySettings.FindById(id);
+                if (settings is null)
+                    throw new NotImplementedException();
+
+                WebAppInfo webApp = new() { Url = settings.GetWebPageString() };
+                ReplyKeyboardMarkup markup = new(new KeyboardButton[]
+                {
+                    KeyboardButton.WithWebApp("🖋 Редактировать пресет", webApp),
+                    new KeyboardButton("❌ Отмена"),
+                })
+                {
+                    OneTimeKeyboard = true,
+                    ResizeKeyboard = true,
+                };
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.Message.Chat.Id,
+                    text: "Для редактирования пресета, нажмите кнопку внизу экрана",
+                    replyMarkup: markup,
+                    cancellationToken: cancellationToken);
+            }
             else if (action is ReplaySettingsCallbackAction.Delete)
             {
                 try

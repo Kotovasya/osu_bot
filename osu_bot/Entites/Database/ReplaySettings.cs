@@ -116,7 +116,7 @@ namespace osu_bot.Entites.Database
         public int BreakBGDim { get; set; } = 30;
 
         [JsonProperty("bgParallax")]
-        public bool BGParallax { get; set; } = false;
+        public bool BgParallax { get; set; } = false;
 
         [JsonProperty("showDancerLogo")]
         public bool ShowDancerLogo { get; set; } = true;
