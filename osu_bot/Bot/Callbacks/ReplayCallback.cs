@@ -109,7 +109,7 @@ namespace osu_bot.Bot.Callbacks
                     messageId: callbackQuery.Message.MessageId,
                     cancellationToken: cancellationToken);
             }
-            else if (action is ReplayCallbackAction.Send || action is ReplayCallbackAction.SendAgain)
+            else if (action is ReplayCallbackAction.Send or ReplayCallbackAction.SendAgain)
             {
                 using MemoryStream replayData = await _service.GetReplayDataAsync(hash);
                 if (replayData.Length == 0)
