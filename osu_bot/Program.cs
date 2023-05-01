@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu_bot.API;
 using osu_bot.Bot;
 using osu_bot.Entites.Database;
 using osu_bot.Modules;
@@ -16,6 +17,7 @@ namespace osu_bot
         private static async Task Main(string[] args)
         {
             TelegramBot bot = new();
+            OrdrAPI.Instance.ToString();
             await bot.RunAsync();
         }
     }

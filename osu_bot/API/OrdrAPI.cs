@@ -14,6 +14,7 @@ using osu_bot.Modules;
 using System.Collections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu_bot.API.WebSockets;
 
 namespace osu_bot.API
 {
@@ -37,6 +38,7 @@ namespace osu_bot.API
 
         private readonly string _verificationKey;
         private readonly HttpClient _httpClient = new();
+        private readonly OrdrWebSocket _webSocket = new();
 
         public static OrdrAPI Instance { get; } = new(OrdrVerificationMode.DevSuccess);
 
@@ -50,6 +52,7 @@ namespace osu_bot.API
                 OrdrVerificationMode.Release => RELEASEMODE,
                 _ => ""
             };
+            Task.Run(() => _webSocket.ListenAsync());
         }
 
         public async Task<IList<ReplaySkin>?> GetAllSkinsAsync()
